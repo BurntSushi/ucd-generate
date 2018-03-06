@@ -10,7 +10,7 @@ homepage = "https://github.com/BurntSushi/rucd"
 repository = "https://github.com/BurntSushi/rucd"
 readme = "README.md"
 keywords = ["unicode", "database", "character", "codepoint", "trie"]
-license = "Unlicense/MIT"
+license = "MIT/Apache-2.0"
 
 [dev-dependencies]
 lazy_static = "1"
