@@ -1,6 +1,6 @@
 [package]
 name = "ucd-generate"
-version = "0.1.0"  #:version
+version = "0.1.1"  #:version
 authors = ["Andrew Gallant <jamslam@gmail.com>"]
 description = """
 A program for generating packed representations of the Unicode character
@@ -19,9 +19,9 @@ members = ["ucd-parse", "ucd-trie", "ucd-util"]
 [dependencies]
 byteorder = "1"
 fst = { version = "0.3", default-features = false }
-ucd-parse = { version = "0.1.0", path = "ucd-parse" }
-ucd-trie = { version = "0.1.0", path = "ucd-trie" }
-ucd-util = { version = "0.1.0", path = "ucd-util"  }
+ucd-parse = { version = "0.1.1", path = "ucd-parse" }
+ucd-trie = { version = "0.1.1", path = "ucd-trie" }
+ucd-util = { version = "0.1.1", path = "ucd-util"  }
 
 [dependencies.clap]
 version = "2"

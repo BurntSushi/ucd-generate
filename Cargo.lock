@@ -137,20 +137,20 @@ dependencies = [
 
 [[package]]
 name = "ucd-generate"
-version = "0.0.1"
+version = "0.1.1"
 dependencies = [
  "byteorder 1.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.31.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "fst 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "ucd-parse 0.1.0",
- "ucd-trie 0.1.0",
- "ucd-util 0.1.0",
+ "ucd-parse 0.1.1",
+ "ucd-trie 0.1.1",
+ "ucd-util 0.1.1",
 ]
 
 [[package]]
 name = "ucd-parse"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "lazy_static 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -158,14 +158,14 @@ dependencies = [
 
 [[package]]
 name = "ucd-trie"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "lazy_static 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "ucd-util"
-version = "0.1.0"
+version = "0.1.1"
 
 [[package]]
 name = "unicode-width"
