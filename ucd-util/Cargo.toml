@@ -1,0 +1,13 @@
+[package]
+name = "ucd-util"
+version = "0.0.1"  #:version
+authors = ["Andrew Gallant <jamslam@gmail.com>"]
+description = """
+A small utility library for working with the Unicode character database.
+"""
+documentation = "https://github.com/BurntSushi/rucd"
+homepage = "https://github.com/BurntSushi/rucd"
+repository = "https://github.com/BurntSushi/rucd"
+readme = "README.md"
+keywords = ["unicode", "database", "character", "property"]
+license = "Unlicense/MIT"
