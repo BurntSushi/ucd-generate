@@ -6,6 +6,8 @@ set -ex
 # we ensure that ucd-util does the same. We don't test anything else for
 # Rust 1.12.
 if [ "$TRAVIS_RUST_VERSION" = "1.12.0" ]; then
+  # I guess older versions of Cargo can't parse newer lock files? Bummer.
+  rm Cargo.lock
   cargo build --verbose --manifest-path ucd-util/Cargo.toml
   cargo test --verbose --manifest-path ucd-util/Cargo.toml
   exit

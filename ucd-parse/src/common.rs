@@ -159,7 +159,7 @@ pub struct UcdLineParser<R, D> {
 
 impl<D> UcdLineParser<File, D> {
     /// Create a new parser from the given file path.
-    fn from_path<P: AsRef<Path>>(
+    pub(crate) fn from_path<P: AsRef<Path>>(
         path: P,
     ) -> Result<UcdLineParser<File, D>, Error> {
         let file = File::open(path)?;
@@ -175,7 +175,7 @@ impl<R: io::Read, D> UcdLineParser<R, D> {
     ///
     /// Note that the reader is buffered internally, so the caller does not
     /// need to provide their own buffering.
-    fn new(rdr: R) -> UcdLineParser<R, D> {
+    pub(crate) fn new(rdr: R) -> UcdLineParser<R, D> {
         UcdLineParser {
             rdr: io::BufReader::new(rdr),
             line: String::new(),
