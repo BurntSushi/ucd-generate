@@ -95,16 +95,13 @@ mod tests {
     fn canonical_property_name_1() {
         assert_eq!(
             canonical_property_name(PROPERTY_NAMES, "gc"),
-            Some("General_Category"),
-        );
+            Some("General_Category"));
         assert_eq!(
             canonical_property_name(PROPERTY_NAMES, "generalcategory"),
-            Some("General_Category"),
-        );
+            Some("General_Category"));
         assert_eq!(
             canonical_property_name(PROPERTY_NAMES, "g c"),
-            None,
-        );
+            None);
     }
 
     #[test]
@@ -114,8 +111,7 @@ mod tests {
             Some(&[
                 ("f", "No"), ("false", "No"), ("n", "No"), ("no", "No"),
                 ("t", "Yes"), ("true", "Yes"), ("y", "Yes"), ("yes", "Yes"),
-            ][..]),
-        );
+            ][..]));
     }
 
     #[test]
