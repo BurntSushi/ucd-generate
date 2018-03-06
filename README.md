@@ -104,11 +104,11 @@ dramatically.
 
 This repository is home to three sub-crates:
 
-* [`ucd-parse`](tree/master/ucd-parse) - A crate for parsing UCD files into
+* [`ucd-parse`](ucd-parse) - A crate for parsing UCD files into
   structured data.
-* [`ucd-trie`](tree/master/ucd-trie) - Auxiliary type for handling the trie
+* [`ucd-trie`](ucd-trie) - Auxiliary type for handling the trie
   set table format emitted by `ucd-generate`. This crate has a `no_std` mode.
-* [`ucd-util`](tree/master/ucd-util) - A purposely small crate for Unicode
+* [`ucd-util`](ucd-util) - A purposely small crate for Unicode
   auxiliary functions. This includes things like symbol or character name
   canonicalization, ideograph name generation and helper functions for
   searching property name and value tables.
