@@ -19,7 +19,6 @@ members = ["ucd-parse", "ucd-trie", "ucd-util"]
 [dependencies]
 byteorder = "1"
 fst = { version = "0.3", default-features = false }
-regex = "0.2"
 ucd-parse = { version = "0.0.1", path = "ucd-parse" }
 ucd-trie = { version = "0.0.1", path = "ucd-trie" }
 ucd-util = { version = "0.0.1", path = "ucd-util"  }
