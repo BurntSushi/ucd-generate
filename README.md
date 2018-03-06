@@ -80,6 +80,14 @@ pub const QUOTATION_MARK: &'static [(char, char)] = &[
 ```
 
 
+### Contributing
+
+The `ucd-generate` tool doesn't have any specific design goals, other than to
+collect Unicode table generation tasks. If you need `ucd-generate` to do
+something and it's reasonably straight-forward to add, then just submitting a
+PR would be great. Otherwise, file an issue and we can discuss.
+
+
 ### Future work
 
 This tool is by no means is exhaustive. In fact, it's not even close to
