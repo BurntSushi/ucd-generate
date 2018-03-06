@@ -7,3 +7,8 @@ representing boolean Unicode character properties.
 [![](http://meritbadge.herokuapp.com/ucd-generate)](https://crates.io/crates/ucd-trie)
 
 Dual-licensed under MIT or the [UNLICENSE](http://unlicense.org).
+
+
+### Documentation
+
+https://docs.rs/ucd-trie

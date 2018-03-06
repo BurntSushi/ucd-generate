@@ -7,3 +7,8 @@ data.
 [![](http://meritbadge.herokuapp.com/ucd-generate)](https://crates.io/crates/ucd-parse)
 
 Dual-licensed under MIT or the [UNLICENSE](http://unlicense.org).
+
+
+### Documentation
+
+https://docs.rs/ucd-parse

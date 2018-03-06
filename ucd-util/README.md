@@ -8,3 +8,8 @@ functions for searching property name and value tables.
 [![](http://meritbadge.herokuapp.com/ucd-generate)](https://crates.io/crates/ucd-util)
 
 Dual-licensed under MIT or the [UNLICENSE](http://unlicense.org).
+
+
+### Documentation
+
+https://docs.rs/ucd-util
