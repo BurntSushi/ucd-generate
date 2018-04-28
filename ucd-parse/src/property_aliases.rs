@@ -99,4 +99,13 @@ mod tests {
         assert_eq!(row.long, "kRSUnicode");
         assert_eq!(row.aliases, vec!["Unicode_Radical_Stroke", "URS"]);
     }
+
+    #[test]
+    fn parse5() {
+        let line = "isc                      ; ISO_Comment";
+        let row: PropertyAlias = line.parse().unwrap();
+        assert_eq!(row.abbreviation, "isc");
+        assert_eq!(row.long, "ISO_Comment");
+        assert!(row.aliases.is_empty());
+    }
 }
