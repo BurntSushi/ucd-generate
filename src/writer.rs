@@ -836,7 +836,7 @@ fn escape_input(b: u8) -> String {
 
 /// Heuristically produce an appropriate constant Rust name.
 fn rust_const_name(s: &str) -> String {
-    #[allow(unused_imports)]
+    #[allow(deprecated, unused_imports)]
     use std::ascii::AsciiExt;
 
     // Property names/values seem pretty uniform, particularly the
@@ -851,7 +851,7 @@ fn rust_const_name(s: &str) -> String {
 
 /// Heuristically produce an appropriate module Rust name.
 fn rust_module_name(s: &str) -> String {
-    #[allow(unused_imports)]
+    #[allow(deprecated, unused_imports)]
     use std::ascii::AsciiExt;
 
     // Property names/values seem pretty uniform, particularly the
