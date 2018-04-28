@@ -94,9 +94,10 @@ fn symbolic_name_normalize_bytes(slice: &mut [u8]) -> &mut [u8] {
     // names/aliases had a particular structure (unlike character names), but
     // we assume that it's ASCII only and drop anything that isn't ASCII.
     let mut start = 0;
+    let mut starts_with_is = false;
     if slice.len() >= 2 {
         // Ignore any "is" prefix.
-        let starts_with_is =
+        starts_with_is =
             slice[0..2] == b"is"[..]
             || slice[0..2] == b"IS"[..]
             || slice[0..2] == b"iS"[..]
@@ -120,6 +121,16 @@ fn symbolic_name_normalize_bytes(slice: &mut [u8]) -> &mut [u8] {
             slice[next_write] = b;
             next_write += 1;
         }
+    }
+    // Special case: ISO_Comment has a 'isc' abbreviation. Since we generally
+    // ignore 'is' prefixes, the 'isc' abbreviation gets caught in the cross
+    // fire and ends up creating an alias for 'c' to 'ISO_Comment', but it
+    // is actually an alias for the 'Other' general category.
+    if starts_with_is && next_write == 1 && slice[0] == b'c' {
+        slice[0] = b'i';
+        slice[1] = b's';
+        slice[2] = b'c';
+        next_write = 3;
     }
     &mut slice[..next_write]
 }
@@ -162,6 +173,9 @@ mod tests {
         assert_eq!(sym_norm("Greek"), "greek");
         assert_eq!(sym_norm("isGreek"), "greek");
         assert_eq!(sym_norm("IS_Greek"), "greek");
+        assert_eq!(sym_norm("isc"), "isc");
+        assert_eq!(sym_norm("is c"), "isc");
+        assert_eq!(sym_norm("is_c"), "isc");
     }
 
     #[test]
