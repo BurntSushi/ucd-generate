@@ -1,3 +1,6 @@
+#[cfg(all(feature = "alloc", not(feature = "std")))]
+use alloc::string::String;
+
 /// A set of ranges that corresponds to the set of all ideograph codepoints.
 ///
 /// These ranges are defined in Unicode 4.8 Table 4-13.

@@ -1,3 +1,6 @@
+#[cfg(all(feature = "alloc", not(feature = "std")))]
+use alloc::string::String;
+
 /// Normalize the given character name in place according to UAX44-LM2.
 ///
 /// See: http://unicode.org/reports/tr44/#UAX44-LM2
@@ -137,6 +140,9 @@ fn symbolic_name_normalize_bytes(slice: &mut [u8]) -> &mut [u8] {
 
 #[cfg(test)]
 mod tests {
+    #[cfg(all(feature = "alloc", not(feature = "std")))]
+    use alloc::string::{String, ToString};
+
     use super::{
         character_name_normalize, character_name_normalize_bytes,
         symbolic_name_normalize, symbolic_name_normalize_bytes,

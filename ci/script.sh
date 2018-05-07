@@ -18,4 +18,6 @@ cargo doc --all --verbose
 cargo test --all --verbose
 if [ "$TRAVIS_RUST_VERSION" = "nightly" ]; then
   cargo bench --all --verbose --no-run
+  # Test no_std + alloc mode for ucd-util
+  cargo test --lib --manifest-path ucd-util/Cargo.toml --no-default-features --features "alloc"
 fi

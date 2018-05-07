@@ -9,7 +9,18 @@ canonicalization functions, you'll need to supply your own table, which can
 be generated using `ucd-generate`.
 */
 
+#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(all(feature = "alloc", not(feature = "std")), feature(alloc))]
+
 #![deny(missing_docs)]
+
+#[cfg(all(test, not(feature = "std")))]
+#[macro_use]
+extern crate std;
+
+#[cfg(all(feature = "alloc", not(feature = "std")))]
+#[macro_use]
+extern crate alloc;
 
 mod hangul;
 mod ideograph;

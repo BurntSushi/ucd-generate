@@ -1,3 +1,6 @@
+#[cfg(all(feature = "alloc", not(feature = "std")))]
+use alloc::string::{String, ToString};
+
 use unicode_tables::jamo_short_name::JAMO_SHORT_NAME;
 
 // This implementation should correspond to the algorithms described in
