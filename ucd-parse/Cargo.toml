@@ -5,9 +5,9 @@ authors = ["Andrew Gallant <jamslam@gmail.com>"]
 description = """
 A library for parsing data files in the Unicode character database.
 """
-documentation = "https://github.com/BurntSushi/rucd"
-homepage = "https://github.com/BurntSushi/rucd"
-repository = "https://github.com/BurntSushi/rucd"
+documentation = "https://docs.rs/ucd-parse"
+homepage = "https://github.com/BurntSushi/ucd-generate"
+repository = "https://github.com/BurntSushi/ucd-generate"
 readme = "README.md"
 keywords = ["unicode", "database", "character", "property"]
 license = "MIT/Apache-2.0"

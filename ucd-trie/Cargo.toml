@@ -6,8 +6,8 @@ description = """
 A trie for storing Unicode codepoint sets and maps.
 """
 documentation = "https://docs.rs/ucd-trie"
-homepage = "https://github.com/BurntSushi/rucd"
-repository = "https://github.com/BurntSushi/rucd"
+homepage = "https://github.com/BurntSushi/ucd-generate"
+repository = "https://github.com/BurntSushi/ucd-generate"
 readme = "README.md"
 keywords = ["unicode", "database", "character", "codepoint", "trie"]
 license = "MIT/Apache-2.0"
