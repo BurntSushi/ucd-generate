@@ -22,6 +22,6 @@ This project is licensed under either of
    http://opensource.org/licenses/MIT)
 at your option.
 
-The data in `src/unicode_tables/` is licensed inder the Unicode License 
+The data in [`src/unicode_tables/`](src/unicode_tables) is licensed inder the Unicode License 
 Agreement ([LICENSE-UNICODE](LICENSE-UNICODE) or
 http://www.unicode.org/copyright.html#License).
