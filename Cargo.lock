@@ -145,7 +145,7 @@ dependencies = [
  "lazy_static 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "ucd-parse 0.1.1",
  "ucd-trie 0.1.1",
- "ucd-util 0.1.2",
+ "ucd-util 0.1.3",
 ]
 
 [[package]]
@@ -165,7 +165,7 @@ dependencies = [
 
 [[package]]
 name = "ucd-util"
-version = "0.1.2"
+version = "0.1.3"
 
 [[package]]
 name = "unicode-width"
