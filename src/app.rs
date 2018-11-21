@@ -120,6 +120,11 @@ to codepoint. When codepoints are mapped according to this table, then case
 differences (according to Unicode) are eliminated.
 ";
 
+const ABOUT_GRAPHEME_CLUSTER_BREAK: &'static str = "\
+grapheme-cluster-break emits the table of property values and their
+corresponding codepoints for the Grapheme_Cluster_Break property.
+";
+
 /// Build a clap application.
 pub fn app() -> App<'static, 'static> {
     // Various common flags and arguments.
@@ -379,6 +384,21 @@ pub fn app() -> App<'static, 'static> {
              .long("all-pairs")
              .help("Emit a table where each codepoint includes all possible \
                     Simple mappings."));
+    let cmd_grapheme_cluster_break =
+        SubCommand::with_name("grapheme-cluster-break")
+        .author(crate_authors!())
+        .version(crate_version!())
+        .template(TEMPLATE_SUB)
+        .about("Create a table for each Grapheme_Cluster_Break value.")
+        .before_help(ABOUT_GRAPHEME_CLUSTER_BREAK)
+        .arg(flag_name("GRAPHEME_CLUSTER_BREAK"))
+        .arg(ucd_dir.clone())
+        .arg(flag_fst_dir.clone())
+        .arg(flag_chars.clone())
+        .arg(flag_trie_set.clone())
+        .arg(Arg::with_name("enum")
+            .long("enum")
+            .help("Emit a single table that maps codepoints to values."));
 
     let cmd_test_unicode_data = SubCommand::with_name("test-unicode-data")
         .author(crate_authors!())
@@ -407,5 +427,6 @@ pub fn app() -> App<'static, 'static> {
         .subcommand(cmd_property_names)
         .subcommand(cmd_property_values)
         .subcommand(cmd_case_folding_simple)
+        .subcommand(cmd_grapheme_cluster_break)
         .subcommand(cmd_test_unicode_data)
 }

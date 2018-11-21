@@ -29,6 +29,7 @@ mod writer;
 mod age;
 mod case_folding;
 mod general_category;
+mod grapheme_cluster_break;
 mod jamo_short_name;
 mod names;
 mod property_bool;
@@ -79,6 +80,9 @@ fn run() -> Result<()> {
         }
         ("case-folding-simple", Some(m)) => {
             case_folding::command(ArgMatches::new(m))
+        }
+        ("grapheme-cluster-break", Some(m)) => {
+            grapheme_cluster_break::command(ArgMatches::new(m))
         }
         ("test-unicode-data", Some(m)) => {
             cmd_test_unicode_data(ArgMatches::new(m))
