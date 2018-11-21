@@ -61,14 +61,14 @@ impl PropertyNames {
     pub fn from_ucd_dir<P: AsRef<Path>>(ucd_dir: P) -> Result<PropertyNames> {
         use ucd_parse::UcdFile;
 
+        let make_key = |mut value| {
+            ucd_util::symbolic_name_normalize(&mut value);
+            value
+        };
         let mut map = BTreeMap::new();
         for result in PropertyAlias::from_dir(ucd_dir)? {
             let a = result?;
             let canon = a.long.to_string();
-            let make_key = |mut value| {
-                ucd_util::symbolic_name_normalize(&mut value);
-                value
-            };
 
             for alias in a.aliases {
                 map.insert(make_key(alias), canon.clone());
@@ -76,6 +76,22 @@ impl PropertyNames {
             map.insert(make_key(a.abbreviation), canon.clone());
             map.insert(make_key(a.long), canon);
         }
+
+        // UAX#51 defines several Emoji properties that aren't technically
+        // part of UCD and don't appear in the property alias file, so we
+        // manually add them here.
+        const EMOJI_PROPERTY_NAMES: &'static [&'static str] = &[
+            "Emoji",
+            "Emoji_Presentation",
+            "Emoji_Modifier",
+            "Emoji_Modifier_Base",
+            "Emoji_Component",
+            "Extended_Pictographic",
+        ];
+        for name in EMOJI_PROPERTY_NAMES {
+            map.insert(make_key(name.to_string()), name.to_string());
+        }
+
         Ok(PropertyNames(map))
     }
 

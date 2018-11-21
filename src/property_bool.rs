@@ -1,7 +1,9 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
-use ucd_parse::{self, CoreProperty, Property, UnicodeDataExpander};
+use ucd_parse::{
+    self, CoreProperty, EmojiProperty, Property, UnicodeDataExpander,
+};
 
 use args::ArgMatches;
 use error::Result;
@@ -71,6 +73,14 @@ fn parse_properties<P: AsRef<Path>>(
 
     let core_prop: Vec<CoreProperty> = ucd_parse::parse(&ucd_dir)?;
     for x in &core_prop {
+        by_name
+            .entry(x.property.clone())
+            .or_insert(BTreeSet::new())
+            .extend(x.codepoints.into_iter().map(|c| c.value()));
+    }
+
+    let emoji_prop: Vec<EmojiProperty> = ucd_parse::parse(&ucd_dir)?;
+    for x in &emoji_prop {
         by_name
             .entry(x.property.clone())
             .or_insert(BTreeSet::new())
