@@ -27,12 +27,14 @@ pub use property_aliases::PropertyAlias;
 pub use property_value_aliases::PropertyValueAlias;
 pub use script_extensions::ScriptExtension;
 pub use scripts::Script;
+pub use sentence_break::SentenceBreak;
 pub use special_casing::SpecialCaseMapping;
 pub use unicode_data::{
     UnicodeData, UnicodeDataNumeric,
     UnicodeDataDecomposition, UnicodeDataDecompositionTag,
     UnicodeDataExpander,
 };
+pub use word_break::WordBreak;
 
 macro_rules! err {
     ($($tt:tt)*) => {
@@ -55,5 +57,7 @@ mod property_aliases;
 mod property_value_aliases;
 mod script_extensions;
 mod scripts;
+mod sentence_break;
 mod special_casing;
 mod unicode_data;
+mod word_break;

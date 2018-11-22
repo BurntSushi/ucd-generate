@@ -29,7 +29,7 @@ mod writer;
 mod age;
 mod case_folding;
 mod general_category;
-mod grapheme_cluster_break;
+mod brk;
 mod jamo_short_name;
 mod names;
 mod property_bool;
@@ -82,7 +82,13 @@ fn run() -> Result<()> {
             case_folding::command(ArgMatches::new(m))
         }
         ("grapheme-cluster-break", Some(m)) => {
-            grapheme_cluster_break::command(ArgMatches::new(m))
+            brk::grapheme_cluster(ArgMatches::new(m))
+        }
+        ("word-break", Some(m)) => {
+            brk::word(ArgMatches::new(m))
+        }
+        ("sentence-break", Some(m)) => {
+            brk::sentence(ArgMatches::new(m))
         }
         ("test-unicode-data", Some(m)) => {
             cmd_test_unicode_data(ArgMatches::new(m))

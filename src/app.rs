@@ -125,6 +125,16 @@ grapheme-cluster-break emits the table of property values and their
 corresponding codepoints for the Grapheme_Cluster_Break property.
 ";
 
+const ABOUT_WORD_BREAK: &'static str = "\
+word-break emits the table of property values and their corresponding
+codepoints for the Word_Break property.
+";
+
+const ABOUT_SENTENCE_BREAK: &'static str = "\
+sentence-break emits the table of property values and their corresponding
+codepoints for the Sentence_Break property.
+";
+
 /// Build a clap application.
 pub fn app() -> App<'static, 'static> {
     // Various common flags and arguments.
@@ -399,6 +409,36 @@ pub fn app() -> App<'static, 'static> {
         .arg(Arg::with_name("enum")
             .long("enum")
             .help("Emit a single table that maps codepoints to values."));
+    let cmd_word_break =
+        SubCommand::with_name("word-break")
+        .author(crate_authors!())
+        .version(crate_version!())
+        .template(TEMPLATE_SUB)
+        .about("Create a table for each Word_Break value.")
+        .before_help(ABOUT_WORD_BREAK)
+        .arg(flag_name("WORD_BREAK"))
+        .arg(ucd_dir.clone())
+        .arg(flag_fst_dir.clone())
+        .arg(flag_chars.clone())
+        .arg(flag_trie_set.clone())
+        .arg(Arg::with_name("enum")
+            .long("enum")
+            .help("Emit a single table that maps codepoints to values."));
+    let cmd_sentence_break =
+        SubCommand::with_name("sentence-break")
+        .author(crate_authors!())
+        .version(crate_version!())
+        .template(TEMPLATE_SUB)
+        .about("Create a table for each Word_Break value.")
+        .before_help(ABOUT_SENTENCE_BREAK)
+        .arg(flag_name("SENTENCE_BREAK"))
+        .arg(ucd_dir.clone())
+        .arg(flag_fst_dir.clone())
+        .arg(flag_chars.clone())
+        .arg(flag_trie_set.clone())
+        .arg(Arg::with_name("enum")
+            .long("enum")
+            .help("Emit a single table that maps codepoints to values."));
 
     let cmd_test_unicode_data = SubCommand::with_name("test-unicode-data")
         .author(crate_authors!())
@@ -428,5 +468,7 @@ pub fn app() -> App<'static, 'static> {
         .subcommand(cmd_property_values)
         .subcommand(cmd_case_folding_simple)
         .subcommand(cmd_grapheme_cluster_break)
+        .subcommand(cmd_word_break)
+        .subcommand(cmd_sentence_break)
         .subcommand(cmd_test_unicode_data)
 }
