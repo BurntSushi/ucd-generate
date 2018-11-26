@@ -19,22 +19,25 @@ pub use age::Age;
 pub use case_folding::{CaseFold, CaseStatus};
 pub use core_properties::CoreProperty;
 pub use emoji_properties::EmojiProperty;
-pub use grapheme_cluster_break::GraphemeClusterBreak;
+pub use grapheme_cluster_break::{
+    GraphemeClusterBreak, GraphemeClusterBreakTest,
+};
 pub use jamo_short_name::JamoShortName;
+pub use line_break::LineBreakTest;
 pub use name_aliases::{NameAlias, NameAliasLabel};
 pub use prop_list::Property;
 pub use property_aliases::PropertyAlias;
 pub use property_value_aliases::PropertyValueAlias;
 pub use script_extensions::ScriptExtension;
 pub use scripts::Script;
-pub use sentence_break::SentenceBreak;
+pub use sentence_break::{SentenceBreak, SentenceBreakTest};
 pub use special_casing::SpecialCaseMapping;
 pub use unicode_data::{
     UnicodeData, UnicodeDataNumeric,
     UnicodeDataDecomposition, UnicodeDataDecompositionTag,
     UnicodeDataExpander,
 };
-pub use word_break::WordBreak;
+pub use word_break::{WordBreak, WordBreakTest};
 
 macro_rules! err {
     ($($tt:tt)*) => {
@@ -51,6 +54,7 @@ mod core_properties;
 mod emoji_properties;
 mod grapheme_cluster_break;
 mod jamo_short_name;
+mod line_break;
 mod name_aliases;
 mod prop_list;
 mod property_aliases;

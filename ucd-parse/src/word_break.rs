@@ -3,7 +3,7 @@ use std::str::FromStr;
 
 use common::{
     UcdFile, UcdFileByCodepoint, Codepoints, CodepointIter,
-    parse_codepoint_association,
+    parse_break_test, parse_codepoint_association,
 };
 use error::Error;
 
@@ -40,9 +40,39 @@ impl FromStr for WordBreak {
     }
 }
 
+/// A single row in the `auxiliary/WordBreakTest.txt` file.
+///
+/// This file defines tests for the word break algorithm.
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct WordBreakTest {
+    /// Each string is a UTF-8 encoded group of codepoints that make up a
+    /// single word.
+    pub words: Vec<String>,
+    /// A human readable description of this test.
+    pub comment: String,
+}
+
+impl UcdFile for WordBreakTest {
+    fn relative_file_path() -> &'static Path {
+        Path::new("auxiliary/WordBreakTest.txt")
+    }
+}
+
+impl FromStr for WordBreakTest {
+    type Err = Error;
+
+    fn from_str(line: &str) -> Result<WordBreakTest, Error> {
+        let (groups, comment) = parse_break_test(line)?;
+        Ok(WordBreakTest {
+            words: groups,
+            comment: comment,
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::WordBreak;
+    use super::{WordBreak, WordBreakTest};
 
     #[test]
     fn parse_single() {
@@ -58,5 +88,19 @@ mod tests {
         let row: WordBreak = line.parse().unwrap();
         assert_eq!(row.codepoints, (0x104A0, 0x104A9));
         assert_eq!(row.value, "Numeric");
+    }
+
+    #[test]
+    fn parse_test() {
+        let line = "÷ 0031 ÷ 0027 × 0308 ÷ 0061 ÷ 0027 × 2060 ÷	#  ÷ [0.2] DIGIT ONE (Numeric) ÷ [999.0] APOSTROPHE (Single_Quote) × [4.0] COMBINING DIAERESIS (Extend_FE) ÷ [999.0] LATIN SMALL LETTER A (ALetter) ÷ [999.0] APOSTROPHE (Single_Quote) × [4.0] WORD JOINER (Format_FE) ÷ [0.3]";
+
+        let row: WordBreakTest = line.parse().unwrap();
+        assert_eq!(row.words, vec![
+            "\u{0031}",
+            "\u{0027}\u{0308}",
+            "\u{0061}",
+            "\u{0027}\u{2060}",
+        ]);
+        assert!(row.comment.contains("[4.0] COMBINING DIAERESIS (Extend_FE)"));
     }
 }

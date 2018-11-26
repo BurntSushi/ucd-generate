@@ -3,7 +3,7 @@ use std::str::FromStr;
 
 use common::{
     UcdFile, UcdFileByCodepoint, Codepoints, CodepointIter,
-    parse_codepoint_association,
+    parse_break_test, parse_codepoint_association,
 };
 use error::Error;
 
@@ -40,9 +40,39 @@ impl FromStr for SentenceBreak {
     }
 }
 
+/// A single row in the `auxiliary/SentenceBreakTest.txt` file.
+///
+/// This file defines tests for the sentence break algorithm.
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct SentenceBreakTest {
+    /// Each string is a UTF-8 encoded group of codepoints that make up a
+    /// single sentence.
+    pub sentences: Vec<String>,
+    /// A human readable description of this test.
+    pub comment: String,
+}
+
+impl UcdFile for SentenceBreakTest {
+    fn relative_file_path() -> &'static Path {
+        Path::new("auxiliary/SentenceBreakTest.txt")
+    }
+}
+
+impl FromStr for SentenceBreakTest {
+    type Err = Error;
+
+    fn from_str(line: &str) -> Result<SentenceBreakTest, Error> {
+        let (groups, comment) = parse_break_test(line)?;
+        Ok(SentenceBreakTest {
+            sentences: groups,
+            comment: comment,
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::SentenceBreak;
+    use super::{SentenceBreak, SentenceBreakTest};
 
     #[test]
     fn parse_single() {
@@ -58,5 +88,17 @@ mod tests {
         let row: SentenceBreak = line.parse().unwrap();
         assert_eq!(row.codepoints, (0xFE31, 0xFE32));
         assert_eq!(row.value, "SContinue");
+    }
+
+    #[test]
+    fn parse_test() {
+        let line = "÷ 2060 × 5B57 × 2060 × 002E × 2060 ÷ 5B57 × 2060 × 2060 ÷	#  ÷ [0.2] WORD JOINER (Format_FE) × [998.0] CJK UNIFIED IDEOGRAPH-5B57 (OLetter) × [5.0] WORD JOINER (Format_FE) × [998.0] FULL STOP (ATerm) × [5.0] WORD JOINER (Format_FE) ÷ [11.0] CJK UNIFIED IDEOGRAPH-5B57 (OLetter) × [5.0] WORD JOINER (Format_FE) × [5.0] WORD JOINER (Format_FE) ÷ [0.3]";
+
+        let row: SentenceBreakTest = line.parse().unwrap();
+        assert_eq!(row.sentences, vec![
+            "\u{2060}\u{5B57}\u{2060}\u{002E}\u{2060}",
+            "\u{5B57}\u{2060}\u{2060}",
+        ]);
+        assert!(row.comment.contains("[5.0] WORD JOINER (Format_FE)"));
     }
 }
