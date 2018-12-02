@@ -5,6 +5,7 @@ use std::result;
 
 use fst;
 use clap;
+use regex_syntax;
 use ucd_parse;
 use ucd_trie;
 
@@ -80,6 +81,12 @@ impl From<ucd_parse::Error> for Error {
 
 impl From<ucd_trie::Error> for Error {
     fn from(err: ucd_trie::Error) -> Error {
+        Error::Other(err.to_string())
+    }
+}
+
+impl From<regex_syntax::Error> for Error {
+    fn from(err: regex_syntax::Error) -> Error {
         Error::Other(err.to_string())
     }
 }

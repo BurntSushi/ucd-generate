@@ -2,9 +2,13 @@ extern crate byteorder;
 #[macro_use]
 extern crate clap;
 extern crate fst;
+#[macro_use]
+extern crate lazy_static;
+extern crate regex_syntax;
 extern crate ucd_parse;
 extern crate ucd_trie;
 extern crate ucd_util;
+extern crate utf8_ranges;
 
 use std::io::{self, Write};
 use std::process;
@@ -22,6 +26,7 @@ macro_rules! err {
 
 mod app;
 mod args;
+mod dfa;
 mod error;
 mod util;
 mod writer;

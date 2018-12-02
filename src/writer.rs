@@ -830,7 +830,7 @@ impl<W: io::Write> io::Write for LineWriter<W> {
 }
 
 /// Return the given byte as its escaped string form.
-fn escape_input(b: u8) -> String {
+pub fn escape_input(b: u8) -> String {
     String::from_utf8(ascii::escape_default(b).collect::<Vec<_>>()).unwrap()
 }
 

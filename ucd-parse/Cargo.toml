@@ -14,4 +14,4 @@ license = "MIT/Apache-2.0"
 
 [dependencies]
 lazy_static = "1"
-regex = "0.2"
+regex = "1"
