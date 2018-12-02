@@ -16,7 +16,7 @@ use error::Result;
 const DFA_DEAD: DFAStateID = 0;
 const ALPHABET_SIZE: usize = 256;
 
-type DFAStateID = u32;
+type DFAStateID = usize;
 
 struct DFA {
     /// The set of DFA states and their transitions. Transitions point to
@@ -48,17 +48,17 @@ impl DFA {
     }
 
     fn set_transition(&mut self, from: DFAStateID, b: u8, to: DFAStateID) {
-        self.states[from as usize].transitions[b as usize] = to;
+        self.states[from].transitions[b as usize] = to;
     }
 
     fn find(&self, bytes: &[u8]) -> Option<usize> {
         let mut state = self.start;
         let mut last_match = None;
         for (i, &b) in bytes.iter().enumerate() {
-            state = self.states[state as usize].transitions[b as usize];
+            state = self.states[state].transitions[b as usize];
             if state == DFA_DEAD {
                 return last_match;
-            } else if self.states[state as usize].is_match {
+            } else if self.states[state].is_match {
                 last_match = Some(i + 1);
             }
         }
@@ -185,9 +185,9 @@ impl<'a> DFABuilder<'a> {
         next_nfa_states: &mut SparseSet,
     ) {
         next_nfa_states.clear();
-        for i in 0..self.builder_states[dfa_id as usize].nfa_states.len() {
-            let nfa_id = self.builder_states[dfa_id as usize].nfa_states[i];
-            match self.nfa.states.borrow()[nfa_id as usize] {
+        for i in 0..self.builder_states[dfa_id].nfa_states.len() {
+            let nfa_id = self.builder_states[dfa_id].nfa_states[i];
+            match self.nfa.states.borrow()[nfa_id] {
                 NFAState::Range { start, end, next } => {
                     if start <= b && b <= end {
                         self.epsilon_closure(next, next_nfa_states);
@@ -201,7 +201,7 @@ impl<'a> DFABuilder<'a> {
     }
 
     fn epsilon_closure(&mut self, start: NFAStateID, set: &mut SparseSet) {
-        if !self.nfa.states.borrow()[start as usize].is_epsilon() {
+        if !self.nfa.states.borrow()[start].is_epsilon() {
             set.insert(start);
             return;
         }
@@ -213,7 +213,7 @@ impl<'a> DFABuilder<'a> {
                     break;
                 }
                 set.insert(id);
-                match self.nfa.states.borrow()[id as usize] {
+                match self.nfa.states.borrow()[id] {
                     NFAState::Empty { next } => {
                         id = next;
                     }
@@ -239,7 +239,7 @@ impl<'a> DFABuilder<'a> {
     }
 
     fn add_state(&mut self, state: DFABuilderState) -> DFAStateID {
-        let id = self.dfa.states.len() as DFAStateID;
+        let id = self.dfa.states.len();
         self.dfa.states.push(DFAState {
             is_match: state.is_match,
             ..DFAState::empty()
@@ -259,7 +259,7 @@ impl<'a> DFABuilder<'a> {
         state.nfa_states.clear();
 
         for &id in set {
-            match self.nfa.states.borrow()[id as usize] {
+            match self.nfa.states.borrow()[id] {
                 NFAState::Range { .. } => {
                     state.nfa_states.push(id);
                 }
@@ -351,27 +351,27 @@ impl<'a> Minimizer<'a> {
 
         let mut state_to_part = vec![DFA_DEAD; self.dfa.states.len()];
         for p in &self.partitions {
-            p.iter(|id| state_to_part[id as usize] = p.first());
+            p.iter(|id| state_to_part[id] = p.first());
         }
 
         let mut minimal_ids = vec![DFA_DEAD; self.dfa.states.len()];
         let mut new_id = 0;
         for (id, state) in self.dfa.states.iter().enumerate() {
-            if state_to_part[id] == id as DFAStateID {
+            if state_to_part[id] == id {
                 minimal_ids[id] = new_id;
                 new_id += 1;
             }
         }
-        let minimal_count = new_id as usize;
+        let minimal_count = new_id;
 
         for id in 0..self.dfa.states.len() {
-            if state_to_part[id] != id as DFAStateID {
+            if state_to_part[id] != id {
                 continue;
             }
             for next in self.dfa.states[id].transitions.iter_mut() {
-                *next = minimal_ids[state_to_part[*next as usize] as usize];
+                *next = minimal_ids[state_to_part[*next]];
             }
-            self.dfa.states.swap(id, minimal_ids[id] as usize);
+            self.dfa.states.swap(id, minimal_ids[id]);
         }
         self.dfa.states.truncate(minimal_count);
     }
@@ -384,7 +384,7 @@ impl<'a> Minimizer<'a> {
     ) {
         incoming.clear();
         set.iter(|id| {
-            for &inid in &self.in_transitions[id as usize][b as usize] {
+            for &inid in &self.in_transitions[id][b as usize] {
                 incoming.add(inid);
             }
         });
@@ -394,8 +394,7 @@ impl<'a> Minimizer<'a> {
     fn initial_partitions(dfa: &DFA) -> Vec<StateSet> {
         let mut is_match = StateSet::empty();
         let mut no_match = StateSet::empty();
-        for (i, state) in dfa.states.iter().enumerate() {
-            let id = i as DFAStateID;
+        for (id, state) in dfa.states.iter().enumerate() {
             if state.is_match {
                 is_match.add(id);
             } else {
@@ -417,10 +416,9 @@ impl<'a> Minimizer<'a> {
         for state in dfa.states.iter() {
             incoming.push(vec![vec![]; ALPHABET_SIZE]);
         }
-        for (i, state) in dfa.states.iter().enumerate() {
-            let id = i as DFAStateID;
+        for (id, state) in dfa.states.iter().enumerate() {
             for (b, &next) in state.transitions.iter().enumerate() {
-                incoming[next as usize][b].push(id);
+                incoming[next][b].push(id);
             }
         }
         incoming
@@ -547,7 +545,7 @@ struct NFA {
     states: RefCell<Vec<NFAState>>,
 }
 
-type NFAStateID = u32;
+type NFAStateID = usize;
 
 #[derive(Debug)]
 enum NFAState {
@@ -822,7 +820,7 @@ impl NFA {
     }
 
     fn patch(&self, from: NFAStateID, to: NFAStateID) {
-        match self.states.borrow_mut()[from as usize] {
+        match self.states.borrow_mut()[from] {
             NFAState::Empty { ref mut next } => {
                 *next = to;
             }
@@ -840,34 +838,34 @@ impl NFA {
     }
 
     fn add_empty(&self) -> NFAStateID {
-        let id = self.states.borrow().len() as NFAStateID;
+        let id = self.states.borrow().len();
         self.states.borrow_mut().push(NFAState::Empty { next: 0 });
         id
     }
 
     fn add_range(&self, start: u8, end: u8) -> NFAStateID {
-        let id = self.states.borrow().len() as NFAStateID;
+        let id = self.states.borrow().len();
         let state = NFAState::Range { start, end, next: 0 };
         self.states.borrow_mut().push(state);
         id
     }
 
     fn add_union(&self) -> NFAStateID {
-        let id = self.states.borrow().len() as NFAStateID;
+        let id = self.states.borrow().len();
         let state = NFAState::Union { alternates: vec![], reverse: false };
         self.states.borrow_mut().push(state);
         id
     }
 
     fn add_reverse_union(&self) -> NFAStateID {
-        let id = self.states.borrow().len() as NFAStateID;
+        let id = self.states.borrow().len();
         let state = NFAState::Union { alternates: vec![], reverse: true };
         self.states.borrow_mut().push(state);
         id
     }
 
     fn add_match(&self) -> NFAStateID {
-        let id = self.states.borrow().len() as NFAStateID;
+        let id = self.states.borrow().len();
         self.states.borrow_mut().push(NFAState::Match);
         id
     }
@@ -928,12 +926,12 @@ impl SparseSet {
         let i = self.len();
         assert!(i < self.capacity());
         self.dense.push(value);
-        self.sparse[value as usize] = i as u32;
+        self.sparse[value] = i;
     }
 
     fn contains(&self, value: NFAStateID) -> bool {
-        let i = self.sparse[value as usize];
-        self.dense.get(i as usize) == Some(&value)
+        let i = self.sparse[value];
+        self.dense.get(i) == Some(&value)
     }
 
     fn clear(&mut self) {
@@ -962,8 +960,7 @@ impl fmt::Debug for DFA {
             String::from_utf8(status).unwrap()
         }
 
-        for (i, state) in self.states.iter().enumerate() {
-            let id = i as DFAStateID;
+        for (id, state) in self.states.iter().enumerate() {
             writeln!(f, "{}{:04}: {:?}", state_status(id, state), id, state)?;
         }
         Ok(())
