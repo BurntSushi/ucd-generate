@@ -147,7 +147,7 @@ pub fn parse_break_test(line: &str) -> Result<(Vec<String>, String), Error> {
         let ch = match cp.scalar() {
             Some(ch) => ch,
             None => return err!(
-                "invalid codepoint '{:X?}' in line: '{}'", cp.value(), line
+                "invalid codepoint '{:X}' in line: '{}'", cp.value(), line
             ),
         };
         cur.push(ch);
