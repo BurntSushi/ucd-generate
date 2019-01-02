@@ -12,6 +12,7 @@ repository = "https://github.com/BurntSushi/ucd-generate"
 readme = "README.md"
 keywords = ["unicode", "generate", "character", "table", "fst"]
 license = "MIT/Apache-2.0"
+categories = ["text-processing", "internationalization"]
 
 [workspace]
 members = ["ucd-parse", "ucd-trie", "ucd-util"]
