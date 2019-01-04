@@ -20,6 +20,7 @@ members = ["ucd-parse", "ucd-trie", "ucd-util"]
 [dependencies]
 byteorder = "1"
 fst = { version = "0.3", default-features = false }
+regex-automata = "0.1.1"
 ucd-parse = { version = "0.1.1", path = "ucd-parse" }
 ucd-trie = { version = "0.1.1", path = "ucd-trie" }
 ucd-util = { version = "0.1.2", path = "ucd-util"  }
@@ -31,3 +32,6 @@ features = ["suggestions", "color"]
 
 [dev-dependencies]
 lazy_static = "1"
+
+[profile.release]
+debug = true

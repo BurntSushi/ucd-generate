@@ -5,6 +5,9 @@ can typically be generated in one of three formats: a sorted sequence of
 character ranges, a
 [finite state transducer](https://github.com/BurntSushi/fst)
 or a compressed trie. Full support for name canonicalization is also provided.
+This tool also supports serializing regular expressions as DFAs using the
+[regex-automata](https://github.com/BurntSushi/regex-automata)
+crate.
 
 [![Linux build status](https://api.travis-ci.org/BurntSushi/ucd-generate.png)](https://travis-ci.org/BurntSushi/ucd-generate)
 [![](http://meritbadge.herokuapp.com/ucd-generate)](https://crates.io/crates/ucd-generate)

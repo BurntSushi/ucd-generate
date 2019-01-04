@@ -1,8 +1,7 @@
 dist: trusty
 language: rust
 rust:
-  - 1.12.0
-  - 1.24.0
+  - 1.31.1
   - stable
   - beta
   - nightly

@@ -2,6 +2,7 @@ extern crate byteorder;
 #[macro_use]
 extern crate clap;
 extern crate fst;
+extern crate regex_automata;
 extern crate ucd_parse;
 extern crate ucd_trie;
 extern crate ucd_util;
@@ -33,6 +34,7 @@ mod brk;
 mod jamo_short_name;
 mod names;
 mod property_bool;
+mod regex;
 mod script;
 
 fn main() {
@@ -89,6 +91,12 @@ fn run() -> Result<()> {
         }
         ("sentence-break", Some(m)) => {
             brk::sentence(ArgMatches::new(m))
+        }
+        ("dfa", Some(m)) => {
+            regex::command_dfa(ArgMatches::new(m))
+        }
+        ("regex", Some(m)) => {
+            regex::command_regex(ArgMatches::new(m))
         }
         ("test-unicode-data", Some(m)) => {
             cmd_test_unicode_data(ArgMatches::new(m))

@@ -135,6 +135,18 @@ sentence-break emits the table of property values and their corresponding
 codepoints for the Sentence_Break property.
 ";
 
+const ABOUT_DFA: &'static str = "\
+dfa emits a single serialized DFAs from an arbitrary regular expression. If
+you want a regular expression for finding the start and end of a match, then
+use the 'regex' sub-command. Otherwise, if you only care about the end of a
+match (forward DFA, the default) or the start of a match (reverse DFA), then
+only a single DFA is necessary.
+";
+
+const ABOUT_REGEX: &'static str = "\
+regex emits serialized DFAs from arbitrary regular expressions.
+";
+
 /// Build a clap application.
 pub fn app() -> App<'static, 'static> {
     // Various common flags and arguments.
@@ -429,7 +441,7 @@ pub fn app() -> App<'static, 'static> {
         .author(crate_authors!())
         .version(crate_version!())
         .template(TEMPLATE_SUB)
-        .about("Create a table for each Word_Break value.")
+        .about("Create a table for each Sentence_Break value.")
         .before_help(ABOUT_SENTENCE_BREAK)
         .arg(flag_name("SENTENCE_BREAK"))
         .arg(ucd_dir.clone())
@@ -439,6 +451,48 @@ pub fn app() -> App<'static, 'static> {
         .arg(Arg::with_name("enum")
             .long("enum")
             .help("Emit a single table that maps codepoints to values."));
+    let cmd_dfa =
+        SubCommand::with_name("dfa")
+        .author(crate_authors!())
+        .version(crate_version!())
+        .template(TEMPLATE_SUB)
+        .about("Serialize a single DFAs")
+        .before_help(ABOUT_DFA)
+        .arg(Arg::with_name("dfa-dir").help("Emit DFAs to this directory"))
+        .arg(Arg::with_name("pattern"))
+        .arg(flag_name("DFA"))
+        .arg(Arg::with_name("sparse").long("sparse"))
+        .arg(Arg::with_name("anchored").long("anchored"))
+        .arg(Arg::with_name("minimize").long("minimize"))
+        .arg(Arg::with_name("classes").long("classes"))
+        .arg(Arg::with_name("premultiply").long("premultiply"))
+        .arg(Arg::with_name("no-utf8").long("no-utf8"))
+        .arg(Arg::with_name("longest").long("longest"))
+        .arg(Arg::with_name("reverse").long("reverse"))
+        .arg(Arg::with_name("state-size")
+             .long("state-size")
+             .possible_values(&["1", "2", "4", "8"])
+             .default_value("4"));
+    let cmd_regex =
+        SubCommand::with_name("regex")
+        .author(crate_authors!())
+        .version(crate_version!())
+        .template(TEMPLATE_SUB)
+        .about("Serialize regular expression DFAs.")
+        .before_help(ABOUT_REGEX)
+        .arg(Arg::with_name("dfa-dir").help("Emit DFAs to this directory"))
+        .arg(Arg::with_name("pattern"))
+        .arg(flag_name("REGEX"))
+        .arg(Arg::with_name("sparse").long("sparse"))
+        .arg(Arg::with_name("anchored").long("anchored"))
+        .arg(Arg::with_name("minimize").long("minimize"))
+        .arg(Arg::with_name("classes").long("classes"))
+        .arg(Arg::with_name("premultiply").long("premultiply"))
+        .arg(Arg::with_name("no-utf8").long("no-utf8"))
+        .arg(Arg::with_name("state-size")
+             .long("state-size")
+             .possible_values(&["1", "2", "4", "8"])
+             .default_value("4"));
 
     let cmd_test_unicode_data = SubCommand::with_name("test-unicode-data")
         .author(crate_authors!())
@@ -470,5 +524,7 @@ pub fn app() -> App<'static, 'static> {
         .subcommand(cmd_grapheme_cluster_break)
         .subcommand(cmd_word_break)
         .subcommand(cmd_sentence_break)
+        .subcommand(cmd_dfa)
+        .subcommand(cmd_regex)
         .subcommand(cmd_test_unicode_data)
 }

@@ -1,36 +1,16 @@
-#![allow(dead_code)]
-
-// BREADCRUMBS:
-//
-// Move all output decisions into the Writer. Basic idea is that we specify
-// common data structures and do the FST conversion inside the writer.
-//
-// Remove --raw-fst and make --rust-fst always emit FSTs to separate files
-// They use much less space on disk, i.e., by avoiding encoding bytes in a
-// byte literal.
-//
-// Problem: --rust-slice writes directly to a single file and it make sense
-// to emit it to stdout. But --rust-fst wants to write at least two files:
-// one for Rust source and another for the FST. An obvious solution is to leave
-// --rust-slice untouched but require a directory argument for --rust-fst.
-// It's a bit incongruous, which is unfortunate, but probably makes the most
-// sense. However, if --rust-slice is always the default (which seems
-// reasonable), then we could just remove --rust-slice altogether and that,
-// I think, removes some of the incongruity.
-
-use std::ascii;
 use std::char;
 use std::collections::{BTreeMap, BTreeSet};
 use std::env;
 use std::fs::File;
 use std::io::{self, Write};
+use std::mem::size_of;
 use std::path::{Path, PathBuf};
 use std::str;
 
 use byteorder::{ByteOrder, BigEndian as BE};
 use fst::{Map, MapBuilder, Set, SetBuilder};
 use fst::raw::Fst;
-use ucd_parse::Codepoint;
+use regex_automata::{StateID, DenseDFA, SparseDFA, Regex};
 use ucd_trie::TrieSetOwned;
 
 use error::Result;
@@ -46,6 +26,7 @@ struct WriterOptions {
     char_literals: bool,
     fst_dir: Option<PathBuf>,
     trie_set: bool,
+    dfa_dir: Option<PathBuf>,
 }
 
 impl WriterBuilder {
@@ -60,6 +41,7 @@ impl WriterBuilder {
             char_literals: false,
             fst_dir: None,
             trie_set: false,
+            dfa_dir: None,
         })
     }
 
@@ -90,6 +72,19 @@ impl WriterBuilder {
         })
     }
 
+    /// Create a new writer that writes DFAs to a directory.
+    pub fn from_dfa_dir<P: AsRef<Path>>(&self, dfa_dir: P) -> Result<Writer> {
+        let mut opts = self.0.clone();
+        opts.dfa_dir = Some(dfa_dir.as_ref().to_path_buf());
+        let mut fpath = dfa_dir.as_ref().join(rust_module_name(&opts.name));
+        fpath.set_extension("rs");
+        Ok(Writer {
+            wtr: LineWriter::new(Box::new(File::create(fpath)?)),
+            wrote_header: false,
+            opts: opts,
+        })
+    }
+
     /// Set the column limit to use when writing Rust source code.
     ///
     /// Note that this is adhered to on a "best effort" basis.
@@ -110,19 +105,6 @@ impl WriterBuilder {
     /// ranges.
     pub fn trie_set(&mut self, yes: bool) -> &mut WriterBuilder {
         self.0.trie_set = yes;
-        self
-    }
-
-    /// Emit codepoints as a finite state transducer.
-    ///
-    /// The directory given is where both the Rust source file and the FST
-    /// files are written. The Rust source file includes the FSTs using the
-    /// `include_bytes!` macro.
-    pub fn fst_dir<P: AsRef<Path>>(
-        &mut self,
-        fst_dir: Option<P>,
-    ) -> &mut WriterBuilder {
-        self.0.fst_dir = fst_dir.map(|p| p.as_ref().to_path_buf());
         self
     }
 }
@@ -675,12 +657,7 @@ impl Writer {
         Ok(())
     }
 
-    fn fst(
-        &mut self,
-        const_name: &str,
-        fst: &Fst,
-        map: bool,
-    ) -> Result<()> {
+    fn fst(&mut self, const_name: &str, fst: &Fst, map: bool) -> Result<()> {
         let fst_dir = self.opts.fst_dir.as_ref().unwrap();
         let fst_file_name = format!("{}.fst", rust_module_name(const_name));
         let fst_file_path = fst_dir.join(&fst_file_name);
@@ -698,6 +675,223 @@ impl Writer {
             self.wtr,
             "      include_bytes!({:?})).unwrap());", fst_file_name)?;
         writeln!(self.wtr, "}}")?;
+        Ok(())
+    }
+
+    pub fn dense_regex<T: AsRef<[S]>, S: StateID>(
+        &mut self,
+        const_name: &str,
+        re: &Regex<DenseDFA<T, S>>,
+    ) -> Result<()> {
+        self.header()?;
+        self.separator()?;
+
+        let rust_name = rust_module_name(const_name);
+        let idty = rust_uint_type::<S>();
+        let fname_fwd_be = format!("{}.fwd.bigendian.dfa", rust_name);
+        let fname_rev_be = format!("{}.rev.bigendian.dfa", rust_name);
+        let fname_fwd_le = format!("{}.fwd.littleendian.dfa", rust_name);
+        let fname_rev_le = format!("{}.rev.littleendian.dfa", rust_name);
+        let ty = format!(
+            "Regex<::regex_automata::DenseDFA<&'static [{}], {}>>",
+            idty, idty
+        );
+        {
+            let dfa_dir = self.opts.dfa_dir.as_ref().unwrap();
+
+            File::create(dfa_dir.join(&fname_fwd_be))?
+                .write_all(&re.forward().to_bytes_big_endian()?)?;
+            File::create(dfa_dir.join(&fname_rev_be))?
+                .write_all(&re.reverse().to_bytes_big_endian()?)?;
+            File::create(dfa_dir.join(&fname_fwd_le))?
+                .write_all(&re.forward().to_bytes_little_endian()?)?;
+            File::create(dfa_dir.join(&fname_rev_le))?
+                .write_all(&re.reverse().to_bytes_little_endian()?)?;
+        }
+        writeln!(self.wtr, "#[cfg(target_endian = \"big\")]")?;
+        self.write_regex_static(
+            const_name, &ty, "DenseDFA", &fname_fwd_be, &fname_rev_be,
+        )?;
+
+        self.separator()?;
+
+        writeln!(self.wtr, "#[cfg(target_endian = \"little\")]")?;
+        self.write_regex_static(
+            const_name, &ty, "DenseDFA", &fname_fwd_le, &fname_rev_le,
+        )?;
+        Ok(())
+    }
+
+    pub fn sparse_regex<T: AsRef<[u8]>, S: StateID>(
+        &mut self,
+        const_name: &str,
+        re: &Regex<SparseDFA<T, S>>,
+    ) -> Result<()> {
+        self.header()?;
+        self.separator()?;
+
+        let rust_name = rust_module_name(const_name);
+        let idty = rust_uint_type::<S>();
+        let fname_fwd_be = format!("{}.fwd.bigendian.dfa", rust_name);
+        let fname_rev_be = format!("{}.rev.bigendian.dfa", rust_name);
+        let fname_fwd_le = format!("{}.fwd.littleendian.dfa", rust_name);
+        let fname_rev_le = format!("{}.rev.littleendian.dfa", rust_name);
+        let ty = format!(
+            "Regex<::regex_automata::SparseDFA<&'static [u8], {}>>", idty
+        );
+        {
+            let dfa_dir = self.opts.dfa_dir.as_ref().unwrap();
+
+            File::create(dfa_dir.join(&fname_fwd_be))?
+                .write_all(&re.forward().to_bytes_big_endian()?)?;
+            File::create(dfa_dir.join(&fname_rev_be))?
+                .write_all(&re.reverse().to_bytes_big_endian()?)?;
+            File::create(dfa_dir.join(&fname_fwd_le))?
+                .write_all(&re.forward().to_bytes_little_endian()?)?;
+            File::create(dfa_dir.join(&fname_rev_le))?
+                .write_all(&re.reverse().to_bytes_little_endian()?)?;
+        }
+        writeln!(self.wtr, "#[cfg(target_endian = \"big\")]")?;
+        self.write_regex_static(
+            const_name, &ty, "SparseDFA", &fname_fwd_be, &fname_rev_be,
+        )?;
+
+        self.separator()?;
+
+        writeln!(self.wtr, "#[cfg(target_endian = \"little\")]")?;
+        self.write_regex_static(
+            const_name, &ty, "SparseDFA", &fname_fwd_le, &fname_rev_le,
+        )?;
+        Ok(())
+    }
+
+    pub fn dense_dfa<T: AsRef<[S]>, S: StateID>(
+        &mut self,
+        const_name: &str,
+        dfa: &DenseDFA<T, S>,
+    ) -> Result<()> {
+        self.header()?;
+        self.separator()?;
+
+        let rust_name = rust_module_name(const_name);
+        let fname_be = format!("{}.bigendian.dfa", rust_name);
+        let fname_le = format!("{}.littleendian.dfa", rust_name);
+        let idty = rust_uint_type::<S>();
+        let ty = format!("DenseDFA<&'static [{}], {}>", idty, idty);
+        {
+            let dfa_dir = self.opts.dfa_dir.as_ref().unwrap();
+            File::create(dfa_dir.join(&fname_be))?
+                .write_all(&dfa.to_bytes_big_endian()?)?;
+            File::create(dfa_dir.join(&fname_le))?
+                .write_all(&dfa.to_bytes_little_endian()?)?;
+        }
+        writeln!(self.wtr, "#[cfg(target_endian = \"big\")]")?;
+        self.write_dfa_static(const_name, &ty, "DenseDFA", &fname_be)?;
+
+        self.separator()?;
+
+        writeln!(self.wtr, "#[cfg(target_endian = \"little\")]")?;
+        self.write_dfa_static(const_name, &ty, "DenseDFA", &fname_le)?;
+        Ok(())
+    }
+
+    pub fn sparse_dfa<T: AsRef<[u8]>, S: StateID>(
+        &mut self,
+        const_name: &str,
+        dfa: &SparseDFA<T, S>,
+    ) -> Result<()> {
+        self.header()?;
+        self.separator()?;
+
+        let rust_name = rust_module_name(const_name);
+        let fname_be = format!("{}.bigendian.dfa", rust_name);
+        let fname_le = format!("{}.littleendian.dfa", rust_name);
+        let idty = rust_uint_type::<S>();
+        let ty = format!("SparseDFA<&'static [u8], {}>", idty);
+        {
+            let dfa_dir = self.opts.dfa_dir.as_ref().unwrap();
+            File::create(dfa_dir.join(&fname_be))?
+                .write_all(&dfa.to_bytes_big_endian()?)?;
+            File::create(dfa_dir.join(&fname_le))?
+                .write_all(&dfa.to_bytes_little_endian()?)?;
+        }
+        writeln!(self.wtr, "#[cfg(target_endian = \"big\")]")?;
+        self.write_dfa_static(const_name, &ty, "SparseDFA", &fname_be)?;
+
+        self.separator()?;
+
+        writeln!(self.wtr, "#[cfg(target_endian = \"little\")]")?;
+        self.write_dfa_static(const_name, &ty, "SparseDFA", &fname_le)?;
+        Ok(())
+    }
+
+    fn write_regex_static(
+        &mut self,
+        const_name: &str,
+        full_regex_ty: &str,
+        short_dfa_ty: &str,
+        file_name_fwd: &str,
+        file_name_rev: &str,
+    ) -> Result<()> {
+        writeln!(self.wtr, "lazy_static! {{")?;
+        writeln!(
+            self.wtr,
+            "  pub static ref {}: ::regex_automata::{} = {{",
+            const_name,
+            full_regex_ty)?;
+
+        writeln!(self.wtr, "    let fwd =")?;
+        self.write_dfa_deserialize(short_dfa_ty, file_name_fwd)?;
+        writeln!(self.wtr, "    ;")?;
+
+        writeln!(self.wtr, "    let rev =")?;
+        self.write_dfa_deserialize(short_dfa_ty, file_name_rev)?;
+        writeln!(self.wtr, "    ;")?;
+
+        writeln!(
+            self.wtr,
+            "    ::regex_automata::Regex::from_dfas(fwd, rev)")?;
+        writeln!(self.wtr, "  }};")?;
+        writeln!(self.wtr, "}}")?;
+
+        Ok(())
+    }
+
+    fn write_dfa_static(
+        &mut self,
+        const_name: &str,
+        full_dfa_ty: &str,
+        short_dfa_ty: &str,
+        file_name: &str,
+    ) -> Result<()> {
+        writeln!(self.wtr, "lazy_static! {{")?;
+        writeln!(
+            self.wtr,
+            "  pub static ref {}: ::regex_automata::{} = {{",
+            const_name,
+            full_dfa_ty)?;
+        self.write_dfa_deserialize(short_dfa_ty, file_name)?;
+        writeln!(self.wtr, "  }};")?;
+        writeln!(self.wtr, "}}")?;
+
+        Ok(())
+    }
+
+    fn write_dfa_deserialize(
+        &mut self,
+        short_dfa_ty: &str,
+        file_name: &str,
+    ) -> Result<()> {
+        writeln!(self.wtr, "    unsafe {{")?;
+        writeln!(
+            self.wtr,
+            "      ::regex_automata::{}::from_bytes(", short_dfa_ty)?;
+        writeln!(
+            self.wtr,
+            "        include_bytes!({:?})", file_name)?;
+        writeln!(self.wtr, "      )")?;
+        writeln!(self.wtr, "    }}")?;
+
         Ok(())
     }
 
@@ -829,16 +1023,8 @@ impl<W: io::Write> io::Write for LineWriter<W> {
     }
 }
 
-/// Return the given byte as its escaped string form.
-fn escape_input(b: u8) -> String {
-    String::from_utf8(ascii::escape_default(b).collect::<Vec<_>>()).unwrap()
-}
-
 /// Heuristically produce an appropriate constant Rust name.
 fn rust_const_name(s: &str) -> String {
-    #[allow(deprecated, unused_imports)]
-    use std::ascii::AsciiExt;
-
     // Property names/values seem pretty uniform, particularly the
     // "canonical" variants we use to produce variable names. So we
     // don't need to do much.
@@ -851,9 +1037,6 @@ fn rust_const_name(s: &str) -> String {
 
 /// Heuristically produce an appropriate module Rust name.
 fn rust_module_name(s: &str) -> String {
-    #[allow(deprecated, unused_imports)]
-    use std::ascii::AsciiExt;
-
     // Property names/values seem pretty uniform, particularly the
     // "canonical" variants we use to produce variable names. So we
     // don't need to do much.
@@ -862,9 +1045,16 @@ fn rust_module_name(s: &str) -> String {
     s
 }
 
-/// Return the given codepoint encoded in big-endian.
-pub fn codepoint_key(cp: Codepoint) -> [u8; 4] {
-    u32_key(cp.value())
+/// Return the unsigned integer type for the size of the given type, which must
+/// have size 1, 2, 4 or 8.
+fn rust_uint_type<S>() -> &'static str {
+    match size_of::<S>() {
+        1 => "u8",
+        2 => "u16",
+        4 => "u32",
+        8 => "u64",
+        s => panic!("unsupported DFA state id size: {}", s),
+    }
 }
 
 /// Return the given u32 encoded in big-endian.
