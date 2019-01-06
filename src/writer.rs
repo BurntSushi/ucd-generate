@@ -1004,7 +1004,7 @@ impl<W: io::Write> LineWriter<W> {
         if self.line.is_empty() {
             return Ok(());
         }
-        self.wtr.write_all(self.line.trim_right().as_bytes())?;
+        self.wtr.write_all(self.line.trim_end().as_bytes())?;
         self.wtr.write_all(b"\n")?;
         self.line.clear();
         Ok(())
