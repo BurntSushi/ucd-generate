@@ -710,14 +710,14 @@ impl Writer {
         }
         writeln!(self.wtr, "#[cfg(target_endian = \"big\")]")?;
         self.write_regex_static(
-            const_name, &ty, "DenseDFA", &fname_fwd_be, &fname_rev_be,
+            const_name, &ty, "DenseDFA", idty, &fname_fwd_be, &fname_rev_be,
         )?;
 
         self.separator()?;
 
         writeln!(self.wtr, "#[cfg(target_endian = \"little\")]")?;
         self.write_regex_static(
-            const_name, &ty, "DenseDFA", &fname_fwd_le, &fname_rev_le,
+            const_name, &ty, "DenseDFA", idty, &fname_fwd_le, &fname_rev_le,
         )?;
         Ok(())
     }
@@ -753,14 +753,14 @@ impl Writer {
         }
         writeln!(self.wtr, "#[cfg(target_endian = \"big\")]")?;
         self.write_regex_static(
-            const_name, &ty, "SparseDFA", &fname_fwd_be, &fname_rev_be,
+            const_name, &ty, "SparseDFA", "u8", &fname_fwd_be, &fname_rev_be,
         )?;
 
         self.separator()?;
 
         writeln!(self.wtr, "#[cfg(target_endian = \"little\")]")?;
         self.write_regex_static(
-            const_name, &ty, "SparseDFA", &fname_fwd_le, &fname_rev_le,
+            const_name, &ty, "SparseDFA", "u8", &fname_fwd_le, &fname_rev_le,
         )?;
         Ok(())
     }
@@ -786,12 +786,12 @@ impl Writer {
                 .write_all(&dfa.to_bytes_little_endian()?)?;
         }
         writeln!(self.wtr, "#[cfg(target_endian = \"big\")]")?;
-        self.write_dfa_static(const_name, &ty, "DenseDFA", &fname_be)?;
+        self.write_dfa_static(const_name, &ty, "DenseDFA", idty, &fname_be)?;
 
         self.separator()?;
 
         writeln!(self.wtr, "#[cfg(target_endian = \"little\")]")?;
-        self.write_dfa_static(const_name, &ty, "DenseDFA", &fname_le)?;
+        self.write_dfa_static(const_name, &ty, "DenseDFA", idty, &fname_le)?;
         Ok(())
     }
 
@@ -816,12 +816,12 @@ impl Writer {
                 .write_all(&dfa.to_bytes_little_endian()?)?;
         }
         writeln!(self.wtr, "#[cfg(target_endian = \"big\")]")?;
-        self.write_dfa_static(const_name, &ty, "SparseDFA", &fname_be)?;
+        self.write_dfa_static(const_name, &ty, "SparseDFA", "u8", &fname_be)?;
 
         self.separator()?;
 
         writeln!(self.wtr, "#[cfg(target_endian = \"little\")]")?;
-        self.write_dfa_static(const_name, &ty, "SparseDFA", &fname_le)?;
+        self.write_dfa_static(const_name, &ty, "SparseDFA", "u8", &fname_le)?;
         Ok(())
     }
 
@@ -830,6 +830,7 @@ impl Writer {
         const_name: &str,
         full_regex_ty: &str,
         short_dfa_ty: &str,
+        align_to: &str,
         file_name_fwd: &str,
         file_name_rev: &str,
     ) -> Result<()> {
@@ -841,11 +842,11 @@ impl Writer {
             full_regex_ty)?;
 
         writeln!(self.wtr, "    let fwd =")?;
-        self.write_dfa_deserialize(short_dfa_ty, file_name_fwd)?;
+        self.write_dfa_deserialize(short_dfa_ty, align_to, file_name_fwd)?;
         writeln!(self.wtr, "    ;")?;
 
         writeln!(self.wtr, "    let rev =")?;
-        self.write_dfa_deserialize(short_dfa_ty, file_name_rev)?;
+        self.write_dfa_deserialize(short_dfa_ty, align_to, file_name_rev)?;
         writeln!(self.wtr, "    ;")?;
 
         writeln!(
@@ -862,6 +863,7 @@ impl Writer {
         const_name: &str,
         full_dfa_ty: &str,
         short_dfa_ty: &str,
+        align_to: &str,
         file_name: &str,
     ) -> Result<()> {
         writeln!(self.wtr, "lazy_static! {{")?;
@@ -870,7 +872,7 @@ impl Writer {
             "  pub static ref {}: ::regex_automata::{} = {{",
             const_name,
             full_dfa_ty)?;
-        self.write_dfa_deserialize(short_dfa_ty, file_name)?;
+        self.write_dfa_deserialize(short_dfa_ty, align_to, file_name)?;
         writeln!(self.wtr, "  }};")?;
         writeln!(self.wtr, "}}")?;
 
@@ -880,16 +882,28 @@ impl Writer {
     fn write_dfa_deserialize(
         &mut self,
         short_dfa_ty: &str,
+        align_to: &str,
         file_name: &str,
     ) -> Result<()> {
+        writeln!(self.wtr, "    #[repr(C)]")?;
+        writeln!(self.wtr, "    struct Aligned<B: ?Sized> {{")?;
+        writeln!(self.wtr, "        _align: [{}; 0],", align_to)?;
+        writeln!(self.wtr, "        bytes: B,")?;
+        writeln!(self.wtr, "    }}")?;
+        writeln!(self.wtr, "    ")?;
+
+        writeln!(
+            self.wtr,
+            "    static ALIGNED: &'static Aligned<[u8]> = &Aligned {{")?;
+        writeln!(self.wtr, "        _align: [],")?;
+        writeln!(self.wtr, "        bytes: *include_bytes!({:?}),", file_name)?;
+        writeln!(self.wtr, "    }};")?;
+        writeln!(self.wtr, "    ")?;
+
         writeln!(self.wtr, "    unsafe {{")?;
         writeln!(
             self.wtr,
-            "      ::regex_automata::{}::from_bytes(", short_dfa_ty)?;
-        writeln!(
-            self.wtr,
-            "        include_bytes!({:?})", file_name)?;
-        writeln!(self.wtr, "      )")?;
+            "      ::regex_automata::{}::from_bytes(&ALIGNED.bytes)", short_dfa_ty)?;
         writeln!(self.wtr, "    }}")?;
 
         Ok(())
@@ -926,7 +940,11 @@ impl Writer {
                 .into_owned());
         for arg in env::args_os().skip(1) {
             let x = arg.to_string_lossy();
-            argv.push(x.into_owned());
+            if x.contains("\n") {
+                argv.push("[snip (arg too long)]".to_string());
+            } else {
+                argv.push(x.into_owned());
+            }
         }
         writeln!(self.wtr, "// DO NOT EDIT THIS FILE. \
                                IT WAS AUTOMATICALLY GENERATED BY:")?;
