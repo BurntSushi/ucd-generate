@@ -39,13 +39,18 @@ fn character_name_normalize_bytes(slice: &mut [u8]) -> &mut [u8] {
             let medial = prev_letter
                 && slice.get(i+1).map_or(false, |b| b.is_ascii_alphabetic());
             let mut keep_hyphen = !medial;
-            // We want to keep the hypen only if it isn't medial, which means
-            // it has at least one adjacent space character. However, there
-            // is one exception. We need to keep the hypen in the character
-            // (U+1180) named `HANGUL JUNGSEONG O-E`. So we check for that
-            // here.
-            let rest_e = slice[i+1..] == b"E"[..] || slice[i+1..] == b"e"[..];
-            if !keep_hyphen && rest_e {
+            // We want to keep the hypen only if it isn't medial. However,
+            // there is one exception. We need to keep the hypen in the
+            // character (U+1180) named `HANGUL JUNGSEONG O-E`. So we check for
+            // that here.
+            let next_e = slice
+                .get(i+1)
+                .map_or(false, |&b| b == b'E' || b == b'e');
+            // More characters after the final E are fine, as long as they are
+            // underscores and spaces.
+            let rest_empty = i+2 >= slice.len()
+                || slice[i+2..].iter().all(|&b| b == b' ' || b == b'_');
+            if !keep_hyphen && next_e && rest_empty {
                 keep_hyphen = slice[..next_write] == b"hanguljungseongo"[..];
             }
             if keep_hyphen {
@@ -160,6 +165,7 @@ mod tests {
     #[test]
     fn char_normalize() {
         assert_eq!(char_norm("HANGUL JUNGSEONG O-E"), "hanguljungseongo-e");
+        assert_eq!(char_norm("HANGUL JUNGSEONG O-E _"), "hanguljungseongo-e");
         assert_eq!(char_norm("zero-width space"), "zerowidthspace");
         assert_eq!(char_norm("zerowidthspace"), "zerowidthspace");
         assert_eq!(char_norm("ZERO WIDTH SPACE"), "zerowidthspace");
