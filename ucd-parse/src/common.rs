@@ -1,5 +1,3 @@
-// This module defines various common things used throughout the UCD.
-
 use std::char;
 use std::collections::BTreeMap;
 use std::fmt;
@@ -11,7 +9,7 @@ use std::str::FromStr;
 
 use regex::Regex;
 
-use error::{Error, error_set_line};
+use error::{Error, ErrorKind};
 
 /// Parse a particular file in the UCD into a sequence of rows.
 ///
@@ -202,6 +200,7 @@ pub trait UcdFileByCodepoint: UcdFile {
 /// line.
 #[derive(Debug)]
 pub struct UcdLineParser<R, D> {
+    path: Option<PathBuf>,
     rdr: io::BufReader<R>,
     line: String,
     line_number: u64,
@@ -213,8 +212,13 @@ impl<D> UcdLineParser<File, D> {
     pub(crate) fn from_path<P: AsRef<Path>>(
         path: P,
     ) -> Result<UcdLineParser<File, D>, Error> {
-        let file = File::open(path)?;
-        Ok(UcdLineParser::new(file))
+        let path = path.as_ref();
+        let file = File::open(path).map_err(|e| Error {
+            kind: ErrorKind::Io(e),
+            line: None,
+            path: Some(path.to_path_buf()),
+        })?;
+        Ok(UcdLineParser::new(Some(path.to_path_buf()), file))
     }
 }
 
@@ -226,8 +230,9 @@ impl<R: io::Read, D> UcdLineParser<R, D> {
     ///
     /// Note that the reader is buffered internally, so the caller does not
     /// need to provide their own buffering.
-    pub(crate) fn new(rdr: R) -> UcdLineParser<R, D> {
+    pub(crate) fn new(path: Option<PathBuf>, rdr: R) -> UcdLineParser<R, D> {
         UcdLineParser {
+            path: path,
             rdr: io::BufReader::new(rdr),
             line: String::new(),
             line_number: 0,
@@ -244,7 +249,11 @@ impl<R: io::Read, D: FromStr<Err=Error>> Iterator for UcdLineParser<R, D> {
             self.line_number += 1;
             self.line.clear();
             let n = match self.rdr.read_line(&mut self.line) {
-                Err(err) => return Some(Err(Error::from(err))),
+                Err(err) => return Some(Err(Error {
+                    kind: ErrorKind::Io(err),
+                    line: None,
+                    path: self.path.clone(),
+                })),
                 Ok(n) => n,
             };
             if n == 0 {
@@ -255,8 +264,8 @@ impl<R: io::Read, D: FromStr<Err=Error>> Iterator for UcdLineParser<R, D> {
             }
         }
         let line_number = self.line_number;
-        Some(self.line.parse().map_err(|mut err| {
-            error_set_line(&mut err, Some(line_number));
+        Some(self.line.parse().map_err(|mut err: Error| {
+            err.line = Some(line_number);
             err
         }))
     }

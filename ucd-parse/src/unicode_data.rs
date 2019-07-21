@@ -723,7 +723,7 @@ AC00;<Hangul Syllable, First>;Lo;0;L;;;;;N;;;;;
 D7A3;<Hangul Syllable, Last>;Lo;0;L;;;;;N;;;;;
 D7B0;HANGUL JUNGSEONG O-YEO;Lo;0;L;;;;;N;;;;;
 ";
-        let records = UcdLineParser::new(data.as_bytes())
+        let records = UcdLineParser::new(None, data.as_bytes())
             .collect::<Result<Vec<_>, _>>()
             .unwrap();
         assert_eq!(UnicodeDataExpander::new(records).count(), 11174);

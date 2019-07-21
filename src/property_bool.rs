@@ -79,7 +79,25 @@ fn parse_properties<P: AsRef<Path>>(
             .extend(x.codepoints.into_iter().map(|c| c.value()));
     }
 
-    let emoji_prop: Vec<EmojiProperty> = ucd_parse::parse(&ucd_dir)?;
+    // Since emoji-data.txt isn't parse of the normal UCD download, don't
+    // die if it doesn't exist. But emit a helpful warning message.
+    let emoji_prop: Vec<EmojiProperty> = match ucd_parse::parse(&ucd_dir) {
+        Ok(props) => props,
+        Err(err) => {
+            match *err.kind() {
+                ucd_parse::ErrorKind::Io(_) => {
+                    eprintln!(
+                        "{}. skipping emoji properties. \
+                        emoji-data.txt can be downloaded from \
+                        https://unicode.org/Public/emoji/",
+                        err,
+                    );
+                    vec![]
+                }
+                _ => return Err(From::from(err)),
+            }
+        }
+    };
     for x in &emoji_prop {
         by_name
             .entry(x.property.clone())

@@ -1,27 +1,19 @@
 use std::error;
 use std::fmt;
 use std::io;
-
-/// Create a new error from a kind without a line number.
-pub fn error_new(kind: ErrorKind) -> Error {
-    Error { kind: kind, line: None }
-}
+use std::path::{Path, PathBuf};
 
 /// Create a new parse error from the given message.
 pub fn error_parse(msg: String) -> Error {
-    error_new(ErrorKind::Parse(msg))
-}
-
-/// Set the line number on the given error.
-pub fn error_set_line(err: &mut Error, line: Option<u64>) {
-    err.line = line;
+    Error { kind: ErrorKind::Parse(msg), line: None, path: None }
 }
 
 /// Represents any kind of error that can occur while parsing the UCD.
 #[derive(Debug)]
 pub struct Error {
-    kind: ErrorKind,
-    line: Option<u64>,
+    pub(crate) kind: ErrorKind,
+    pub(crate) line: Option<u64>,
+    pub(crate) path: Option<PathBuf>,
 }
 
 /// The kind of error that occurred while parsing the UCD.
@@ -42,6 +34,11 @@ impl Error {
     /// Return the line number at which this error occurred, if available.
     pub fn line(&self) -> Option<u64> {
         self.line
+    }
+
+    /// Return the file path associated with this error, if one exists.
+    pub fn path(&self) -> Option<&Path> {
+        self.path.as_ref().map(|p| &**p)
     }
 
     /// Unwrap this error into its underlying kind.
@@ -69,7 +66,7 @@ impl error::Error for Error {
         }
     }
 
-    fn cause(&self) -> Option<&error::Error> {
+    fn cause(&self) -> Option<&dyn error::Error> {
         match self.kind {
             ErrorKind::Io(ref err) => Some(err),
             _ => None,
@@ -79,21 +76,18 @@ impl error::Error for Error {
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self.kind {
-            ErrorKind::Io(ref err) => err.fmt(f),
-            ErrorKind::Parse(ref msg) => {
-                if let Some(line) = self.line {
-                    write!(f, "error on line {}: {}", line, msg)
-                } else {
-                    write!(f, "{}", msg)
-                }
+        if let Some(ref path) = self.path {
+            if let Some(line) = self.line {
+                write!(f, "{}:{}: ", path.display(), line)?;
+            } else {
+                write!(f, "{}: ", path.display())?;
             }
+        } else if let Some(line) = self.line {
+            write!(f, "error on line {}: ", line)?;
         }
-    }
-}
-
-impl From<io::Error> for Error {
-    fn from(err: io::Error) -> Error {
-        Error { kind: ErrorKind::Io(err), line: None }
+        match self.kind {
+            ErrorKind::Io(ref err) => write!(f, "{}", err),
+            ErrorKind::Parse(ref msg) => write!(f, "{}", msg),
+        }
     }
 }
