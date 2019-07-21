@@ -24,19 +24,21 @@ fn character_name_normalize_bytes(slice: &mut [u8]) -> &mut [u8] {
     // raw bytes, since everything is ASCII. Note that we don't actually know
     // whether `slice` is all ASCII or not, so we drop all non-ASCII bytes.
     let mut next_write = 0;
-    let mut prev_space = true;
+    let mut prev_letter = false;
+    // let mut prev_space = true;
     for i in 0..slice.len() {
         // SAFETY ARGUMENT: To guarantee that the resulting slice is valid
         // UTF-8, we ensure that the slice contains only ASCII bytes. In
         // particular, we drop every non-ASCII byte from the normalized string.
         let b = slice[i];
         if b == b' ' {
-            prev_space = true;
-            continue;
+            // Drop spaces.
         } else if b == b'_' {
             // Drop the underscore.
         } else if b == b'-' {
-            let mut keep_hyphen = prev_space || slice.get(i+1) == Some(&b' ');
+            let medial = prev_letter
+                && slice.get(i+1).map_or(false, |b| b.is_ascii_alphabetic());
+            let mut keep_hyphen = !medial;
             // We want to keep the hypen only if it isn't medial, which means
             // it has at least one adjacent space character. However, there
             // is one exception. We need to keep the hypen in the character
@@ -57,7 +59,8 @@ fn character_name_normalize_bytes(slice: &mut [u8]) -> &mut [u8] {
             slice[next_write] = b;
             next_write += 1;
         }
-        prev_space = false;
+        // prev_space = false;
+        prev_letter = b.is_ascii_alphabetic();
     }
     &mut slice[..next_write]
 }
@@ -161,6 +164,7 @@ mod tests {
         assert_eq!(char_norm("zerowidthspace"), "zerowidthspace");
         assert_eq!(char_norm("ZERO WIDTH SPACE"), "zerowidthspace");
         assert_eq!(char_norm("TIBETAN MARK TSA -PHRU"), "tibetanmarktsa-phru");
+        assert_eq!(char_norm("tibetan_letter_-a"), "tibetanletter-a");
     }
 
     #[test]

@@ -10,6 +10,8 @@ be generated using `ucd-generate`.
 */
 
 #![deny(missing_docs)]
+#![allow(unknown_lints)]
+#![allow(ellipsis_inclusive_range_patterns)]
 
 mod hangul;
 mod ideograph;
