@@ -35,6 +35,7 @@ use core::fmt;
 pub use owned::{Error, Result, TrieSetOwned};
 
 #[cfg(test)]
+#[allow(dead_code)]
 mod general_category;
 #[cfg(feature = "std")]
 mod owned;

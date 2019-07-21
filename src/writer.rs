@@ -114,7 +114,7 @@ impl WriterBuilder {
 /// A writer takes as input various forms of Unicode data and writes that data
 /// in a number of different output formats.
 pub struct Writer {
-    wtr: LineWriter<Box<io::Write + 'static>>,
+    wtr: LineWriter<Box<dyn io::Write + 'static>>,
     wrote_header: bool,
     opts: WriterOptions,
 }

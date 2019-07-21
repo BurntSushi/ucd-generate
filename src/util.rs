@@ -132,7 +132,7 @@ impl PropertyValues {
                 value
             };
 
-            let mut inner_map = outer_map
+            let inner_map = outer_map
                 .entry(prop)
                 .or_insert(BTreeMap::new());
             if let Some(n) = a.numeric {

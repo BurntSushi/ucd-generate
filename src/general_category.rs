@@ -85,7 +85,7 @@ fn related(
 ) -> BTreeMap<String, BTreeSet<u32>> {
     let mut sets = BTreeMap::new();
     for (name, components) in related_categories(propvals) {
-        let mut set = sets.entry(name).or_insert(BTreeSet::new());
+        let set = sets.entry(name).or_insert(BTreeSet::new());
         for component in components {
             set.extend(cats[&component].iter().cloned());
         }

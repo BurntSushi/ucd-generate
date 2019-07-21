@@ -35,7 +35,7 @@ impl error::Error for Error {
         }
     }
 
-    fn cause(&self) -> Option<&error::Error> {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match *self {
             Error::Io(ref err) => Some(err),
             Error::Clap(ref err) => Some(err),
