@@ -1,0 +1,63 @@
+#!/bin/sh
+
+# This script is responsible for generating some of the Unicode tables used
+# in this project. It's a little weird here since ucd-generate is itself
+# used to build the tables used by some of its dependencies. However, most
+# tables are generated only for use in tests and benchmarks.
+#
+# Usage is simple, first download the Unicode data:
+#
+#   $ mkdir ucd
+#   $ cd ucd
+#   $ curl -LO https://www.unicode.org/Public/zipped/12.1.0/UCD.zip
+#   $ unzip UCD.zip
+#   $ curl -LO https://unicode.org/Public/emoji/12.0/emoji-data.txt
+#
+# And then run this script from the root of this repository by pointing it at
+# the data directory downloaded above:
+#
+#   $ ./scripts/generate-unicode-tables path/to/ucd
+
+if [ $# != 1 ]; then
+    echo "Usage: $(basename "$0") <ucd-data-directory>" >&2
+    exit 1
+fi
+ucddir="$1"
+
+echo "generating FSTs for benchmarks"
+out="benches/tables/fst"
+ucd-generate general-category \
+    "$ucddir" --exclude unassigned --enum --fst-dir "$out"
+ucd-generate jamo-short-name \
+    "$ucddir" --fst-dir "$out"
+ucd-generate names "$ucddir" \
+    --no-aliases --no-hangul --no-ideograph --fst-dir "$out"
+
+echo "generating sorted slices for benchmarks"
+out="benches/tables/slice"
+ucd-generate general-category \
+    "$ucddir" --exclude unassigned > "$out/general_categories.rs"
+ucd-generate general-category \
+    "$ucddir" --exclude unassigned --enum > "$out/general_category.rs"
+ucd-generate jamo-short-name \
+    "$ucddir" > "$out/jamo_short_name.rs"
+ucd-generate names \
+    "$ucddir" --no-aliases --no-hangul --no-ideograph > "$out/names.rs"
+
+echo "generating tables for ucd-trie benchmarks"
+out="benches/tables/trie"
+ucd-generate general-category \
+    "$ucddir" --exclude unassigned --trie-set > "$out/general_categories.rs"
+
+echo "generating tables for ucd-trie tests"
+out="ucd-trie/src"
+ucd-generate general-category "$ucddir" > "$out/general_category.rs"
+
+echo "generating tables for ucd-util tests"
+out="ucd-util/src/unicode_tables"
+ucd-generate property-names "$ucddir" > "$out/property_names.rs"
+ucd-generate property-values "$ucddir" > "$out/property_values.rs"
+
+echo "generating small JAMO_SHORT_NAME table for ucd-util"
+out="ucd-util/src/unicode_tables"
+ucd-generate jamo-short-name "$ucddir" > "$out/jamo_short_name.rs"
