@@ -30,6 +30,7 @@ mod writer;
 mod age;
 mod brk;
 mod case_folding;
+mod case_mapping;
 mod general_category;
 mod jamo_short_name;
 mod names;
@@ -75,6 +76,7 @@ fn run() -> Result<()> {
         ("case-folding-simple", Some(m)) => {
             case_folding::command(ArgMatches::new(m))
         }
+        ("case-mapping", Some(m)) => case_mapping::command(ArgMatches::new(m)),
         ("grapheme-cluster-break", Some(m)) => {
             brk::grapheme_cluster(ArgMatches::new(m))
         }
