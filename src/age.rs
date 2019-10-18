@@ -21,9 +21,9 @@ pub fn command(args: ArgMatches) -> Result<()> {
     }
 
     let mut wtr = args.writer("age")?;
-    wtr.names(by_age.keys())?;
-    for (name, set) in by_age {
-        wtr.ranges(&name, &set)?;
+    for (name, set) in &by_age {
+        wtr.ranges(name, set)?;
     }
+    wtr.names(by_age.keys())?;
     Ok(())
 }

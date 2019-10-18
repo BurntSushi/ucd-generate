@@ -65,10 +65,10 @@ pub fn command(args: ArgMatches) -> Result<()> {
     if args.is_present("enum") {
         wtr.ranges_to_enum(args.name(), &bycat)?;
     } else {
-        wtr.names(bycat.keys().filter(|n| filter.contains(n)))?;
-        for (name, set) in bycat {
-            wtr.ranges(&name, &set)?;
+        for (name, set) in &bycat {
+            wtr.ranges(name, set)?;
         }
+        wtr.names(bycat.keys().filter(|n| filter.contains(n)))?;
     }
 
     Ok(())

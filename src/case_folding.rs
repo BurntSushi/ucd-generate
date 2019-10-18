@@ -7,11 +7,9 @@ use error::Result;
 
 pub fn command(args: ArgMatches) -> Result<()> {
     let dir = args.ucd_dir()?;
-    let case_folding: BTreeMap<Codepoint, Vec<CaseFold>> =
-        ucd_parse::parse_many_by_codepoint(dir)?;
+    let case_folding: BTreeMap<Codepoint, Vec<CaseFold>> = ucd_parse::parse_many_by_codepoint(dir)?;
 
-    let compute_all_pairs =
-        args.is_present("all-pairs") || args.is_present("circular");
+    let compute_all_pairs = args.is_present("all-pairs") || args.is_present("circular");
     let mut wtr = args.writer("case_folding_simple")?;
     let mut table = BTreeMap::new();
     let mut table_all = BTreeMap::new();
@@ -78,10 +76,7 @@ pub fn command(args: ArgMatches) -> Result<()> {
 /// on the mapping's status. If `full` is true, then full case mappings are
 /// selected, otherwise simple case mappings are selected. If there are
 /// multiple valid choices, then an error is returned.
-fn choose_fold(
-    case_folds: &[CaseFold],
-    full: bool,
-) -> Result<Option<&CaseFold>> {
+fn choose_fold(case_folds: &[CaseFold], full: bool) -> Result<Option<&CaseFold>> {
     let mut choice = None;
     for case_fold in case_folds {
         if (full && case_fold.status == CaseStatus::Full)

@@ -32,7 +32,11 @@ impl<'a> ArgMatches<'a> {
         builder
             .columns(79)
             .char_literals(self.is_present("chars"))
-            .trie_set(self.is_present("trie-set"));
+            .trie_set(self.is_present("trie-set"))
+            .emit_c(self.is_present("emit-c"));
+        if let Some(n) = self.value_of("name") {
+            builder.table_name(n);
+        }
         if let Some(p) = self.value_of_os("dfa-dir") {
             return builder.from_dfa_dir(p);
         }

@@ -22,11 +22,13 @@ pub struct WriterBuilder(WriterOptions);
 #[derive(Clone, Debug)]
 struct WriterOptions {
     name: String,
+    table_name: String,
     columns: u64,
     char_literals: bool,
     fst_dir: Option<PathBuf>,
     trie_set: bool,
     dfa_dir: Option<PathBuf>,
+    emit_c: bool,
 }
 
 impl WriterBuilder {
@@ -37,11 +39,13 @@ impl WriterBuilder {
     pub fn new(name: &str) -> WriterBuilder {
         WriterBuilder(WriterOptions {
             name: name.to_string(),
+            table_name: name.to_uppercase(),
             columns: 79,
             char_literals: false,
             fst_dir: None,
             trie_set: false,
             dfa_dir: None,
+            emit_c: false,
         })
     }
 
@@ -85,6 +89,18 @@ impl WriterBuilder {
         })
     }
 
+    /// Set the value to use as the table name where applicable. If not
+    /// provided, an uppercase version of the string passed to the constructor
+    /// is used.
+    ///
+    /// When emitting C code, this is also used as the prefix for all
+    /// identifiers emitted by the writer (Unless it is empty, in which case
+    /// they will be emitted unprefixed).
+    pub fn table_name(&mut self, name: &str) -> &mut WriterBuilder {
+        self.0.table_name = name.into();
+        self
+    }
+
     /// Set the column limit to use when writing Rust source code.
     ///
     /// Note that this is adhered to on a "best effort" basis.
@@ -107,6 +123,12 @@ impl WriterBuilder {
         self.0.trie_set = yes;
         self
     }
+
+    /// Emit C code, instead of Rust code.
+    pub fn emit_c(&mut self, yes: bool) -> &mut WriterBuilder {
+        self.0.emit_c = yes;
+        self
+    }
 }
 
 /// A writer of various kinds of Unicode data.
@@ -127,7 +149,15 @@ impl Writer {
     ) -> Result<()> {
         self.header()?;
         self.separator()?;
+        let mut names: Vec<String> = names
+            .into_iter()
+            .map(|name| name.as_ref().to_string())
+            .collect();
+        names.sort();
 
+        if self.opts.emit_c {
+            return self.emit_c_name_data(names);
+        }
         let ty =
             if self.opts.fst_dir.is_some() {
                 "::fst::Set".to_string()
@@ -138,11 +168,6 @@ impl Writer {
                 format!("&'static [({}, {})]", charty, charty)
             };
 
-        let mut names: Vec<String> = names
-            .into_iter()
-            .map(|name| name.as_ref().to_string())
-            .collect();
-        names.sort();
 
         writeln!(
             self.wtr,
@@ -155,6 +180,89 @@ impl Writer {
         }
         writeln!(self.wtr, "];")?;
         Ok(())
+    }
+
+    fn c_const_name(&self, name: &str) -> String {
+        // The rust code doesn't need to do this, but collision is a bigger
+        // issue in C than in rust, so we prefix all tables with the name of the
+        // "main" table (that is, whatever got passed into --name, if anything,
+        // or the name that was given to the writer on construction).
+        let name = rust_const_name(name);
+        // the is_empty check is required, as all identifiers starting with `_`
+        // followed by a capital letter are reserved in C. We also protect
+        // aginst both this getting called multiple times, and this being the
+        // table we're interested in generating in the first place.
+        if  !self.opts.table_name.is_empty() && !self.opts.table_name.starts_with(&name) {
+            return format!("{}_{}", self.opts.table_name, name);
+        }
+        return name;
+    }
+
+    // C has some... Rather annoying rules about empty arrays. Specifically,
+    // arrays of length 0 are illegal (accepted by gcc/clang, but rejected by
+    // msvc, even in C++ mode). Additionally, you aren't allowed to use empty
+    // braces to initialize an array in C (although you are in C++), you're
+    // supposed to use a constant `0` (even for an array of structs). As a
+    // result all our arrays have a FOO_SIZE constant that's the real size, and
+    // then an array which is 1 item longer. We could instead special-case empty
+    // arrays even further, and have them be the only case where these two
+    // differ, but that would be even more annoying. Anyway, this function
+    // handles all of that, at least for arrays at the top level.
+    //
+    // Note that if the item_type we're outputting is an array,
+    // `type_array_length` should be non-zero.
+    fn begin_c_array(&mut self, name: &str, size: usize, item_type: &str, type_array_length: Option<usize>) -> Result<()> {
+        let id = self.c_const_name(name);
+        writeln!(self.wtr, "#define {}_SIZE {}", id, size)?;
+        writeln!(self.wtr)?;
+        if let Some(len) = type_array_length {
+            // We should know the item type statically. If you need to support
+            // zero-length arrays here, then, well, come up with a scheme
+            // similar to the above.
+            assert!(len != 0);
+            // Yes, the nested array size coming after is correct. C declaration
+            // syntax is a mess, I know.
+            writeln!(self.wtr, "UCD_GENERATE_DATA_LINKAGE const {} {}[{}_SIZE + 1][{}] = {{", item_type, id, id, len)?;
+        } else {
+            writeln!(self.wtr, "UCD_GENERATE_DATA_LINKAGE const {} {}[{}_SIZE + 1] = {{", item_type, id, id)?;
+        }
+        // Add the zero item here, so theat the caller can just call this and
+        // loop, then close it with end_c_array.
+        if size == 0 {
+            self.wtr.write_str("0")?
+        }
+        Ok(())
+    }
+    // This has no special rules, but we do it for symmetry with the above function.
+    fn end_c_array(&mut self) -> Result<()> {
+        // C has weird rules around the last line of a file, so
+        writeln!(self.wtr, "}};")?;
+        Ok(())
+    }
+
+    fn emit_c_name_data(&mut self, names: Vec<String>) -> Result<()> {
+        // No tuples in C. We could define an anon struct, but then you can't
+        // pass it to functions, etc.
+        let struct_ty_name = self.c_const_name("name_entry").to_ascii_lowercase();
+        writeln!(self.wtr, "struct {} {{", struct_ty_name)?;
+        writeln!(self.wtr, "  char const *name;")?;
+        writeln!(self.wtr, "  unsigned int table_size;")?;
+        writeln!(self.wtr, "  const unsigned int (*table)[2];")?;
+        writeln!(self.wtr, "}};\n")?;
+        self.begin_c_array("BY_NAME", names.len(), &format!("struct {}", struct_ty_name), None)?;
+        for name in names {
+            let tabname = self.c_const_name(&name);
+            self.wtr.write_str(&format!("{{{:?}, {}_SIZE, {}}}, ", name, tabname, tabname))?;
+        }
+        self.end_c_array()
+    }
+
+    fn ensure_not_c(&self, emitting: &str) -> Result<()> {
+        if self.opts.emit_c {
+            err!("cannot emit a {} as C code", emitting)
+        } else {
+            Ok(())
+        }
     }
 
     /// Write a sorted sequence of codepoints.
@@ -190,11 +298,27 @@ impl Writer {
         Ok(())
     }
 
+    fn c_ranges_array(
+        &mut self,
+        name: &str,
+        table: &[(u32, u32)],
+    ) -> Result<()> {
+        self.begin_c_array(name, table.len(), "unsigned int", Some(2))?;
+        for &(start, end) in table {
+            self.wtr.write_str(&format!("{{{}, {}}}, ", start, end))?;
+        }
+        self.end_c_array()?;
+        Ok(())
+    }
+
     fn ranges_slice(
         &mut self,
         name: &str,
         table: &[(u32, u32)],
     ) -> Result<()> {
+        if self.opts.emit_c {
+            return self.c_ranges_array(name, table);
+        }
         let ty = self.rust_codepoint_type();
         writeln!(
             self.wtr,
@@ -215,6 +339,7 @@ impl Writer {
         name: &str,
         trie: &TrieSetOwned,
     ) -> Result<()> {
+        self.ensure_not_c("trie set")?;
         let trie = trie.as_slice();
         writeln!(
             self.wtr,
@@ -263,6 +388,7 @@ impl Writer {
         name: &str,
         enum_map: &BTreeMap<String, BTreeSet<u32>>,
     ) -> Result<()> {
+        self.ensure_not_c("range->enum map")?;
         self.header()?;
         self.separator()?;
 
@@ -318,6 +444,7 @@ impl Writer {
         name: &str,
         table: &[(u32, u32, u64)],
     ) -> Result<()> {
+        self.ensure_not_c("range->unsigned int map")?;
         let cp_ty = self.rust_codepoint_type();
         let num_ty = match table.iter().map(|&(_, _, n)| n).max() {
             None => "u8",
@@ -351,6 +478,7 @@ impl Writer {
         if self.opts.fst_dir.is_some() {
             return err!("cannot emit string->string map as an FST");
         }
+        self.ensure_not_c("string->string map")?;
 
         self.header()?;
         self.separator()?;
@@ -382,6 +510,7 @@ impl Writer {
         if self.opts.fst_dir.is_some() {
             return err!("cannot emit string->string map as an FST");
         }
+        self.ensure_not_c("string->string map")?;
 
         self.header()?;
         self.separator()?;
@@ -479,6 +608,10 @@ impl Writer {
         self.header()?;
         self.separator()?;
 
+        if self.opts.emit_c {
+            return self.c_codepoint_to_codepoints(name, map);
+        }
+
         let name = rust_const_name(name);
         let ty = self.rust_codepoint_type();
         writeln!(
@@ -515,6 +648,29 @@ impl Writer {
 
         self.wtr.flush()?;
         Ok(())
+    }
+
+    fn c_codepoint_to_codepoints(
+        &mut self,
+        name: &str,
+        map: &BTreeMap<u32, Vec<u32>>,
+    ) -> Result<()> {
+        let map_entry_size = map.values().map(|v| v.len()).max().unwrap_or_default().max(1);
+
+        let struct_ty_name = self.c_const_name("entry").to_ascii_lowercase();
+        writeln!(self.wtr, "struct {} {{", struct_ty_name)?;
+        writeln!(self.wtr, "  unsigned int key;")?;
+        writeln!(self.wtr, "  unsigned int num_vals;")?;
+        writeln!(self.wtr, "  unsigned int vals[{}];", map_entry_size)?;
+        writeln!(self.wtr, "}};\n")?;
+        self.begin_c_array(name, map.len(), &format!("struct {}", struct_ty_name), None)?;
+        for (&k, vs) in map {
+            let items = vs.iter().map(|v| v.to_string()).collect::<Vec<_>>().join(", ");
+            // Note that omitting the braces is legal, and makes us not have to
+            // special case empty arrays for once.
+            self.wtr.write_str(&format!("{{{}, {}, {}}}, ", k, vs.len(), items))?;
+        }
+        self.end_c_array()
     }
 
     /// Write a map that associates codepoints to strings.
@@ -556,6 +712,7 @@ impl Writer {
         name: &str,
         table: &[(u32, &str)],
     ) -> Result<()> {
+        self.ensure_not_c("codepoint->string map")?;
         let ty = self.rust_codepoint_type();
         writeln!(
             self.wtr,
@@ -601,6 +758,7 @@ impl Writer {
         name: &str,
         table: &[(&str, u32)],
     ) -> Result<()> {
+        self.ensure_not_c("string->codepoint map")?;
         let ty = self.rust_codepoint_type();
         writeln!(
             self.wtr,
@@ -621,6 +779,7 @@ impl Writer {
         name: &str,
         map: &BTreeMap<String, u64>,
     ) -> Result<()> {
+        self.ensure_not_c("string->u64 map")?;
         self.header()?;
         self.separator()?;
 
@@ -658,6 +817,7 @@ impl Writer {
     }
 
     fn fst(&mut self, const_name: &str, fst: &Fst, map: bool) -> Result<()> {
+        self.ensure_not_c("fst")?;
         let fst_dir = self.opts.fst_dir.as_ref().unwrap();
         let fst_file_name = format!("{}.fst", rust_module_name(const_name));
         let fst_file_path = fst_dir.join(&fst_file_name);
@@ -683,6 +843,7 @@ impl Writer {
         const_name: &str,
         re: &Regex<DenseDFA<T, S>>,
     ) -> Result<()> {
+        self.ensure_not_c("dense regex")?;
         self.header()?;
         self.separator()?;
 
@@ -727,6 +888,7 @@ impl Writer {
         const_name: &str,
         re: &Regex<SparseDFA<T, S>>,
     ) -> Result<()> {
+        self.ensure_not_c("sparse regex")?;
         self.header()?;
         self.separator()?;
 
@@ -770,6 +932,7 @@ impl Writer {
         const_name: &str,
         dfa: &DenseDFA<T, S>,
     ) -> Result<()> {
+        self.ensure_not_c("dense dfa")?;
         self.header()?;
         self.separator()?;
 
@@ -800,6 +963,7 @@ impl Writer {
         const_name: &str,
         dfa: &SparseDFA<T, S>,
     ) -> Result<()> {
+        self.ensure_not_c("sparse dfa")?;
         self.header()?;
         self.separator()?;
 
@@ -834,6 +998,7 @@ impl Writer {
         file_name_fwd: &str,
         file_name_rev: &str,
     ) -> Result<()> {
+        self.ensure_not_c("static regex")?;
         writeln!(self.wtr, "lazy_static! {{")?;
         writeln!(
             self.wtr,
@@ -866,6 +1031,7 @@ impl Writer {
         align_to: &str,
         file_name: &str,
     ) -> Result<()> {
+        self.ensure_not_c("static dfa")?;
         writeln!(self.wtr, "lazy_static! {{")?;
         writeln!(
             self.wtr,
@@ -931,6 +1097,7 @@ impl Writer {
         if self.wrote_header {
             return Ok(());
         }
+        self.wrote_header = true;
         let mut argv = vec![];
         argv.push(
             env::current_exe()?
@@ -946,13 +1113,33 @@ impl Writer {
                 argv.push(x.into_owned());
             }
         }
-        writeln!(self.wtr, "// DO NOT EDIT THIS FILE. \
+        // Use /* and not //, since rust supports both, but we might be emitting
+        // C, which does not.
+        writeln!(self.wtr, "/* DO NOT EDIT THIS FILE. \
                                IT WAS AUTOMATICALLY GENERATED BY:")?;
-        writeln!(self.wtr, "//")?;
-        writeln!(self.wtr, "//  {}", argv.join(" "))?;
-        writeln!(self.wtr, "//")?;
-        writeln!(self.wtr, "// ucd-generate is available on crates.io.")?;
-        self.wrote_header = true;
+        writeln!(self.wtr, " *")?;
+        writeln!(self.wtr, " *  {}", argv.join(" "))?;
+        writeln!(self.wtr, " *")?;
+        writeln!(self.wtr, " * ucd-generate is available on crates.io.")?;
+        if !self.opts.emit_c {
+            writeln!(self.wtr, " */")?;
+            return Ok(());
+        }
+
+        // Write this once in the header, instead of repeating it dozens of
+        // times for files with many arrays.
+        writeln!(self.wtr, " *")?;
+        writeln!(self.wtr, " * Note: The final item of each array is padding, so you must")?;
+        writeln!(self.wtr, " * use it's corresponding <arr>_SIZE constant, rather than")?;
+        writeln!(self.wtr, " * using sizeof or similar to determine the size.")?;
+        writeln!(self.wtr, " */")?;
+        writeln!(self.wtr)?;
+
+        writeln!(self.wtr, "#ifndef UCD_GENERATE_DATA_LINKAGE")?;
+        writeln!(self.wtr, "#define UCD_GENERATE_DATA_LINKAGE static")?;
+        writeln!(self.wtr, "#endif")?;
+        writeln!(self.wtr)?;
+
         Ok(())
     }
 

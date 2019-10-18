@@ -22,12 +22,12 @@ pub fn command(args: ArgMatches) -> Result<()> {
         return Ok(());
     }
     let mut wtr = args.writer("prop_list")?;
-    wtr.names(by_name.keys().filter(|n| filter.contains(n)))?;
-    for (name, set) in by_name {
-        if filter.contains(&name) {
-            wtr.ranges(&name, &set)?;
+    for (name, set) in &by_name {
+        if filter.contains(name) {
+            wtr.ranges(name, set)?;
         }
     }
+    wtr.names(by_name.keys().filter(|n| filter.contains(n)))?;
     Ok(())
 }
 

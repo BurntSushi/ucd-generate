@@ -21,10 +21,10 @@ pub fn grapheme_cluster(args: ArgMatches) -> Result<()> {
     if args.is_present("enum") {
         wtr.ranges_to_enum(args.name(), &byval)?;
     } else {
-        wtr.names(byval.keys())?;
-        for (val, set) in byval {
-            wtr.ranges(&val, &set)?;
+        for (val, set) in &byval {
+            wtr.ranges(val, set)?;
         }
+        wtr.names(byval.keys())?;
     }
     Ok(())
 }
@@ -45,10 +45,10 @@ pub fn word(args: ArgMatches) -> Result<()> {
     if args.is_present("enum") {
         wtr.ranges_to_enum(args.name(), &byval)?;
     } else {
-        wtr.names(byval.keys())?;
-        for (val, set) in byval {
-            wtr.ranges(&val, &set)?;
+        for (val, set) in &byval {
+            wtr.ranges(val, set)?;
         }
+        wtr.names(byval.keys())?;
     }
     Ok(())
 }
@@ -69,10 +69,10 @@ pub fn sentence(args: ArgMatches) -> Result<()> {
     if args.is_present("enum") {
         wtr.ranges_to_enum(args.name(), &byval)?;
     } else {
-        wtr.names(byval.keys())?;
-        for (val, set) in byval {
-            wtr.ranges(&val, &set)?;
+        for (val, set) in &byval {
+            wtr.ranges(val, set)?;
         }
+        wtr.names(byval.keys())?;
     }
     Ok(())
 }

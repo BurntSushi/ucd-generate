@@ -157,6 +157,12 @@ pub fn app() -> App<'static, 'static> {
             .takes_value(true)
             .default_value(default)
     };
+    let flag_emit_c = Arg::with_name("emit-c")
+        .long("emit-c")
+        .help("Emit the data in a format that's compatible with inclusion \
+               in C or C++ code, instead of as rust code. Note that many \
+               options are currently incompatible with this.")
+        .conflicts_with_all(&["chars", "trie-set", "fst-dir", "enum"]);
     let flag_chars = Arg::with_name("chars")
         .long("chars")
         .help("Write codepoints as character literals. If a codepoint \
@@ -186,6 +192,7 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_name("GENERAL_CATEGORY"))
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
+        .arg(flag_emit_c.clone())
         .arg(Arg::with_name("enum")
             .long("enum")
             .help("Emit a single table that maps codepoints to categories."))
@@ -214,6 +221,7 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_name("SCRIPT"))
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
+        .arg(flag_emit_c.clone())
         .arg(Arg::with_name("include")
             .long("include")
             .takes_value(true)
@@ -239,6 +247,7 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_name("SCRIPT_EXTENSION"))
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
+        .arg(flag_emit_c.clone())
         .arg(Arg::with_name("include")
             .long("include")
             .takes_value(true)
@@ -279,6 +288,7 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_fst_dir.clone())
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
+        .arg(flag_emit_c.clone())
         .arg(Arg::with_name("include")
             .long("include")
             .takes_value(true)
@@ -304,6 +314,7 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_fst_dir.clone())
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
+        .arg(flag_emit_c.clone())
         .arg(flag_name("PERL_WORD"));
     let cmd_jamo_short_name = SubCommand::with_name("jamo-short-name")
         .author(crate_authors!())
@@ -399,6 +410,7 @@ pub fn app() -> App<'static, 'static> {
         .arg(ucd_dir.clone())
         .arg(flag_fst_dir.clone())
         .arg(flag_chars.clone())
+        .arg(flag_emit_c.clone())
         .arg(Arg::with_name("circular")
              .long("circular")
              .help("Emit a table where mappings are circular."))
@@ -418,6 +430,7 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_fst_dir.clone())
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
+        .arg(flag_emit_c.clone())
         .arg(Arg::with_name("enum")
             .long("enum")
             .help("Emit a single table that maps codepoints to values."));
@@ -433,6 +446,7 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_fst_dir.clone())
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
+        .arg(flag_emit_c.clone())
         .arg(Arg::with_name("enum")
             .long("enum")
             .help("Emit a single table that maps codepoints to values."));
@@ -448,6 +462,7 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_fst_dir.clone())
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
+        .arg(flag_emit_c.clone())
         .arg(Arg::with_name("enum")
             .long("enum")
             .help("Emit a single table that maps codepoints to values."));
