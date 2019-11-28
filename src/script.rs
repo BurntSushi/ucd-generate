@@ -25,12 +25,17 @@ pub fn command_script(args: ArgMatches) -> Result<()> {
     }
 
     let mut wtr = args.writer("script")?;
-    wtr.names(by_name.keys().filter(|n| filter.contains(n)))?;
-    for (name, set) in by_name {
-        if filter.contains(&name) {
-            wtr.ranges(&name, &set)?;
+    if args.is_present("enum") {
+        wtr.ranges_to_enum(args.name(), &by_name)?;
+    } else {
+        wtr.names(by_name.keys().filter(|n| filter.contains(n)))?;
+        for (name, set) in by_name {
+            if filter.contains(&name) {
+                wtr.ranges(&name, &set)?;
+            }
         }
     }
+
     Ok(())
 }
 
