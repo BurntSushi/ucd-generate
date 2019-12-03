@@ -1,6 +1,7 @@
 use std::char;
 use std::collections::{BTreeMap, BTreeSet};
 use std::env;
+use std::fmt;
 use std::fs::File;
 use std::io::{self, Write};
 use std::mem::size_of;
@@ -281,6 +282,64 @@ impl Writer {
         }
         self.ranges_to_unsigned_integer(name, &map)?;
         self.wtr.flush()?;
+        Ok(())
+    }
+
+    /// Write a map that associates codepoint ranges to a single value in a
+    /// Rust enum.
+    ///
+    /// The given map should be a map from the enum variant value to the set
+    /// of codepoints that have that value.
+    pub fn ranges_to_rust_enum(
+        &mut self,
+        name: &str,
+        variants: &[&str],
+        enum_map: &BTreeMap<String, BTreeSet<u32>>,
+    ) -> Result<()> {
+        self.header()?;
+        self.separator()?;
+
+        writeln!(self.wtr, "#[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]")?;
+        let enum_name = rust_type_name(name);
+        writeln!(self.wtr, "pub enum {} {{", enum_name)?;
+        for variant in variants {
+            self.wtr.write_str(&format!("{}, ", rust_type_name(variant)))?;
+        }
+        writeln!(self.wtr, "}}\n")?;
+
+        let mut map = BTreeMap::new();
+        for (variant, ref set) in enum_map.iter() {
+            map.extend(set.iter().cloned().map(|cp| (cp, variant)));
+        }
+        let ranges = util::to_range_values(
+            map.iter().map(|(&k, &v)| (k, rust_type_name(v))));
+        self.ranges_to_enum_slice(name, &enum_name, &ranges)?;
+        self.wtr.flush()?;
+        Ok(())
+    }
+
+    fn ranges_to_enum_slice<S>(
+        &mut self,
+        name: &str,
+        enum_ty: &str,
+        table: &[(u32, u32, S)],
+    ) -> Result<()>
+        where S: fmt::Display
+    {
+        let cp_ty = self.rust_codepoint_type();
+
+        writeln!(
+            self.wtr,
+            "pub const {}: &'static [({}, {}, {})] = &[",
+            name, cp_ty, cp_ty, enum_ty)?;
+        for (start, end, variant) in table {
+            let range = (self.rust_codepoint(*start), self.rust_codepoint(*end));
+            if let (Some(start), Some(end)) = range {
+                let src = format!("({}, {}, {}::{}), ", start, end, enum_ty, variant);
+                self.wtr.write_str(&src)?;
+            }
+        }
+        writeln!(self.wtr, "];")?;
         Ok(())
     }
 
@@ -1053,6 +1112,21 @@ fn rust_const_name(s: &str) -> String {
     s
 }
 
+/// Heuristically produce an appropriate Rust type name.
+fn rust_type_name(s: &str) -> String {
+    // Convert to PascalCase
+    s.split(|c: char| c.is_whitespace() || c == '.' || c == '_' || c == '-')
+        .map(|component|  {
+            // Upper first char
+            let lower = component.to_ascii_lowercase();
+            let mut chars = lower.chars();
+            match chars.next() {
+                None => String::new(),
+                Some(f) => f.to_uppercase().collect::<String>() + chars.as_str(),
+            }
+        }).collect()
+}
+
 /// Heuristically produce an appropriate module Rust name.
 fn rust_module_name(s: &str) -> String {
     // Property names/values seem pretty uniform, particularly the
@@ -1118,7 +1192,7 @@ fn smallest_unsigned_type(n: u64) -> &'static str {
 
 #[cfg(test)]
 mod tests {
-    use super::pack_str;
+    use super::{pack_str, rust_type_name};
 
     fn unpack_str(mut encoded: u64) -> String {
         let mut value = String::new();
@@ -1139,5 +1213,14 @@ mod tests {
 
         assert!(pack_str("ABCDEFGHI").is_err());
         assert!(pack_str("AB\x00CD").is_err());
+    }
+
+    #[test]
+    fn test_rust_type_name() {
+        assert_eq!(&rust_type_name("SCRIPT"), "Script");
+        assert_eq!(&rust_type_name("dot.separated"), "DotSeparated");
+        assert_eq!(&rust_type_name("dash-separated"), "DashSeparated");
+        assert_eq!(&rust_type_name("white \tspace"), "WhiteSpace");
+        assert_eq!(&rust_type_name("snake_case"), "SnakeCase");
     }
 }

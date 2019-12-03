@@ -27,6 +27,10 @@ pub fn command_script(args: ArgMatches) -> Result<()> {
     let mut wtr = args.writer("script")?;
     if args.is_present("enum") {
         wtr.ranges_to_enum(args.name(), &by_name)?;
+    } else if args.is_present("rust-enum") {
+        let mut variants = vec!["Unknown"];
+        variants.extend(by_name.keys().map(String::as_str));
+        wtr.ranges_to_rust_enum(args.name(), &variants, &by_name)?;
     } else {
         wtr.names(by_name.keys().filter(|n| filter.contains(n)))?;
         for (name, set) in by_name {

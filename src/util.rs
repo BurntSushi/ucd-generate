@@ -222,10 +222,11 @@ pub fn range_add(ranges: &mut Vec<(u32, u32)>, codepoint: u32) {
 /// ranges.
 ///
 /// This panics if the same codepoint is present multiple times.
-pub fn to_range_values<I>(it: I) -> Vec<(u32, u32, u64)>
-    where I: IntoIterator<Item=(u32, u64)>
+pub fn to_range_values<I, V>(it: I) -> Vec<(u32, u32, V)>
+    where I: IntoIterator<Item=(u32, V)>,
+          V: Ord
 {
-    let mut codepoints: Vec<(u32, u64)> = it.into_iter().collect();
+    let mut codepoints: Vec<(u32, V)> = it.into_iter().collect();
     codepoints.sort();
     codepoints.dedup();
 
@@ -244,14 +245,14 @@ pub fn to_range_values<I>(it: I) -> Vec<(u32, u32, u64)>
 ///
 /// This panics if the given codepoint is already in the ranges or if a
 /// codepoint is given out of order.
-pub fn range_value_add(
-    ranges: &mut Vec<(u32, u32, u64)>,
+pub fn range_value_add<V: Eq>(
+    ranges: &mut Vec<(u32, u32, V)>,
     codepoint: u32,
-    value: u64,
+    value: V,
 ) {
-    if let Some(&mut (_, ref mut end, value2)) = ranges.last_mut() {
+    if let Some(&mut (_, ref mut end, ref value2)) = ranges.last_mut() {
         assert!(*end < codepoint);
-        if codepoint == *end + 1 && value == value2 {
+        if codepoint == *end + 1 && &value == value2 {
             *end = codepoint;
             return;
         }
