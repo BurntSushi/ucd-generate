@@ -191,6 +191,9 @@ pub fn app() -> App<'static, 'static> {
                 "Emit a single table that maps codepoints to categories.",
             ),
         )
+        .arg(Arg::with_name("rust-enum").long("rust-enum").help(
+            "Emit a Rust enum and a table that maps codepoints to categories.",
+        ))
         .arg(Arg::with_name("include").long("include").takes_value(true).help(
             "A comma separated list of categories to include. \
              When absent, all categories are included.",

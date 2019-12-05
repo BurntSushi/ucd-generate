@@ -45,7 +45,7 @@ pub fn command(args: ArgMatches) -> Result<()> {
     // But don't do this when printing an enumeration, because in an
     // enumeration each codepoint should belong to exactly one category, which
     // is not true if we include related categories.
-    if !args.is_present("enum") {
+    if !args.is_present("enum") && !args.is_present("rust-enum") {
         for (name, set) in related(&propvals, &bycat) {
             if filter.contains(&name) {
                 bycat.insert(name, set);
@@ -61,6 +61,9 @@ pub fn command(args: ArgMatches) -> Result<()> {
     let mut wtr = args.writer("general_category")?;
     if args.is_present("enum") {
         wtr.ranges_to_enum(args.name(), &bycat)?;
+    } else if args.is_present("rust-enum") {
+        let variants = bycat.keys().map(String::as_str).collect::<Vec<_>>();
+        wtr.ranges_to_rust_enum(args.name(), &variants, &bycat)?;
     } else {
         wtr.names(bycat.keys().filter(|n| filter.contains(n)))?;
         for (name, set) in bycat {
