@@ -16,6 +16,7 @@ pub use common::{
 pub use error::{Error, ErrorKind};
 
 pub use age::Age;
+pub use arabic_shaping::ArabicShaping;
 pub use case_folding::{CaseFold, CaseStatus};
 pub use core_properties::CoreProperty;
 pub use emoji_properties::EmojiProperty;
@@ -48,6 +49,7 @@ mod common;
 mod error;
 
 mod age;
+mod arabic_shaping;
 mod case_folding;
 mod core_properties;
 mod emoji_properties;
