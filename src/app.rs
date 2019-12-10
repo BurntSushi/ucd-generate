@@ -37,6 +37,11 @@ ranges).
 
 Project home page: https://github.com/BurntSushi/ucd-generate";
 
+const ABOUT_BIDI_CLASS: &'static str = "\
+bidi-class produces one table of Unicode codepoint ranges for each
+possible Bidi_Class value.
+";
+
 const ABOUT_GENERAL_CATEGORY: &'static str = "\
 general-category produces one table of Unicode codepoint ranges for each
 possible General_Category value.
@@ -162,6 +167,9 @@ pub fn app() -> App<'static, 'static> {
          cannot be written as a character literal, then it is \
          silently dropped.",
     );
+    let flag_short_names = Arg::with_name("short-names")
+        .long("short-names")
+        .help("Use the abbreviated property names in generated files.");
     let flag_trie_set = Arg::with_name("trie-set").long("trie-set").help(
         "Write codepoint sets as a compressed trie. \
          Code using this trie depends on the ucd_trie crate.",
@@ -175,6 +183,31 @@ pub fn app() -> App<'static, 'static> {
         .help("Directory containing the Unicode character database files.");
 
     // Subcommands.
+    let cmd_bidi_class = SubCommand::with_name("bidi-class")
+        .author(crate_authors!())
+        .version(crate_version!())
+        .template(TEMPLATE_SUB)
+        .about("Create the Bidi_Class property tables.")
+        .before_help(ABOUT_BIDI_CLASS)
+        .arg(ucd_dir.clone())
+        .arg(flag_fst_dir.clone())
+        .arg(flag_name("BIDI_CLASS"))
+        .arg(flag_chars.clone())
+        .arg(flag_trie_set.clone())
+        .arg(flag_short_names.clone())
+        .arg(
+            Arg::with_name("enum").long("enum").help(
+                "Emit a single table that maps codepoints to bidi class.",
+            ),
+        )
+        .arg(Arg::with_name("rust-enum").long("rust-enum").help(
+            "Emit a Rust enum and a table that maps codepoints to bidi class.",
+        ))
+        .arg(
+            Arg::with_name("list-classes")
+                .long("list-classes")
+                .help("List all of the bidi class names with abbreviations."),
+        );
     let cmd_general_category = SubCommand::with_name("general-category")
         .author(crate_authors!())
         .version(crate_version!())
@@ -529,6 +562,7 @@ pub fn app() -> App<'static, 'static> {
         .template(TEMPLATE)
         .max_term_width(100)
         .setting(AppSettings::UnifiedHelpMessage)
+        .subcommand(cmd_bidi_class)
         .subcommand(cmd_general_category)
         .subcommand(cmd_script)
         .subcommand(cmd_script_extension)

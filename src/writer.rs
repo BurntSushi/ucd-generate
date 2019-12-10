@@ -1165,6 +1165,11 @@ fn rust_const_name(s: &str) -> String {
 
 /// Heuristically produce an appropriate Rust type name.
 fn rust_type_name(s: &str) -> String {
+    // If it's all uppercase or digits then leave as is
+    if s.chars().all(|c| c.is_ascii_uppercase() || c.is_ascii_digit()) {
+        return s.to_string();
+    }
+
     // Convert to PascalCase
     s.split(|c: char| c.is_whitespace() || c == '.' || c == '_' || c == '-')
         .map(|component| {
@@ -1271,7 +1276,8 @@ mod tests {
 
     #[test]
     fn test_rust_type_name() {
-        assert_eq!(&rust_type_name("SCRIPT"), "Script");
+        assert_eq!(&rust_type_name("simple"), "Simple");
+        assert_eq!(&rust_type_name("SCRIPT"), "SCRIPT");
         assert_eq!(&rust_type_name("dot.separated"), "DotSeparated");
         assert_eq!(&rust_type_name("dash-separated"), "DashSeparated");
         assert_eq!(&rust_type_name("white \tspace"), "WhiteSpace");
