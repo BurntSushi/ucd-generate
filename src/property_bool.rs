@@ -2,7 +2,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
 use ucd_parse::{
-    self, CoreProperty, EmojiProperty, Property, UnicodeDataExpander,
+    self, CoreProperty, EmojiProperty, Property, UcdFileByCodepoint,
+    UnicodeData, UnicodeDataExpander,
 };
 
 use args::ArgMatches;
@@ -78,6 +79,17 @@ fn parse_properties<P: AsRef<Path>>(
             .or_insert(BTreeSet::new())
             .extend(x.codepoints.into_iter().map(|c| c.value()));
     }
+
+    // Add Bidi_Mirrored
+    let unicode_data: Vec<UnicodeData> = ucd_parse::parse(&ucd_dir)?;
+    let bidi_mirrored =
+        unicode_data.iter().fold(BTreeSet::new(), |mut set, x| {
+            if x.bidi_mirrored {
+                set.extend(x.codepoints().into_iter().map(|c| c.value()))
+            }
+            set
+        });
+    by_name.insert("Bidi_Mirrored".to_string(), bidi_mirrored);
 
     // Since emoji-data.txt isn't parse of the normal UCD download, don't
     // die if it doesn't exist. But emit a helpful warning message.
