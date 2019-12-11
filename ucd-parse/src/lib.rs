@@ -17,6 +17,7 @@ pub use error::{Error, ErrorKind};
 
 pub use age::Age;
 pub use arabic_shaping::ArabicShaping;
+pub use bidi_mirroring_glyph::BidiMirroring;
 pub use case_folding::{CaseFold, CaseStatus};
 pub use core_properties::CoreProperty;
 pub use emoji_properties::EmojiProperty;
@@ -50,6 +51,7 @@ mod error;
 
 mod age;
 mod arabic_shaping;
+mod bidi_mirroring_glyph;
 mod case_folding;
 mod core_properties;
 mod emoji_properties;
