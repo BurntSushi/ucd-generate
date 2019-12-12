@@ -510,6 +510,70 @@ impl Writer {
         Ok(())
     }
 
+    /// Write a function that associates codepoints with other codepoints.
+    ///
+    /// The function will use a match expression to map between codepoints.
+    /// The fallback branch of the match returns 0.
+    pub fn codepoint_to_codepoint_fn(
+        &mut self,
+        name: &str,
+        map: &BTreeMap<u32, u32>,
+    ) -> Result<()> {
+        self.header()?;
+        self.separator()?;
+
+        writeln!(self.wtr, "use std::num::NonZeroU32;")?;
+        self.separator()?;
+
+        let fn_name = rust_fn_name(name);
+        writeln!(
+            self.wtr,
+            "pub fn {}(cp: u32) -> Option<NonZeroU32> {{",
+            fn_name
+        )?;
+        self.wtr.indent("    ");
+        self.wtr.write_str(
+            "// new_unchecked is safe as ucd-generate checks \
+             that the destination",
+        )?;
+        self.wtr.flush_line()?;
+        self.wtr.write_str(
+            "// codepoint is non-zero at \
+             code generation time.",
+        )?;
+        self.wtr.flush_line()?;
+        self.wtr.write_str("unsafe {")?;
+        self.wtr.flush_line()?;
+        self.wtr.indent("        ");
+        self.wtr.write_str("match cp {")?;
+        self.wtr.flush_line()?;
+        self.wtr.indent("            ");
+        for (from, to) in map {
+            if *to == 0 {
+                return err!(
+                    "destination codepoint must not be 0 (NUL) for \
+                     rust-match output format"
+                );
+            }
+            self.wtr.write_str(&format!(
+                "{} => Some(NonZeroU32::new_unchecked({})),",
+                from, to
+            ))?;
+            self.wtr.flush_line()?;
+        }
+        self.wtr.write_str("_ => None,")?;
+        self.wtr.flush_line()?;
+        self.wtr.indent("        ");
+        self.wtr.write_str("}")?;
+        self.wtr.flush_line()?;
+        self.wtr.indent("    ");
+        self.wtr.write_str("}")?;
+        self.wtr.flush_line()?;
+        writeln!(self.wtr, "}}")?;
+        self.wtr.flush()?;
+        Ok(())
+    }
+
     /// Write a map that associates codepoints with other codepoints, where
     /// each codepoint can be associated with possibly many other codepoints.
     ///
@@ -1196,6 +1260,22 @@ fn rust_module_name(s: &str) -> String {
     s
 }
 
+fn rust_fn_name(s: &str) -> String {
+    // Convert to snake_case
+    s.to_ascii_lowercase()
+        .chars()
+        .map(
+            |c| {
+                if c.is_whitespace() || c == '.' || c == '-' {
+                    '_'
+                } else {
+                    c
+                }
+            },
+        )
+        .collect()
+}
+
 /// Return the unsigned integer type for the size of the given type, which must
 /// have size 1, 2, 4 or 8.
 fn rust_uint_type<S>() -> &'static str {
@@ -1251,7 +1331,10 @@ fn smallest_unsigned_type(n: u64) -> &'static str {
 
 #[cfg(test)]
 mod tests {
+    use super::WriterBuilder;
     use super::{pack_str, rust_type_name};
+    use error::Error;
+    use std::io::Cursor;
 
     fn unpack_str(mut encoded: u64) -> String {
         let mut value = String::new();
@@ -1282,5 +1365,26 @@ mod tests {
         assert_eq!(&rust_type_name("dash-separated"), "DashSeparated");
         assert_eq!(&rust_type_name("white \tspace"), "WhiteSpace");
         assert_eq!(&rust_type_name("snake_case"), "SnakeCase");
+    }
+
+    #[test]
+    fn codepoint_to_codepoint_fn_error() {
+        let cursor = Cursor::new(Vec::new());
+        let builder = WriterBuilder::new("test");
+        let mut writer = builder.from_writer(cursor);
+
+        // Ensure that a destination codepoint of zero is rejected
+        let map = [(1, 0)].iter().copied().collect();
+        match writer.codepoint_to_codepoint_fn("err", &map) {
+            Err(Error::Other(msg)) => {
+                assert!(msg.contains("destination codepoint must not be 0"))
+            }
+            res => panic!(
+                "expected error matching, \
+                 'destination codepoint must not be 0' \
+                 got: {:?}",
+                res
+            ),
+        }
     }
 }

@@ -63,6 +63,12 @@ codepoints that were added for that age. Tables can be emitted as a sorted
 sequence of ranges, an FST or a trie.
 ";
 
+const ABOUT_BIDI_MIRRORING_GLYPH: &'static str = "\
+bidi-mirroring-glyph produces a table that maps codepoints that have the
+Bidi_Mirrored=Yes property to another codepoint that typically has a glyph that
+is the mirror image of the original codepoint's glyph.
+";
+
 const ABOUT_PROP_BOOL: &'static str = "\
 property-bool produces possibly many tables for boolean properties. Tables can
 be emitted as a sorted sequence of ranges, an FST or a trie.
@@ -215,6 +221,21 @@ pub fn app() -> App<'static, 'static> {
                 .long("list-classes")
                 .help("List all of the bidi class names with abbreviations."),
         );
+    let cmd_bidi_mirroring_glyph =
+        SubCommand::with_name("bidi-mirroring-glyph")
+            .author(crate_authors!())
+            .version(crate_version!())
+            .template(TEMPLATE_SUB)
+            .about("Create Unicode Bidi Mirroring Glyph table.")
+            .before_help(ABOUT_BIDI_MIRRORING_GLYPH)
+            .arg(ucd_dir.clone())
+            .arg(flag_fst_dir.clone())
+            .arg(flag_name("BIDI_MIRRORING_GLYPH"))
+            .arg(flag_chars.clone())
+            .arg(flag_trie_set.clone())
+            .arg(Arg::with_name("rust-match").long("rust-match").help(
+                "Emit a function that uses a match to map between codepoints.",
+            ));
     let cmd_general_category = SubCommand::with_name("general-category")
         .author(crate_authors!())
         .version(crate_version!())
@@ -592,6 +613,7 @@ pub fn app() -> App<'static, 'static> {
         .subcommand(cmd_script)
         .subcommand(cmd_script_extension)
         .subcommand(cmd_age)
+        .subcommand(cmd_bidi_mirroring_glyph)
         .subcommand(cmd_prop_bool)
         .subcommand(cmd_perl_word)
         .subcommand(cmd_jamo_short_name)
