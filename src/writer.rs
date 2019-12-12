@@ -510,6 +510,38 @@ impl Writer {
         Ok(())
     }
 
+    /// Write a function that associates codepoints with other codepoints.
+    ///
+    /// The function will use a match expression to map between codepoints.
+    /// The fallback branch of the match returns 0.
+    pub fn codepoint_to_codepoint_fn(
+        &mut self,
+        name: &str,
+        map: &BTreeMap<u32, u32>,
+    ) -> Result<()> {
+        self.header()?;
+        self.separator()?;
+
+        let fn_name = rust_fn_name(name);
+        writeln!(self.wtr, "pub fn {}(cp: u32) -> u32 {{", fn_name)?;
+        self.wtr.indent("    ");
+        self.wtr.write_str("match cp {")?;
+        self.wtr.flush_line()?;
+        self.wtr.indent("        ");
+        for (from, to) in map {
+            self.wtr.write_str(&format!("{} => {},", from, to))?;
+            self.wtr.flush_line()?;
+        }
+        self.wtr.write_str("_ => 0,")?;
+        self.wtr.flush_line()?;
+        self.wtr.indent("    ");
+        self.wtr.write_str("}")?;
+        self.wtr.flush_line()?;
+        writeln!(self.wtr, "}}")?;
+        self.wtr.flush()?;
+        Ok(())
+    }
+
     /// Write a map that associates codepoints with other codepoints, where
     /// each codepoint can be associated with possibly many other codepoints.
     ///
@@ -1194,6 +1226,22 @@ fn rust_module_name(s: &str) -> String {
     let mut s = s.to_string();
     s.make_ascii_lowercase();
     s
+}
+
+fn rust_fn_name(s: &str) -> String {
+    // Convert to snake_case
+    s.to_ascii_lowercase()
+        .chars()
+        .map(
+            |c| {
+                if c.is_whitespace() || c == '.' || c == '-' {
+                    '_'
+                } else {
+                    c
+                }
+            },
+        )
+        .collect()
 }
 
 /// Return the unsigned integer type for the size of the given type, which must
