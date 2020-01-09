@@ -21,15 +21,20 @@ pub fn command_dfa(args: ArgMatches) -> Result<()> {
                 let dfa = dfa.to_u16()?.to_sparse()?;
                 wtr.sparse_dfa(args.name(), &dfa)?;
             }
+            #[cfg(any(
+                target_pointer_width = "32",
+                target_pointer_width = "64"
+            ))]
             4 => {
                 let dfa = dfa.to_u32()?.to_sparse()?;
                 wtr.sparse_dfa(args.name(), &dfa)?;
             }
+            #[cfg(target_pointer_width = "64")]
             8 => {
                 let dfa = dfa.to_u64()?.to_sparse()?;
                 wtr.sparse_dfa(args.name(), &dfa)?;
             }
-            _ => unreachable!(),
+            _ => return err!("unsupported state ID size"),
         }
     } else {
         match state_size(&args) {
@@ -41,15 +46,20 @@ pub fn command_dfa(args: ArgMatches) -> Result<()> {
                 let dfa = dfa.to_u16()?;
                 wtr.dense_dfa(args.name(), &dfa)?;
             }
+            #[cfg(any(
+                target_pointer_width = "32",
+                target_pointer_width = "64"
+            ))]
             4 => {
                 let dfa = dfa.to_u32()?;
                 wtr.dense_dfa(args.name(), &dfa)?;
             }
+            #[cfg(target_pointer_width = "64")]
             8 => {
                 let dfa = dfa.to_u64()?;
                 wtr.dense_dfa(args.name(), &dfa)?;
             }
-            _ => unreachable!(),
+            _ => return err!("unsupported state ID size"),
         }
     }
     Ok(())
