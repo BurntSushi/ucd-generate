@@ -59,6 +59,8 @@ impl Error {
 }
 
 impl error::Error for Error {
+    // TODO: Remove on next semver bump.
+    #[allow(deprecated)]
     fn description(&self) -> &str {
         match self.kind {
             ErrorKind::Io(ref err) => err.description(),
