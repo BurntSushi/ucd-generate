@@ -1,0 +1,63 @@
+name: ci
+on:
+  pull_request:
+  push:
+    branches:
+    - master
+  schedule:
+    - cron: '00 01 * * *'
+jobs:
+  test:
+    name: test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        # The docs seem to suggest that we can have a matrix with just an
+        # include directive, but it result in a "matrix must define at least
+        # one vector" error in the CI system.
+        build: [pinned, stable, beta, nightly]
+        include:
+        - build: pinned
+          os: ubuntu-18.04
+          rust: 1.36.0
+        - build: stable
+          os: ubuntu-18.04
+          rust: stable
+        - build: beta
+          os: ubuntu-18.04
+          rust: beta
+        - build: nightly
+          os: ubuntu-18.04
+          rust: nightly
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+    - name: Install Rust
+      uses: hecrj/setup-rust-action@v1
+      with:
+        rust-version: ${{ matrix.rust }}
+    - run: cargo build --all --verbose
+    - run: cargo doc --all --verbose
+    - run: cargo test --all --verbose
+    - if: matrix.build == 'nightly'
+      run: cargo bench --all --verbose --no-run
+
+  rustfmt:
+    name: rustfmt
+    runs-on: ubuntu-18.04
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+    - name: Install Rust
+      uses: hecrj/setup-rust-action@v1
+      with:
+        rust-version: stable
+    - name: Install rustfmt
+      run: rustup component add rustfmt
+    - name: Check formatting
+      run: |
+        cargo fmt -- --check
