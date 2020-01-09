@@ -14,10 +14,10 @@ use error::{Error, ErrorKind};
 /// Parse a particular file in the UCD into a sequence of rows.
 ///
 /// The given directory should be the directory to the UCD.
-pub fn parse<P, D>(
-    ucd_dir: P,
-) -> Result<Vec<D>, Error>
-where P: AsRef<Path>, D: UcdFile
+pub fn parse<P, D>(ucd_dir: P) -> Result<Vec<D>, Error>
+where
+    P: AsRef<Path>,
+    D: UcdFile,
 {
     let mut xs = vec![];
     for result in D::from_dir(ucd_dir)? {
@@ -33,7 +33,9 @@ where P: AsRef<Path>, D: UcdFile
 pub fn parse_by_codepoint<P, D>(
     ucd_dir: P,
 ) -> Result<BTreeMap<Codepoint, D>, Error>
-where P: AsRef<Path>, D: UcdFileByCodepoint
+where
+    P: AsRef<Path>,
+    D: UcdFileByCodepoint,
 {
     let mut map = BTreeMap::new();
     for result in D::from_dir(ucd_dir)? {
@@ -56,7 +58,9 @@ where P: AsRef<Path>, D: UcdFileByCodepoint
 pub fn parse_many_by_codepoint<P, D>(
     ucd_dir: P,
 ) -> Result<BTreeMap<Codepoint, Vec<D>>, Error>
-where P: AsRef<Path>, D: UcdFileByCodepoint
+where
+    P: AsRef<Path>,
+    D: UcdFileByCodepoint,
 {
     let mut map = BTreeMap::new();
     for result in D::from_dir(ucd_dir)? {
@@ -72,8 +76,7 @@ where P: AsRef<Path>, D: UcdFileByCodepoint
 /// or more codepoints with a string value.
 pub fn parse_codepoint_association<'a>(
     line: &'a str,
-) -> Result<(Codepoints, &'a str), Error>
-{
+) -> Result<(Codepoints, &'a str), Error> {
     lazy_static! {
         static ref PARTS: Regex = Regex::new(
             r"(?x)
@@ -81,7 +84,8 @@ pub fn parse_codepoint_association<'a>(
             \s*(?P<codepoints>[^\s;]+)\s*;
             \s*(?P<property>[^;\x23]+)\s*
             "
-        ).unwrap();
+        )
+        .unwrap();
     };
 
     let caps = match PARTS.captures(line.trim()) {
@@ -90,8 +94,12 @@ pub fn parse_codepoint_association<'a>(
     };
     let property = match caps.name("property") {
         Some(property) => property.as_str().trim(),
-        None => return err!(
-            "could not find property name in PropList line: '{}'", line),
+        None => {
+            return err!(
+                "could not find property name in PropList line: '{}'",
+                line
+            )
+        }
     };
     Ok((caps["codepoints"].parse()?, property))
 }
@@ -123,13 +131,14 @@ pub fn parse_break_test(line: &str) -> Result<(Vec<String>, String), Error> {
             \#(?P<comment>.+)
             $
             "
-        ).unwrap();
-
+        )
+        .unwrap();
         static ref GROUP: Regex = Regex::new(
             r"(?x)
             (?P<codepoint>[0-9A-Fa-f]{4,5})\s(?P<kind>÷|×)
             "
-        ).unwrap();
+        )
+        .unwrap();
     }
 
     let caps = match PARTS.captures(line.trim()) {
@@ -144,9 +153,13 @@ pub fn parse_break_test(line: &str) -> Result<(Vec<String>, String), Error> {
         let cp: Codepoint = cap["codepoint"].parse()?;
         let ch = match cp.scalar() {
             Some(ch) => ch,
-            None => return err!(
-                "invalid codepoint '{:X}' in line: '{}'", cp.value(), line
-            ),
+            None => {
+                return err!(
+                    "invalid codepoint '{:X}' in line: '{}'",
+                    cp.value(),
+                    line
+                )
+            }
         };
         cur.push(ch);
         if &cap["kind"] == "÷" {
@@ -159,7 +172,7 @@ pub fn parse_break_test(line: &str) -> Result<(Vec<String>, String), Error> {
 
 /// Describes a single UCD file.
 pub trait UcdFile:
-    Clone + fmt::Debug + Default + Eq + FromStr<Err=Error> + PartialEq
+    Clone + fmt::Debug + Default + Eq + FromStr<Err = Error> + PartialEq
 {
     /// The file path corresponding to this file, relative to the UCD
     /// directory.
@@ -241,7 +254,7 @@ impl<R: io::Read, D> UcdLineParser<R, D> {
     }
 }
 
-impl<R: io::Read, D: FromStr<Err=Error>> Iterator for UcdLineParser<R, D> {
+impl<R: io::Read, D: FromStr<Err = Error>> Iterator for UcdLineParser<R, D> {
     type Item = Result<D, Error>;
 
     fn next(&mut self) -> Option<Result<D, Error>> {
@@ -249,11 +262,13 @@ impl<R: io::Read, D: FromStr<Err=Error>> Iterator for UcdLineParser<R, D> {
             self.line_number += 1;
             self.line.clear();
             let n = match self.rdr.read_line(&mut self.line) {
-                Err(err) => return Some(Err(Error {
-                    kind: ErrorKind::Io(err),
-                    line: None,
-                    path: self.path.clone(),
-                })),
+                Err(err) => {
+                    return Some(Err(Error {
+                        kind: ErrorKind::Io(err),
+                        line: None,
+                        path: self.path.clone(),
+                    }))
+                }
                 Ok(n) => n,
             };
             if n == 0 {
@@ -379,9 +394,9 @@ impl FromStr for CodepointRange {
 
     fn from_str(s: &str) -> Result<CodepointRange, Error> {
         lazy_static! {
-            static ref PARTS: Regex = Regex::new(
-                r"^(?P<start>[A-Z0-9]+)\.\.(?P<end>[A-Z0-9]+)$"
-            ).unwrap();
+            static ref PARTS: Regex =
+                Regex::new(r"^(?P<start>[A-Z0-9]+)\.\.(?P<end>[A-Z0-9]+)$")
+                    .unwrap();
         }
         let caps = match PARTS.captures(s) {
             Some(caps) => caps,
@@ -438,12 +453,16 @@ impl Codepoint {
     }
 
     /// Return the underlying `u32` codepoint value.
-    pub fn value(self) -> u32 { self.0 }
+    pub fn value(self) -> u32 {
+        self.0
+    }
 
     /// Attempt to convert this codepoint to a Unicode scalar value.
     ///
     /// If this is a surrogate codepoint, then this returns `None`.
-    pub fn scalar(self) -> Option<char> { char::from_u32(self.0) }
+    pub fn scalar(self) -> Option<char> {
+        char::from_u32(self.0)
+    }
 }
 
 impl IntoIterator for Codepoint {
@@ -465,7 +484,9 @@ impl FromStr for Codepoint {
             Err(err) => {
                 return err!(
                     "failed to parse '{}' as a hexadecimal codepoint: {}",
-                    s, err);
+                    s,
+                    err
+                );
             }
         }
     }

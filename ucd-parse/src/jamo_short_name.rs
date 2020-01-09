@@ -3,7 +3,7 @@ use std::str::FromStr;
 
 use regex::Regex;
 
-use common::{UcdFile, UcdFileByCodepoint, Codepoint, CodepointIter};
+use common::{Codepoint, CodepointIter, UcdFile, UcdFileByCodepoint};
 use error::Error;
 
 /// A single row in the `Jamo.txt` file.
@@ -42,7 +42,8 @@ impl FromStr for JamoShortName {
                 \s*
                 (?P<name>[A-Z]*)
                 "
-            ).unwrap();
+            )
+            .unwrap();
         };
 
         let caps = match PARTS.captures(line.trim()) {

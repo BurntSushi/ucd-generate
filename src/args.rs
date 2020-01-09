@@ -12,7 +12,9 @@ pub struct ArgMatches<'a>(&'a clap::ArgMatches<'a>);
 
 impl<'a> ops::Deref for ArgMatches<'a> {
     type Target = clap::ArgMatches<'a>;
-    fn deref(&self) -> &clap::ArgMatches<'a> { &self.0 }
+    fn deref(&self) -> &clap::ArgMatches<'a> {
+        &self.0
+    }
 }
 
 impl<'a> ArgMatches<'a> {
@@ -70,6 +72,7 @@ impl<'a> ArgMatches<'a> {
         Filter::new(
             self.value_of_lossy("include").map(|s| s.to_string()),
             self.value_of_lossy("exclude").map(|s| s.to_string()),
-            |name| canonicalize(name))
+            |name| canonicalize(name),
+        )
     }
 }

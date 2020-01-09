@@ -2,8 +2,8 @@ use std::path::Path;
 use std::str::FromStr;
 
 use common::{
-    UcdFile, UcdFileByCodepoint, Codepoints, CodepointIter,
-    parse_codepoint_association,
+    parse_codepoint_association, CodepointIter, Codepoints, UcdFile,
+    UcdFileByCodepoint,
 };
 use error::Error;
 

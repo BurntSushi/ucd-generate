@@ -157,15 +157,15 @@ pub fn app() -> App<'static, 'static> {
             .takes_value(true)
             .default_value(default)
     };
-    let flag_chars = Arg::with_name("chars")
-        .long("chars")
-        .help("Write codepoints as character literals. If a codepoint \
-               cannot be written as a character literal, then it is \
-               silently dropped.");
-    let flag_trie_set = Arg::with_name("trie-set")
-        .long("trie-set")
-        .help("Write codepoint sets as a compressed trie. \
-               Code using this trie depends on the ucd_trie crate.");
+    let flag_chars = Arg::with_name("chars").long("chars").help(
+        "Write codepoints as character literals. If a codepoint \
+         cannot be written as a character literal, then it is \
+         silently dropped.",
+    );
+    let flag_trie_set = Arg::with_name("trie-set").long("trie-set").help(
+        "Write codepoint sets as a compressed trie. \
+         Code using this trie depends on the ucd_trie crate.",
+    );
     let flag_fst_dir = Arg::with_name("fst-dir")
         .long("fst-dir")
         .help("Emit the table as a FST in Rust source code.")
@@ -186,23 +186,25 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_name("GENERAL_CATEGORY"))
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
-        .arg(Arg::with_name("enum")
-            .long("enum")
-            .help("Emit a single table that maps codepoints to categories."))
-        .arg(Arg::with_name("include")
-            .long("include")
-            .takes_value(true)
-            .help("A comma separated list of categories to include. \
-                   When absent, all categories are included."))
-        .arg(Arg::with_name("exclude")
-            .long("exclude")
-            .takes_value(true)
-            .help("A comma separated list of categories to exclude. \
-                   When absent, no categories are excluded. This overrides \
-                   categories specified with the --include flag."))
-        .arg(Arg::with_name("list-categories")
-            .long("list-categories")
-            .help("List all of the category names with abbreviations."));
+        .arg(
+            Arg::with_name("enum").long("enum").help(
+                "Emit a single table that maps codepoints to categories.",
+            ),
+        )
+        .arg(Arg::with_name("include").long("include").takes_value(true).help(
+            "A comma separated list of categories to include. \
+             When absent, all categories are included.",
+        ))
+        .arg(Arg::with_name("exclude").long("exclude").takes_value(true).help(
+            "A comma separated list of categories to exclude. \
+             When absent, no categories are excluded. This overrides \
+             categories specified with the --include flag.",
+        ))
+        .arg(
+            Arg::with_name("list-categories")
+                .long("list-categories")
+                .help("List all of the category names with abbreviations."),
+        );
     let cmd_script = SubCommand::with_name("script")
         .author(crate_authors!())
         .version(crate_version!())
@@ -214,26 +216,28 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_name("SCRIPT"))
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
-        .arg(Arg::with_name("enum")
-            .long("enum")
-            .help("Emit a single table that maps codepoints to scripts."))
-        .arg(Arg::with_name("rust-enum")
-            .long("rust-enum")
-            .help("Emit a Rust enum and a table that maps codepoints to scripts."))
-        .arg(Arg::with_name("include")
-            .long("include")
-            .takes_value(true)
-            .help("A comma separated list of scripts to include. \
-                   When absent, all scripts are included."))
-        .arg(Arg::with_name("exclude")
-            .long("exclude")
-            .takes_value(true)
-            .help("A comma separated list of scripts to exclude. \
-                   When absent, no scripts are excluded. This overrides \
-                   scripts specified with the --include flag."))
-        .arg(Arg::with_name("list-scripts")
-            .long("list-scripts")
-            .help("List all of the script names with abbreviations."));
+        .arg(
+            Arg::with_name("enum")
+                .long("enum")
+                .help("Emit a single table that maps codepoints to scripts."),
+        )
+        .arg(Arg::with_name("rust-enum").long("rust-enum").help(
+            "Emit a Rust enum and a table that maps codepoints to scripts.",
+        ))
+        .arg(Arg::with_name("include").long("include").takes_value(true).help(
+            "A comma separated list of scripts to include. \
+             When absent, all scripts are included.",
+        ))
+        .arg(Arg::with_name("exclude").long("exclude").takes_value(true).help(
+            "A comma separated list of scripts to exclude. \
+             When absent, no scripts are excluded. This overrides \
+             scripts specified with the --include flag.",
+        ))
+        .arg(
+            Arg::with_name("list-scripts")
+                .long("list-scripts")
+                .help("List all of the script names with abbreviations."),
+        );
     let cmd_script_extension = SubCommand::with_name("script-extension")
         .author(crate_authors!())
         .version(crate_version!())
@@ -245,22 +249,24 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_name("SCRIPT_EXTENSION"))
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
-        .arg(Arg::with_name("include")
-            .long("include")
-            .takes_value(true)
-            .help("A comma separated list of script extensions to include. \
-                   When absent, all scripts extensions are included."))
-        .arg(Arg::with_name("exclude")
-            .long("exclude")
-            .takes_value(true)
-            .help("A comma separated list of script extensions to exclude. \
-                   When absent, no script extensions are excluded. This \
-                   overrides script extensions specified with the --include \
-                   flag."))
-        .arg(Arg::with_name("list-script-extensions")
-            .long("list-script-extensions")
-            .help("List all of the script extension names with \
-                   abbreviations."));
+        .arg(Arg::with_name("include").long("include").takes_value(true).help(
+            "A comma separated list of script extensions to include. \
+             When absent, all scripts extensions are included.",
+        ))
+        .arg(Arg::with_name("exclude").long("exclude").takes_value(true).help(
+            "A comma separated list of script extensions to exclude. \
+             When absent, no script extensions are excluded. This \
+             overrides script extensions specified with the --include \
+             flag.",
+        ))
+        .arg(
+            Arg::with_name("list-script-extensions")
+                .long("list-script-extensions")
+                .help(
+                    "List all of the script extension names with \
+                     abbreviations.",
+                ),
+        );
     let cmd_age = SubCommand::with_name("age")
         .author(crate_authors!())
         .version(crate_version!())
@@ -271,10 +277,10 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_fst_dir.clone())
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
-        .arg(Arg::with_name("list-properties")
-            .long("list-properties")
-            .help("List the properties that can be generated with this \
-                   command."));
+        .arg(Arg::with_name("list-properties").long("list-properties").help(
+            "List the properties that can be generated with this \
+             command.",
+        ));
     let cmd_prop_bool = SubCommand::with_name("property-bool")
         .author(crate_authors!())
         .version(crate_version!())
@@ -285,21 +291,19 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_fst_dir.clone())
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
-        .arg(Arg::with_name("include")
-            .long("include")
-            .takes_value(true)
-            .help("A comma separated list of properties to include. \
-                   When absent, all available properties are included."))
-        .arg(Arg::with_name("exclude")
-            .long("exclude")
-            .takes_value(true)
-            .help("A comma separated list of properties to exclude. \
-                   When absent, no properties are excluded. This overrides \
-                   properties specified with the --include flag."))
-        .arg(Arg::with_name("list-properties")
-            .long("list-properties")
-            .help("List the properties that can be generated with this \
-                   command."));
+        .arg(Arg::with_name("include").long("include").takes_value(true).help(
+            "A comma separated list of properties to include. \
+             When absent, all available properties are included.",
+        ))
+        .arg(Arg::with_name("exclude").long("exclude").takes_value(true).help(
+            "A comma separated list of properties to exclude. \
+             When absent, no properties are excluded. This overrides \
+             properties specified with the --include flag.",
+        ))
+        .arg(Arg::with_name("list-properties").long("list-properties").help(
+            "List the properties that can be generated with this \
+             command.",
+        ));
     let cmd_perl_word = SubCommand::with_name("perl-word")
         .author(crate_authors!())
         .version(crate_version!())
@@ -321,39 +325,40 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_fst_dir.clone())
         .arg(flag_chars.clone())
         .arg(flag_name("JAMO_SHORT_NAME"));
-    let cmd_names = SubCommand::with_name("names")
-        .author(crate_authors!())
-        .version(crate_version!())
-        .template(TEMPLATE_SUB)
-        .about("Create a mapping from character name to codepoint.")
-        .before_help(ABOUT_NAMES)
-        .arg(ucd_dir.clone())
-        .arg(flag_fst_dir.clone())
-        .arg(flag_chars.clone().conflicts_with("tagged"))
-        .arg(flag_name("NAMES"))
-        .arg(Arg::with_name("no-aliases")
-            .long("no-aliases")
-            .help("Ignore all character name aliases. When used, every name \
-                   maps to exactly one codepoint."))
-        .arg(Arg::with_name("no-ideograph")
-            .long("no-ideograph")
-            .help("Do not include algorithmically generated ideograph names."))
-        .arg(Arg::with_name("no-hangul")
-            .long("no-hangul")
-            .help("Do not include algorithmically generated Hangul syllable \
-                   names."))
-        .arg(Arg::with_name("tagged")
-             .long("tagged")
-             .help("Tag each codepoint with how the name was derived. \
-                    The lower 32 bits corresponds to the codepoint. Bit 33 \
-                    indicates the name was explicitly provided in \
-                    UnicodeData.txt. Bit 34 indicates the name is from \
-                    NameAliases.txt. \
-                    Bit 35 indicates the name is a Hangul syllable. Bit 36 \
-                    indicates the name is an ideograph."))
-        .arg(Arg::with_name("normalize")
-            .long("normalize")
-            .help("Normalize all character names according to UAX44-LM2."));
+    let cmd_names =
+        SubCommand::with_name("names")
+            .author(crate_authors!())
+            .version(crate_version!())
+            .template(TEMPLATE_SUB)
+            .about("Create a mapping from character name to codepoint.")
+            .before_help(ABOUT_NAMES)
+            .arg(ucd_dir.clone())
+            .arg(flag_fst_dir.clone())
+            .arg(flag_chars.clone().conflicts_with("tagged"))
+            .arg(flag_name("NAMES"))
+            .arg(Arg::with_name("no-aliases").long("no-aliases").help(
+                "Ignore all character name aliases. When used, every name \
+                 maps to exactly one codepoint.",
+            ))
+            .arg(Arg::with_name("no-ideograph").long("no-ideograph").help(
+                "Do not include algorithmically generated ideograph names.",
+            ))
+            .arg(Arg::with_name("no-hangul").long("no-hangul").help(
+                "Do not include algorithmically generated Hangul syllable \
+                 names.",
+            ))
+            .arg(Arg::with_name("tagged").long("tagged").help(
+                "Tag each codepoint with how the name was derived. \
+                 The lower 32 bits corresponds to the codepoint. Bit 33 \
+                 indicates the name was explicitly provided in \
+                 UnicodeData.txt. Bit 34 indicates the name is from \
+                 NameAliases.txt. \
+                 Bit 35 indicates the name is a Hangul syllable. Bit 36 \
+                 indicates the name is an ideograph.",
+            ))
+            .arg(Arg::with_name("normalize").long("normalize").help(
+                "Normalize all character names according to UAX44-LM2.",
+            ));
     let cmd_property_names = SubCommand::with_name("property-names")
         .author(crate_authors!())
         .version(crate_version!())
@@ -362,18 +367,18 @@ pub fn app() -> App<'static, 'static> {
         .before_help(ABOUT_PROPERTY_NAMES)
         .arg(ucd_dir.clone())
         .arg(flag_name("PROPERTY_NAMES"))
-        .arg(Arg::with_name("include")
-            .long("include")
-            .takes_value(true)
-            .help("A comma separated list of property names to include. \
-                   When absent, all property names are included."))
-        .arg(Arg::with_name("exclude")
-            .long("exclude")
-            .takes_value(true)
-            .help("A comma separated list of property names to exclude. \
-                   When absent, no property names are excluded. This \
-                   overrides property names specified with the --include \
-                   flag."));
+        .arg(Arg::with_name("include").long("include").takes_value(true).help(
+            "A comma separated list of property names to include. \
+             When absent, all property names are included.",
+        ))
+        .arg(
+            Arg::with_name("exclude").long("exclude").takes_value(true).help(
+                "A comma separated list of property names to exclude. \
+                 When absent, no property names are excluded. This \
+                 overrides property names specified with the --include \
+                 flag.",
+            ),
+        );
     let cmd_property_values = SubCommand::with_name("property-values")
         .author(crate_authors!())
         .version(crate_version!())
@@ -382,19 +387,19 @@ pub fn app() -> App<'static, 'static> {
         .before_help(ABOUT_PROPERTY_VALUES)
         .arg(ucd_dir.clone())
         .arg(flag_name("PROPERTY_VALUES"))
-        .arg(Arg::with_name("include")
-            .long("include")
-            .takes_value(true)
-            .help("A comma separated list of property names to include. \
-                   When absent, all property values for all properties are \
-                   included."))
-        .arg(Arg::with_name("exclude")
-            .long("exclude")
-            .takes_value(true)
-            .help("A comma separated list of property names to exclude. \
-                   When absent, no property values are excluded. This \
-                   overrides property names specified with the --include \
-                   flag."));
+        .arg(Arg::with_name("include").long("include").takes_value(true).help(
+            "A comma separated list of property names to include. \
+             When absent, all property values for all properties are \
+             included.",
+        ))
+        .arg(
+            Arg::with_name("exclude").long("exclude").takes_value(true).help(
+                "A comma separated list of property names to exclude. \
+                 When absent, no property values are excluded. This \
+                 overrides property names specified with the --include \
+                 flag.",
+            ),
+        );
     let cmd_case_folding_simple = SubCommand::with_name("case-folding-simple")
         .author(crate_authors!())
         .version(crate_version!())
@@ -405,30 +410,33 @@ pub fn app() -> App<'static, 'static> {
         .arg(ucd_dir.clone())
         .arg(flag_fst_dir.clone())
         .arg(flag_chars.clone())
-        .arg(Arg::with_name("circular")
-             .long("circular")
-             .help("Emit a table where mappings are circular."))
-        .arg(Arg::with_name("all-pairs")
-             .long("all-pairs")
-             .help("Emit a table where each codepoint includes all possible \
-                    Simple mappings."));
+        .arg(
+            Arg::with_name("circular")
+                .long("circular")
+                .help("Emit a table where mappings are circular."),
+        )
+        .arg(Arg::with_name("all-pairs").long("all-pairs").help(
+            "Emit a table where each codepoint includes all possible \
+             Simple mappings.",
+        ));
     let cmd_grapheme_cluster_break =
         SubCommand::with_name("grapheme-cluster-break")
-        .author(crate_authors!())
-        .version(crate_version!())
-        .template(TEMPLATE_SUB)
-        .about("Create a table for each Grapheme_Cluster_Break value.")
-        .before_help(ABOUT_GRAPHEME_CLUSTER_BREAK)
-        .arg(flag_name("GRAPHEME_CLUSTER_BREAK"))
-        .arg(ucd_dir.clone())
-        .arg(flag_fst_dir.clone())
-        .arg(flag_chars.clone())
-        .arg(flag_trie_set.clone())
-        .arg(Arg::with_name("enum")
-            .long("enum")
-            .help("Emit a single table that maps codepoints to values."));
-    let cmd_word_break =
-        SubCommand::with_name("word-break")
+            .author(crate_authors!())
+            .version(crate_version!())
+            .template(TEMPLATE_SUB)
+            .about("Create a table for each Grapheme_Cluster_Break value.")
+            .before_help(ABOUT_GRAPHEME_CLUSTER_BREAK)
+            .arg(flag_name("GRAPHEME_CLUSTER_BREAK"))
+            .arg(ucd_dir.clone())
+            .arg(flag_fst_dir.clone())
+            .arg(flag_chars.clone())
+            .arg(flag_trie_set.clone())
+            .arg(
+                Arg::with_name("enum").long("enum").help(
+                    "Emit a single table that maps codepoints to values.",
+                ),
+            );
+    let cmd_word_break = SubCommand::with_name("word-break")
         .author(crate_authors!())
         .version(crate_version!())
         .template(TEMPLATE_SUB)
@@ -439,11 +447,12 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_fst_dir.clone())
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
-        .arg(Arg::with_name("enum")
-            .long("enum")
-            .help("Emit a single table that maps codepoints to values."));
-    let cmd_sentence_break =
-        SubCommand::with_name("sentence-break")
+        .arg(
+            Arg::with_name("enum")
+                .long("enum")
+                .help("Emit a single table that maps codepoints to values."),
+        );
+    let cmd_sentence_break = SubCommand::with_name("sentence-break")
         .author(crate_authors!())
         .version(crate_version!())
         .template(TEMPLATE_SUB)
@@ -454,11 +463,12 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_fst_dir.clone())
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
-        .arg(Arg::with_name("enum")
-            .long("enum")
-            .help("Emit a single table that maps codepoints to values."));
-    let cmd_dfa =
-        SubCommand::with_name("dfa")
+        .arg(
+            Arg::with_name("enum")
+                .long("enum")
+                .help("Emit a single table that maps codepoints to values."),
+        );
+    let cmd_dfa = SubCommand::with_name("dfa")
         .author(crate_authors!())
         .version(crate_version!())
         .template(TEMPLATE_SUB)
@@ -475,12 +485,13 @@ pub fn app() -> App<'static, 'static> {
         .arg(Arg::with_name("no-utf8").long("no-utf8"))
         .arg(Arg::with_name("longest").long("longest"))
         .arg(Arg::with_name("reverse").long("reverse"))
-        .arg(Arg::with_name("state-size")
-             .long("state-size")
-             .possible_values(&["1", "2", "4", "8"])
-             .default_value("4"));
-    let cmd_regex =
-        SubCommand::with_name("regex")
+        .arg(
+            Arg::with_name("state-size")
+                .long("state-size")
+                .possible_values(&["1", "2", "4", "8"])
+                .default_value("4"),
+        );
+    let cmd_regex = SubCommand::with_name("regex")
         .author(crate_authors!())
         .version(crate_version!())
         .template(TEMPLATE_SUB)
@@ -495,10 +506,12 @@ pub fn app() -> App<'static, 'static> {
         .arg(Arg::with_name("classes").long("classes"))
         .arg(Arg::with_name("premultiply").long("premultiply"))
         .arg(Arg::with_name("no-utf8").long("no-utf8"))
-        .arg(Arg::with_name("state-size")
-             .long("state-size")
-             .possible_values(&["1", "2", "4", "8"])
-             .default_value("4"));
+        .arg(
+            Arg::with_name("state-size")
+                .long("state-size")
+                .possible_values(&["1", "2", "4", "8"])
+                .default_value("4"),
+        );
 
     let cmd_test_unicode_data = SubCommand::with_name("test-unicode-data")
         .author(crate_authors!())

@@ -4,7 +4,7 @@ use ucd_parse::{self, UnicodeDataExpander};
 
 use args::ArgMatches;
 use error::Result;
-use util::{PropertyValues, print_property_values};
+use util::{print_property_values, PropertyValues};
 
 pub fn command(args: ArgMatches) -> Result<()> {
     let dir = args.ucd_dir()?;
@@ -27,17 +27,14 @@ pub fn command(args: ArgMatches) -> Result<()> {
     let mut assigned = BTreeSet::new();
     for row in rows {
         assigned.insert(row.codepoint.value());
-        let gc = propvals
-            .canonical("gc", &row.general_category)?
-            .to_string();
-        bycat.entry(gc)
+        let gc = propvals.canonical("gc", &row.general_category)?.to_string();
+        bycat
+            .entry(gc)
             .or_insert(BTreeSet::new())
             .insert(row.codepoint.value());
     }
     // As a special case, collect all unassigned codepoints.
-    let unassigned_name = propvals
-        .canonical("gc", "unassigned")?
-        .to_string();
+    let unassigned_name = propvals.canonical("gc", "unassigned")?.to_string();
     bycat.insert(unassigned_name.clone(), BTreeSet::new());
     for cp in 0..(0x10FFFF + 1) {
         if !assigned.contains(&cp) {
@@ -106,9 +103,18 @@ fn related_categories(
         (c("Letter"), vec![c("lu"), c("ll"), c("lt"), c("lm"), c("lo")]),
         (c("Mark"), vec![c("mn"), c("mc"), c("me")]),
         (c("Number"), vec![c("nd"), c("nl"), c("no")]),
-        (c("Punctuation"), vec![
-            c("pc"), c("pd"), c("ps"), c("pe"), c("pi"), c("pf"), c("po"),
-        ]),
+        (
+            c("Punctuation"),
+            vec![
+                c("pc"),
+                c("pd"),
+                c("ps"),
+                c("pe"),
+                c("pi"),
+                c("pf"),
+                c("po"),
+            ],
+        ),
         (c("Symbol"), vec![c("sm"), c("sc"), c("sk"), c("so")]),
         (c("Separator"), vec![c("zs"), c("zl"), c("zp")]),
         (c("Other"), vec![c("cc"), c("cf"), c("cs"), c("co"), c("cn")]),

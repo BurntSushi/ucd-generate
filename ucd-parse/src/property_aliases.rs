@@ -35,10 +35,10 @@ impl FromStr for PropertyAlias {
                 \s*(?P<long>[^\s;]+)\s*
                 (?:;(?P<aliases>.*))?
                 "
-            ).unwrap();
-            static ref ALIASES: Regex = Regex::new(
-                r"\s*(?P<alias>[^\s;]+)\s*;?\s*"
-            ).unwrap();
+            )
+            .unwrap();
+            static ref ALIASES: Regex =
+                Regex::new(r"\s*(?P<alias>[^\s;]+)\s*;?\s*").unwrap();
         };
 
         let caps = match PARTS.captures(line.trim()) {
@@ -84,7 +84,8 @@ mod tests {
 
     #[test]
     fn parse3() {
-        let line = "scf                      ; Simple_Case_Folding         ; sfc\n";
+        let line =
+            "scf                      ; Simple_Case_Folding         ; sfc\n";
         let row: PropertyAlias = line.parse().unwrap();
         assert_eq!(row.abbreviation, "scf");
         assert_eq!(row.long, "Simple_Case_Folding");

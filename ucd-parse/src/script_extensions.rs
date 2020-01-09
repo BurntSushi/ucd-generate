@@ -2,8 +2,8 @@ use std::path::Path;
 use std::str::FromStr;
 
 use common::{
-    UcdFile, UcdFileByCodepoint, Codepoints, CodepointIter,
-    parse_codepoint_association,
+    parse_codepoint_association, CodepointIter, Codepoints, UcdFile,
+    UcdFileByCodepoint,
 };
 use error::Error;
 
@@ -57,9 +57,12 @@ mod tests {
         let line = "A836..A837    ; Deva Gujr Guru Kthi Mahj Modi Sind Takr Tirh # So   [2] NORTH INDIC QUARTER MARK..NORTH INDIC PLACEHOLDER MARK\n";
         let row: ScriptExtension = line.parse().unwrap();
         assert_eq!(row.codepoints, (0xA836, 0xA837));
-        assert_eq!(row.scripts, vec![
-            "Deva", "Gujr", "Guru", "Kthi", "Mahj", "Modi", "Sind", "Takr",
-            "Tirh",
-        ]);
+        assert_eq!(
+            row.scripts,
+            vec![
+                "Deva", "Gujr", "Guru", "Kthi", "Mahj", "Modi", "Sind",
+                "Takr", "Tirh",
+            ]
+        );
     }
 }

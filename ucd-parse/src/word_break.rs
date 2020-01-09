@@ -2,8 +2,8 @@ use std::path::Path;
 use std::str::FromStr;
 
 use common::{
-    UcdFile, UcdFileByCodepoint, Codepoints, CodepointIter,
-    parse_break_test, parse_codepoint_association,
+    parse_break_test, parse_codepoint_association, CodepointIter, Codepoints,
+    UcdFile, UcdFileByCodepoint,
 };
 use error::Error;
 
@@ -33,10 +33,7 @@ impl FromStr for WordBreak {
 
     fn from_str(line: &str) -> Result<WordBreak, Error> {
         let (codepoints, value) = parse_codepoint_association(line)?;
-        Ok(WordBreak {
-            codepoints: codepoints,
-            value: value.to_string(),
-        })
+        Ok(WordBreak { codepoints: codepoints, value: value.to_string() })
     }
 }
 
@@ -63,10 +60,7 @@ impl FromStr for WordBreakTest {
 
     fn from_str(line: &str) -> Result<WordBreakTest, Error> {
         let (groups, comment) = parse_break_test(line)?;
-        Ok(WordBreakTest {
-            words: groups,
-            comment: comment,
-        })
+        Ok(WordBreakTest { words: groups, comment: comment })
     }
 }
 
@@ -95,12 +89,15 @@ mod tests {
         let line = "÷ 0031 ÷ 0027 × 0308 ÷ 0061 ÷ 0027 × 2060 ÷	#  ÷ [0.2] DIGIT ONE (Numeric) ÷ [999.0] APOSTROPHE (Single_Quote) × [4.0] COMBINING DIAERESIS (Extend_FE) ÷ [999.0] LATIN SMALL LETTER A (ALetter) ÷ [999.0] APOSTROPHE (Single_Quote) × [4.0] WORD JOINER (Format_FE) ÷ [0.3]";
 
         let row: WordBreakTest = line.parse().unwrap();
-        assert_eq!(row.words, vec![
-            "\u{0031}",
-            "\u{0027}\u{0308}",
-            "\u{0061}",
-            "\u{0027}\u{2060}",
-        ]);
+        assert_eq!(
+            row.words,
+            vec![
+                "\u{0031}",
+                "\u{0027}\u{0308}",
+                "\u{0061}",
+                "\u{0027}\u{2060}",
+            ]
+        );
         assert!(row.comment.contains("[4.0] COMBINING DIAERESIS (Extend_FE)"));
     }
 }

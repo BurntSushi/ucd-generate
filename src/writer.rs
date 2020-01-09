@@ -8,10 +8,10 @@ use std::mem::size_of;
 use std::path::{Path, PathBuf};
 use std::str;
 
-use byteorder::{ByteOrder, BigEndian as BE};
-use fst::{Map, MapBuilder, Set, SetBuilder};
+use byteorder::{BigEndian as BE, ByteOrder};
 use fst::raw::Fst;
-use regex_automata::{StateID, DenseDFA, SparseDFA, Regex};
+use fst::{Map, MapBuilder, Set, SetBuilder};
+use regex_automata::{DenseDFA, Regex, SparseDFA, StateID};
 use ucd_trie::TrieSetOwned;
 
 use error::Result;
@@ -122,27 +122,24 @@ pub struct Writer {
 
 impl Writer {
     /// Write a sorted sequence of string names that map to Unicode set names.
-    pub fn names<I: IntoIterator<Item=T>, T: AsRef<str>>(
+    pub fn names<I: IntoIterator<Item = T>, T: AsRef<str>>(
         &mut self,
         names: I,
     ) -> Result<()> {
         self.header()?;
         self.separator()?;
 
-        let ty =
-            if self.opts.fst_dir.is_some() {
-                "::fst::Set".to_string()
-            } else if self.opts.trie_set {
-                "&'static ::ucd_trie::TrieSet".to_string()
-            } else {
-                let charty = self.rust_codepoint_type();
-                format!("&'static [({}, {})]", charty, charty)
-            };
+        let ty = if self.opts.fst_dir.is_some() {
+            "::fst::Set".to_string()
+        } else if self.opts.trie_set {
+            "&'static ::ucd_trie::TrieSet".to_string()
+        } else {
+            let charty = self.rust_codepoint_type();
+            format!("&'static [({}, {})]", charty, charty)
+        };
 
-        let mut names: Vec<String> = names
-            .into_iter()
-            .map(|name| name.as_ref().to_string())
-            .collect();
+        let mut names: Vec<String> =
+            names.into_iter().map(|name| name.as_ref().to_string()).collect();
         names.sort();
 
         writeln!(
@@ -200,7 +197,8 @@ impl Writer {
         writeln!(
             self.wtr,
             "pub const {}: &'static [({}, {})] = &[",
-            name, ty, ty)?;
+            name, ty, ty
+        )?;
         for &(start, end) in table {
             let range = (self.rust_codepoint(start), self.rust_codepoint(end));
             if let (Some(start), Some(end)) = range {
@@ -211,17 +209,14 @@ impl Writer {
         Ok(())
     }
 
-    fn trie_set(
-        &mut self,
-        name: &str,
-        trie: &TrieSetOwned,
-    ) -> Result<()> {
+    fn trie_set(&mut self, name: &str, trie: &TrieSetOwned) -> Result<()> {
         let trie = trie.as_slice();
         writeln!(
             self.wtr,
             "pub const {}: &'static ::ucd_trie::TrieSet = \
-                &::ucd_trie::TrieSet {{",
-            name)?;
+             &::ucd_trie::TrieSet {{",
+            name
+        )?;
 
         self.wtr.indent("    ");
 
@@ -270,7 +265,8 @@ impl Writer {
         writeln!(
             self.wtr,
             "pub const {}_ENUM: &'static [&'static str] = &[",
-            rust_const_name(name))?;
+            rust_const_name(name)
+        )?;
         for variant in enum_map.keys() {
             self.wtr.write_str(&format!("{:?}, ", variant))?;
         }
@@ -315,7 +311,8 @@ impl Writer {
             map.extend(set.iter().cloned().map(|cp| (cp, variant)));
         }
         let ranges = util::to_range_values(
-            map.iter().map(|(&k, &v)| (k, rust_type_name(v))));
+            map.iter().map(|(&k, &v)| (k, rust_type_name(v))),
+        );
         self.ranges_to_enum_slice(name, &enum_name, &ranges)?;
         self.wtr.flush()?;
         Ok(())
@@ -327,7 +324,8 @@ impl Writer {
         enum_ty: &str,
         table: &[(u32, u32, S)],
     ) -> Result<()>
-        where S: fmt::Display
+    where
+        S: fmt::Display,
     {
         let cp_ty = self.rust_codepoint_type();
 
@@ -337,12 +335,12 @@ impl Writer {
             name, cp_ty, cp_ty, enum_ty,
         )?;
         for (start, end, variant) in table {
-            let range = (
-                self.rust_codepoint(*start), self.rust_codepoint(*end),
-            );
+            let range =
+                (self.rust_codepoint(*start), self.rust_codepoint(*end));
             if let (Some(start), Some(end)) = range {
                 let src = format!(
-                    "({}, {}, {}::{}), ", start, end, enum_ty, variant,
+                    "({}, {}, {}::{}), ",
+                    start, end, enum_ty, variant,
                 );
                 self.wtr.write_str(&src)?;
             }
@@ -372,8 +370,8 @@ impl Writer {
             let map = Map::from_bytes(builder.into_inner()?)?;
             self.fst(&name, map.as_fst(), true)?;
         } else {
-            let ranges = util::to_range_values(
-                map.iter().map(|(&k, &v)| (k, v)));
+            let ranges =
+                util::to_range_values(map.iter().map(|(&k, &v)| (k, v)));
             self.ranges_to_unsigned_integer_slice(&name, &ranges)?;
         }
         self.wtr.flush()?;
@@ -394,7 +392,8 @@ impl Writer {
         writeln!(
             self.wtr,
             "pub const {}: &'static [({}, {}, {})] = &[",
-            name, cp_ty, cp_ty, num_ty)?;
+            name, cp_ty, cp_ty, num_ty
+        )?;
         for &(start, end, num) in table {
             let range = (self.rust_codepoint(start), self.rust_codepoint(end));
             if let (Some(start), Some(end)) = range {
@@ -426,7 +425,8 @@ impl Writer {
         writeln!(
             self.wtr,
             "pub const {}: &'static [(&'static str, &'static str)] = &[",
-            name)?;
+            name
+        )?;
         for (k, v) in map {
             self.wtr.write_str(&format!("({:?}, {:?}), ", k, v))?;
         }
@@ -457,9 +457,10 @@ impl Writer {
         writeln!(
             self.wtr,
             "pub const {}: &'static \
-                [(&'static str, \
-                    &'static [(&'static str, &'static str)])] = &[",
-            name)?;
+             [(&'static str, \
+             &'static [(&'static str, &'static str)])] = &[",
+            name
+        )?;
         let mut first = true;
         for (k1, kv) in map {
             if !first {
@@ -551,9 +552,9 @@ impl Writer {
         writeln!(
             self.wtr,
             "pub const {}: &'static [({}, &'static [{}])] = &[",
-            name, ty, ty)?;
-    'LOOP:
-        for (&k, vs) in map {
+            name, ty, ty
+        )?;
+        'LOOP: for (&k, vs) in map {
             // Make sure both our keys and values can be represented in the
             // user's chosen codepoint format.
             let kstr = match self.rust_codepoint(k) {
@@ -627,7 +628,8 @@ impl Writer {
         writeln!(
             self.wtr,
             "pub const {}: &'static [({}, &'static str)] = &[",
-            name, ty)?;
+            name, ty
+        )?;
         for &(cp, ref s) in table {
             if let Some(cp) = self.rust_codepoint(cp) {
                 self.wtr.write_str(&format!("({}, {:?}), ", cp, s))?;
@@ -672,7 +674,8 @@ impl Writer {
         writeln!(
             self.wtr,
             "pub const {}: &'static [(&'static str, {})] = &[",
-            name, ty)?;
+            name, ty
+        )?;
         for &(ref s, cp) in table {
             if let Some(cp) = self.rust_codepoint(cp) {
                 self.wtr.write_str(&format!("({:?}, {}), ", s, cp))?;
@@ -716,7 +719,8 @@ impl Writer {
         writeln!(
             self.wtr,
             "pub const {}: &'static [(&'static str, u64)] = &[",
-            name)?;
+            name
+        )?;
         for &(ref s, n) in table {
             self.wtr.write_str(&format!("({:?}, {}), ", s, n))?;
         }
@@ -734,13 +738,19 @@ impl Writer {
         writeln!(self.wtr, "lazy_static! {{")?;
         writeln!(
             self.wtr,
-            "  pub static ref {}: ::fst::{} = ", const_name, ty)?;
+            "  pub static ref {}: ::fst::{} = ",
+            const_name, ty
+        )?;
         writeln!(
             self.wtr,
-            "    ::fst::{}::from(::fst::raw::Fst::from_static_slice(", ty)?;
+            "    ::fst::{}::from(::fst::raw::Fst::from_static_slice(",
+            ty
+        )?;
         writeln!(
             self.wtr,
-            "      include_bytes!({:?})).unwrap());", fst_file_name)?;
+            "      include_bytes!({:?})).unwrap());",
+            fst_file_name
+        )?;
         writeln!(self.wtr, "}}")?;
         Ok(())
     }
@@ -777,14 +787,24 @@ impl Writer {
         }
         writeln!(self.wtr, "#[cfg(target_endian = \"big\")]")?;
         self.write_regex_static(
-            const_name, &ty, "DenseDFA", idty, &fname_fwd_be, &fname_rev_be,
+            const_name,
+            &ty,
+            "DenseDFA",
+            idty,
+            &fname_fwd_be,
+            &fname_rev_be,
         )?;
 
         self.separator()?;
 
         writeln!(self.wtr, "#[cfg(target_endian = \"little\")]")?;
         self.write_regex_static(
-            const_name, &ty, "DenseDFA", idty, &fname_fwd_le, &fname_rev_le,
+            const_name,
+            &ty,
+            "DenseDFA",
+            idty,
+            &fname_fwd_le,
+            &fname_rev_le,
         )?;
         Ok(())
     }
@@ -804,7 +824,8 @@ impl Writer {
         let fname_fwd_le = format!("{}.fwd.littleendian.dfa", rust_name);
         let fname_rev_le = format!("{}.rev.littleendian.dfa", rust_name);
         let ty = format!(
-            "Regex<::regex_automata::SparseDFA<&'static [u8], {}>>", idty
+            "Regex<::regex_automata::SparseDFA<&'static [u8], {}>>",
+            idty
         );
         {
             let dfa_dir = self.opts.dfa_dir.as_ref().unwrap();
@@ -820,14 +841,24 @@ impl Writer {
         }
         writeln!(self.wtr, "#[cfg(target_endian = \"big\")]")?;
         self.write_regex_static(
-            const_name, &ty, "SparseDFA", "u8", &fname_fwd_be, &fname_rev_be,
+            const_name,
+            &ty,
+            "SparseDFA",
+            "u8",
+            &fname_fwd_be,
+            &fname_rev_be,
         )?;
 
         self.separator()?;
 
         writeln!(self.wtr, "#[cfg(target_endian = \"little\")]")?;
         self.write_regex_static(
-            const_name, &ty, "SparseDFA", "u8", &fname_fwd_le, &fname_rev_le,
+            const_name,
+            &ty,
+            "SparseDFA",
+            "u8",
+            &fname_fwd_le,
+            &fname_rev_le,
         )?;
         Ok(())
     }
@@ -905,8 +936,8 @@ impl Writer {
         writeln!(
             self.wtr,
             "  pub static ref {}: ::regex_automata::{} = {{",
-            const_name,
-            full_regex_ty)?;
+            const_name, full_regex_ty
+        )?;
 
         writeln!(self.wtr, "    let fwd =")?;
         self.write_dfa_deserialize(short_dfa_ty, align_to, file_name_fwd)?;
@@ -918,7 +949,8 @@ impl Writer {
 
         writeln!(
             self.wtr,
-            "    ::regex_automata::Regex::from_dfas(fwd, rev)")?;
+            "    ::regex_automata::Regex::from_dfas(fwd, rev)"
+        )?;
         writeln!(self.wtr, "  }};")?;
         writeln!(self.wtr, "}}")?;
 
@@ -937,8 +969,8 @@ impl Writer {
         writeln!(
             self.wtr,
             "  pub static ref {}: ::regex_automata::{} = {{",
-            const_name,
-            full_dfa_ty)?;
+            const_name, full_dfa_ty
+        )?;
         self.write_dfa_deserialize(short_dfa_ty, align_to, file_name)?;
         writeln!(self.wtr, "  }};")?;
         writeln!(self.wtr, "}}")?;
@@ -961,16 +993,23 @@ impl Writer {
 
         writeln!(
             self.wtr,
-            "    static ALIGNED: &'static Aligned<[u8]> = &Aligned {{")?;
+            "    static ALIGNED: &'static Aligned<[u8]> = &Aligned {{"
+        )?;
         writeln!(self.wtr, "        _align: [],")?;
-        writeln!(self.wtr, "        bytes: *include_bytes!({:?}),", file_name)?;
+        writeln!(
+            self.wtr,
+            "        bytes: *include_bytes!({:?}),",
+            file_name
+        )?;
         writeln!(self.wtr, "    }};")?;
         writeln!(self.wtr, "    ")?;
 
         writeln!(self.wtr, "    unsafe {{")?;
         writeln!(
             self.wtr,
-            "      ::regex_automata::{}::from_bytes(&ALIGNED.bytes)", short_dfa_ty)?;
+            "      ::regex_automata::{}::from_bytes(&ALIGNED.bytes)",
+            short_dfa_ty
+        )?;
         writeln!(self.wtr, "    }}")?;
 
         Ok(())
@@ -1004,7 +1043,8 @@ impl Writer {
                 .file_name()
                 .unwrap()
                 .to_string_lossy()
-                .into_owned());
+                .into_owned(),
+        );
         for arg in env::args_os().skip(1) {
             let x = arg.to_string_lossy();
             if x.contains("\n") {
@@ -1013,8 +1053,11 @@ impl Writer {
                 argv.push(x.into_owned());
             }
         }
-        writeln!(self.wtr, "// DO NOT EDIT THIS FILE. \
-                               IT WAS AUTOMATICALLY GENERATED BY:")?;
+        writeln!(
+            self.wtr,
+            "// DO NOT EDIT THIS FILE. \
+             IT WAS AUTOMATICALLY GENERATED BY:"
+        )?;
         writeln!(self.wtr, "//")?;
         writeln!(self.wtr, "//  {}", argv.join(" "))?;
         writeln!(self.wtr, "//")?;
@@ -1124,15 +1167,18 @@ fn rust_const_name(s: &str) -> String {
 fn rust_type_name(s: &str) -> String {
     // Convert to PascalCase
     s.split(|c: char| c.is_whitespace() || c == '.' || c == '_' || c == '-')
-        .map(|component|  {
+        .map(|component| {
             // Upper first char
             let lower = component.to_ascii_lowercase();
             let mut chars = lower.chars();
             match chars.next() {
                 None => String::new(),
-                Some(f) => f.to_uppercase().collect::<String>() + chars.as_str(),
+                Some(f) => {
+                    f.to_uppercase().collect::<String>() + chars.as_str()
+                }
             }
-        }).collect()
+        })
+        .collect()
 }
 
 /// Heuristically produce an appropriate module Rust name.

@@ -4,8 +4,8 @@ use std::str::FromStr;
 use regex::Regex;
 
 use common::{
-    UcdFile, UcdFileByCodepoint, Codepoint, CodepointIter,
-    parse_codepoint_sequence,
+    parse_codepoint_sequence, Codepoint, CodepointIter, UcdFile,
+    UcdFileByCodepoint,
 };
 use error::Error;
 
@@ -55,7 +55,8 @@ impl FromStr for SpecialCaseMapping {
                 \s*(?P<upper>[^;]+)\s*;
                 \s*(?P<conditions>[^;\x23]+)?
                 "
-            ).unwrap();
+            )
+            .unwrap();
         };
 
         let caps = match PARTS.captures(line.trim()) {
@@ -64,7 +65,13 @@ impl FromStr for SpecialCaseMapping {
         };
         let conditions = caps
             .name("conditions")
-            .map(|x| x.as_str().trim().split_whitespace().map(|c| c.to_string()).collect())
+            .map(|x| {
+                x.as_str()
+                    .trim()
+                    .split_whitespace()
+                    .map(|c| c.to_string())
+                    .collect()
+            })
             .unwrap_or(vec![]);
         Ok(SpecialCaseMapping {
             codepoint: caps["codepoint"].parse()?,
@@ -92,7 +99,7 @@ mod tests {
     }
 
     #[test]
-    fn parse_conds()  {
+    fn parse_conds() {
         let line = "0307; ; 0307; 0307; tr After_I; # COMBINING DOT ABOVE\n";
         let row: SpecialCaseMapping = line.parse().unwrap();
         assert_eq!(row.codepoint, 0x0307);

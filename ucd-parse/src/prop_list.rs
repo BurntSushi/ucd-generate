@@ -2,8 +2,8 @@ use std::path::Path;
 use std::str::FromStr;
 
 use common::{
-    UcdFile, UcdFileByCodepoint, Codepoints, CodepointIter,
-    parse_codepoint_association,
+    parse_codepoint_association, CodepointIter, Codepoints, UcdFile,
+    UcdFileByCodepoint,
 };
 use error::Error;
 
@@ -36,10 +36,7 @@ impl FromStr for Property {
 
     fn from_str(line: &str) -> Result<Property, Error> {
         let (codepoints, property) = parse_codepoint_association(line)?;
-        Ok(Property {
-            codepoints: codepoints,
-            property: property.to_string(),
-        })
+        Ok(Property { codepoints: codepoints, property: property.to_string() })
     }
 }
 
@@ -49,7 +46,8 @@ mod tests {
 
     #[test]
     fn parse_single() {
-        let line = "061C          ; Bidi_Control # Cf       ARABIC LETTER MARK\n";
+        let line =
+            "061C          ; Bidi_Control # Cf       ARABIC LETTER MARK\n";
         let row: Property = line.parse().unwrap();
         assert_eq!(row.codepoints, 0x061C);
         assert_eq!(row.property, "Bidi_Control");

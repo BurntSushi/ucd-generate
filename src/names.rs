@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use ucd_parse::{self, Codepoint, UnicodeData, NameAlias};
+use ucd_parse::{self, Codepoint, NameAlias, UnicodeData};
 use ucd_util;
 
 use args::ArgMatches;
@@ -9,22 +9,25 @@ use error::Result;
 pub fn command(args: ArgMatches) -> Result<()> {
     let dir = args.ucd_dir()?;
     let data = ucd_parse::parse_by_codepoint(&dir)?;
-    let aliases =
-        if args.is_present("no-aliases") {
-            None
-        } else {
-            Some(ucd_parse::parse_many_by_codepoint(&dir)?)
-        };
+    let aliases = if args.is_present("no-aliases") {
+        None
+    } else {
+        Some(ucd_parse::parse_many_by_codepoint(&dir)?)
+    };
     let mut names = names_to_codepoint(
         &data,
         &aliases,
         !args.is_present("no-ideograph"),
-        !args.is_present("no-hangul"));
+        !args.is_present("no-hangul"),
+    );
     if args.is_present("normalize") {
-        names = names.into_iter().map(|(mut name, tagged)| {
-            ucd_util::character_name_normalize(&mut name);
-            (name, tagged)
-        }).collect();
+        names = names
+            .into_iter()
+            .map(|(mut name, tagged)| {
+                ucd_util::character_name_normalize(&mut name);
+                (name, tagged)
+            })
+            .collect();
     }
 
     let mut wtr = args.writer("names")?;
@@ -64,10 +67,10 @@ impl NameTag {
     fn with_codepoint(&self, cp: u32) -> u64 {
         use self::NameTag::*;
         match *self {
-            Explicit => (1<<33) | (cp as u64),
-            Alias => (1<<34) | (cp as u64),
-            Hangul => (1<<35) | (cp as u64),
-            Ideograph => (1<<36) | (cp as u64),
+            Explicit => (1 << 33) | (cp as u64),
+            Alias => (1 << 34) | (cp as u64),
+            Hangul => (1 << 35) | (cp as u64),
+            Ideograph => (1 << 36) | (cp as u64),
         }
     }
 }
@@ -103,8 +106,7 @@ fn names_to_codepoint(
         }
     }
     for (cp, datum) in data {
-        let isnull =
-            datum.name.is_empty()
+        let isnull = datum.name.is_empty()
             || (datum.name.starts_with('<') && datum.name.ends_with('>'));
         if !isnull {
             let v = (NameTag::Explicit, cp.value());

@@ -1,10 +1,9 @@
-
 use std::path::Path;
 use std::str::FromStr;
 
 use common::{
-    UcdFile, UcdFileByCodepoint, Codepoints, CodepointIter,
-    parse_codepoint_association,
+    parse_codepoint_association, CodepointIter, Codepoints, UcdFile,
+    UcdFileByCodepoint,
 };
 use error::Error;
 
@@ -34,10 +33,7 @@ impl FromStr for Age {
 
     fn from_str(line: &str) -> Result<Age, Error> {
         let (codepoints, script) = parse_codepoint_association(line)?;
-        Ok(Age {
-            codepoints: codepoints,
-            age: script.to_string(),
-        })
+        Ok(Age { codepoints: codepoints, age: script.to_string() })
     }
 }
 

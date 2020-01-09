@@ -81,37 +81,45 @@ pub fn canonical_property_value(
     canonical_property_name(property_values, normalized_property_value)
 }
 
-
 #[cfg(test)]
 mod tests {
     use unicode_tables::property_names::PROPERTY_NAMES;
     use unicode_tables::property_values::PROPERTY_VALUES;
 
     use super::{
-        canonical_property_name, property_values, canonical_property_value,
+        canonical_property_name, canonical_property_value, property_values,
     };
 
     #[test]
     fn canonical_property_name_1() {
         assert_eq!(
             canonical_property_name(PROPERTY_NAMES, "gc"),
-            Some("General_Category"));
+            Some("General_Category")
+        );
         assert_eq!(
             canonical_property_name(PROPERTY_NAMES, "generalcategory"),
-            Some("General_Category"));
-        assert_eq!(
-            canonical_property_name(PROPERTY_NAMES, "g c"),
-            None);
+            Some("General_Category")
+        );
+        assert_eq!(canonical_property_name(PROPERTY_NAMES, "g c"), None);
     }
 
     #[test]
     fn property_values_1() {
         assert_eq!(
             property_values(PROPERTY_VALUES, "White_Space"),
-            Some(&[
-                ("f", "No"), ("false", "No"), ("n", "No"), ("no", "No"),
-                ("t", "Yes"), ("true", "Yes"), ("y", "Yes"), ("yes", "Yes"),
-            ][..]));
+            Some(
+                &[
+                    ("f", "No"),
+                    ("false", "No"),
+                    ("n", "No"),
+                    ("no", "No"),
+                    ("t", "Yes"),
+                    ("true", "Yes"),
+                    ("y", "Yes"),
+                    ("yes", "Yes"),
+                ][..]
+            )
+        );
     }
 
     #[test]

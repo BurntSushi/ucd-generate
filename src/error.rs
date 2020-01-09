@@ -3,8 +3,8 @@ use std::fmt;
 use std::io;
 use std::result;
 
-use fst;
 use clap;
+use fst;
 use ucd_parse;
 use ucd_trie;
 
@@ -27,7 +27,7 @@ impl Error {
 }
 
 impl error::Error for Error {
-    fn description(&self) -> &str  {
+    fn description(&self) -> &str {
         match *self {
             Error::Io(ref err) => err.description(),
             Error::Clap(ref err) => err.description(),

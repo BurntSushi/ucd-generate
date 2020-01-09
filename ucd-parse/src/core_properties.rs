@@ -2,8 +2,8 @@ use std::path::Path;
 use std::str::FromStr;
 
 use common::{
-    UcdFile, UcdFileByCodepoint, Codepoints, CodepointIter,
-    parse_codepoint_association,
+    parse_codepoint_association, CodepointIter, Codepoints, UcdFile,
+    UcdFileByCodepoint,
 };
 use error::Error;
 
@@ -46,7 +46,8 @@ mod tests {
 
     #[test]
     fn parse_single() {
-        let line = "1163D         ; Case_Ignorable # Mn       MODI SIGN ANUSVARA\n";
+        let line =
+            "1163D         ; Case_Ignorable # Mn       MODI SIGN ANUSVARA\n";
         let row: CoreProperty = line.parse().unwrap();
         assert_eq!(row.codepoints, 0x1163D);
         assert_eq!(row.property, "Case_Ignorable");

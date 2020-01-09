@@ -2,8 +2,8 @@ use std::path::Path;
 use std::str::FromStr;
 
 use common::{
-    UcdFile, UcdFileByCodepoint, Codepoints, CodepointIter,
-    parse_break_test, parse_codepoint_association,
+    parse_break_test, parse_codepoint_association, CodepointIter, Codepoints,
+    UcdFile, UcdFileByCodepoint,
 };
 use error::Error;
 
@@ -95,10 +95,10 @@ mod tests {
         let line = "÷ 0061 × 1F3FF ÷ 1F476 × 200D × 1F6D1 ÷	#  ÷ [0.2] LATIN SMALL LETTER A (Other) × [9.0] EMOJI MODIFIER FITZPATRICK TYPE-6 (Extend) ÷ [999.0] BABY (ExtPict) × [9.0] ZERO WIDTH JOINER (ZWJ_ExtCccZwj) × [11.0] OCTAGONAL SIGN (ExtPict) ÷ [0.3]\n";
 
         let row: GraphemeClusterBreakTest = line.parse().unwrap();
-        assert_eq!(row.grapheme_clusters, vec![
-            "\u{0061}\u{1F3FF}",
-            "\u{1F476}\u{200D}\u{1F6D1}",
-        ]);
+        assert_eq!(
+            row.grapheme_clusters,
+            vec!["\u{0061}\u{1F3FF}", "\u{1F476}\u{200D}\u{1F6D1}",]
+        );
         assert!(row.comment.starts_with("÷ [0.2] LATIN SMALL LETTER A"));
     }
 }

@@ -4,7 +4,7 @@ use ucd_parse::{self, Script, ScriptExtension};
 
 use args::ArgMatches;
 use error::Result;
-use util::{PropertyValues, print_property_values};
+use util::{print_property_values, PropertyValues};
 
 pub fn command_script(args: ArgMatches) -> Result<()> {
     let dir = args.ucd_dir()?;

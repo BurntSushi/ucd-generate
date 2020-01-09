@@ -20,11 +20,11 @@ mod property;
 mod unicode_tables;
 
 pub use hangul::{
-    RANGE_HANGUL_SYLLABLE, hangul_name, hangul_full_canonical_decomposition,
+    hangul_full_canonical_decomposition, hangul_name, RANGE_HANGUL_SYLLABLE,
 };
-pub use ideograph::{RANGE_IDEOGRAPH, ideograph_name};
+pub use ideograph::{ideograph_name, RANGE_IDEOGRAPH};
 pub use name::{character_name_normalize, symbolic_name_normalize};
 pub use property::{
+    canonical_property_name, canonical_property_value, property_values,
     PropertyTable, PropertyValueTable, PropertyValues,
-    canonical_property_name, property_values, canonical_property_value,
 };
