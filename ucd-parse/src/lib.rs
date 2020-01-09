@@ -9,9 +9,9 @@ extern crate lazy_static;
 extern crate regex;
 
 pub use common::{
-    UcdFile, UcdFileByCodepoint, UcdLineParser,
-    Codepoint, CodepointRange, Codepoints, CodepointIter,
-    parse, parse_by_codepoint, parse_many_by_codepoint,
+    parse, parse_by_codepoint, parse_many_by_codepoint, Codepoint,
+    CodepointIter, CodepointRange, Codepoints, UcdFile, UcdFileByCodepoint,
+    UcdLineParser,
 };
 pub use error::{Error, ErrorKind};
 
@@ -33,9 +33,8 @@ pub use scripts::Script;
 pub use sentence_break::{SentenceBreak, SentenceBreakTest};
 pub use special_casing::SpecialCaseMapping;
 pub use unicode_data::{
-    UnicodeData, UnicodeDataNumeric,
-    UnicodeDataDecomposition, UnicodeDataDecompositionTag,
-    UnicodeDataExpander,
+    UnicodeData, UnicodeDataDecomposition, UnicodeDataDecompositionTag,
+    UnicodeDataExpander, UnicodeDataNumeric,
 };
 pub use word_break::{WordBreak, WordBreakTest};
 

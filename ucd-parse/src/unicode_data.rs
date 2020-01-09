@@ -6,7 +6,7 @@ use std::str::FromStr;
 
 use regex::Regex;
 
-use common::{UcdFile, UcdFileByCodepoint, Codepoint, CodepointIter};
+use common::{Codepoint, CodepointIter, UcdFile, UcdFileByCodepoint};
 use error::Error;
 
 /// Represents a single row in the `UnicodeData.txt` file.
@@ -81,16 +81,16 @@ impl UnicodeData {
     /// range.
     pub fn is_range_start(&self) -> bool {
         self.name.starts_with('<')
-        && self.name.ends_with('>')
-        && self.name.contains("First")
+            && self.name.ends_with('>')
+            && self.name.contains("First")
     }
 
     /// Returns true if and only if this record corresponds to the end of a
     /// range.
     pub fn is_range_end(&self) -> bool {
         self.name.starts_with('<')
-        && self.name.ends_with('>')
-        && self.name.contains("Last")
+            && self.name.ends_with('>')
+            && self.name.contains("Last")
     }
 }
 
@@ -119,7 +119,8 @@ impl FromStr for UnicodeData {
                 ([^;]*)       # 15; simple titlecase mapping
                 $
                 "
-            ).unwrap();
+            )
+            .unwrap();
         };
         let caps = match PARTS.captures(line.trim()) {
             Some(caps) => caps,
@@ -133,9 +134,13 @@ impl FromStr for UnicodeData {
         data.general_category = capget(3).to_string();
         data.canonical_combining_class = match capget(4).parse() {
             Ok(n) => n,
-            Err(err) => return err!(
-                "failed to parse canonical combining class '{}': {}",
-                capget(4), err),
+            Err(err) => {
+                return err!(
+                    "failed to parse canonical combining class '{}': {}",
+                    capget(4),
+                    err
+                )
+            }
         };
         data.bidi_class = capget(5).to_string();
         if !caps[6].is_empty() {
@@ -146,17 +151,25 @@ impl FromStr for UnicodeData {
         if !capget(7).is_empty() {
             data.numeric_type_decimal = Some(match capget(7).parse() {
                 Ok(n) => n,
-                Err(err) => return err!(
-                    "failed to parse numeric type decimal '{}': {}",
-                    capget(7), err),
+                Err(err) => {
+                    return err!(
+                        "failed to parse numeric type decimal '{}': {}",
+                        capget(7),
+                        err
+                    )
+                }
             });
         }
         if !capget(8).is_empty() {
             data.numeric_type_digit = Some(match capget(8).parse() {
                 Ok(n) => n,
-                Err(err) => return err!(
-                    "failed to parse numeric type digit '{}': {}",
-                    capget(8), err),
+                Err(err) => {
+                    return err!(
+                        "failed to parse numeric type digit '{}': {}",
+                        capget(8),
+                        err
+                    )
+                }
             });
         }
         if !capget(9).is_empty() {
@@ -262,7 +275,9 @@ impl UnicodeDataDecomposition {
     /// If the mapping is already full, then this returns an error.
     pub fn push(&mut self, cp: Codepoint) -> Result<(), Error> {
         if self.len >= self.mapping.len() {
-            return err!("invalid decomposition mapping (too many codepoints)");
+            return err!(
+                "invalid decomposition mapping (too many codepoints)"
+            );
         }
         self.mapping[self.len] = cp;
         self.len += 1;
@@ -288,12 +303,15 @@ impl FromStr for UnicodeDataDecomposition {
         lazy_static! {
             static ref WITH_TAG: Regex = Regex::new(
                 r"^(?:<(?P<tag>[^>]+)>)?\s*(?P<chars>[\s0-9A-F]+)$"
-            ).unwrap();
+            )
+            .unwrap();
             static ref CHARS: Regex = Regex::new(r"[0-9A-F]+").unwrap();
         };
         if s.is_empty() {
-            return err!("expected non-empty string for \
-                         UnicodeDataDecomposition value");
+            return err!(
+                "expected non-empty string for \
+                 UnicodeDataDecomposition value"
+            );
         }
         let caps = match WITH_TAG.captures(s) {
             Some(caps) => caps,
@@ -440,22 +458,29 @@ impl FromStr for UnicodeDataNumeric {
     fn from_str(s: &str) -> Result<UnicodeDataNumeric, Error> {
         if s.is_empty() {
             return err!(
-                "expected non-empty string for UnicodeDataNumeric value");
+                "expected non-empty string for UnicodeDataNumeric value"
+            );
         }
         if let Some(pos) = s.find('/') {
-            let (snum, sden) = (&s[..pos], &s[pos+1..]);
+            let (snum, sden) = (&s[..pos], &s[pos + 1..]);
             let num = match snum.parse() {
                 Ok(num) => num,
                 Err(err) => {
                     return err!(
-                        "invalid integer numerator '{}': {}", snum, err);
+                        "invalid integer numerator '{}': {}",
+                        snum,
+                        err
+                    );
                 }
             };
             let den = match sden.parse() {
                 Ok(den) => den,
                 Err(err) => {
                     return err!(
-                        "invalid integer denominator '{}': {}", sden, err);
+                        "invalid integer denominator '{}': {}",
+                        sden,
+                        err
+                    );
                 }
             };
             Ok(UnicodeDataNumeric::Rational(num, den))
@@ -464,7 +489,10 @@ impl FromStr for UnicodeDataNumeric {
                 Ok(den) => Ok(UnicodeDataNumeric::Integer(den)),
                 Err(err) => {
                     return err!(
-                        "invalid integer denominator '{}': {}", s, err);
+                        "invalid integer denominator '{}': {}",
+                        s,
+                        err
+                    );
                 }
             }
         }
@@ -512,11 +540,12 @@ struct CodepointRange {
     start_record: UnicodeData,
 }
 
-impl<I: Iterator<Item=UnicodeData>> UnicodeDataExpander<I> {
+impl<I: Iterator<Item = UnicodeData>> UnicodeDataExpander<I> {
     /// Create a new iterator that expands pairs of `UnicodeData` range
     /// records. All other records are passed through as-is.
     pub fn new<T>(it: T) -> UnicodeDataExpander<I>
-            where T: IntoIterator<IntoIter=I, Item=I::Item>
+    where
+        T: IntoIterator<IntoIter = I, Item = I::Item>,
     {
         UnicodeDataExpander {
             it: it.into_iter().peekable(),
@@ -528,9 +557,7 @@ impl<I: Iterator<Item=UnicodeData>> UnicodeDataExpander<I> {
     }
 }
 
-impl<I: Iterator<Item=UnicodeData>>
-    Iterator for UnicodeDataExpander<I>
-{
+impl<I: Iterator<Item = UnicodeData>> Iterator for UnicodeDataExpander<I> {
     type Item = UnicodeData;
 
     fn next(&mut self) -> Option<UnicodeData> {
@@ -544,7 +571,7 @@ impl<I: Iterator<Item=UnicodeData>>
         if !row1.is_range_start()
             || !self.it.peek().map_or(false, |row2| row2.is_range_end())
         {
-            return Some(row1)
+            return Some(row1);
         }
         let row2 = self.it.next().unwrap();
         self.range = CodepointRange {
@@ -576,8 +603,8 @@ mod tests {
     use common::Codepoint;
 
     use super::{
-        UnicodeData, UnicodeDataNumeric,
-        UnicodeDataDecomposition, UnicodeDataDecompositionTag,
+        UnicodeData, UnicodeDataDecomposition, UnicodeDataDecompositionTag,
+        UnicodeDataNumeric,
     };
 
     fn codepoint(n: u32) -> Codepoint {
@@ -592,130 +619,158 @@ mod tests {
     fn parse1() {
         let line = "249D;PARENTHESIZED LATIN SMALL LETTER B;So;0;L;<compat> 0028 0062 0029;;;;N;;;;;\n";
         let data: UnicodeData = line.parse().unwrap();
-        assert_eq!(data, UnicodeData {
-            codepoint: codepoint(0x249d),
-            name: s("PARENTHESIZED LATIN SMALL LETTER B"),
-            general_category: s("So"),
-            canonical_combining_class: 0,
-            bidi_class: s("L"),
-            decomposition: UnicodeDataDecomposition::new(
-                Some(UnicodeDataDecompositionTag::Compat),
-                &[codepoint(0x28), codepoint(0x62), codepoint(0x29)],
-            ).unwrap(),
-            numeric_type_decimal: None,
-            numeric_type_digit: None,
-            numeric_type_numeric: None,
-            bidi_mirrored: false,
-            unicode1_name: s(""),
-            iso_comment: s(""),
-            simple_uppercase_mapping: None,
-            simple_lowercase_mapping: None,
-            simple_titlecase_mapping: None,
-        });
+        assert_eq!(
+            data,
+            UnicodeData {
+                codepoint: codepoint(0x249d),
+                name: s("PARENTHESIZED LATIN SMALL LETTER B"),
+                general_category: s("So"),
+                canonical_combining_class: 0,
+                bidi_class: s("L"),
+                decomposition: UnicodeDataDecomposition::new(
+                    Some(UnicodeDataDecompositionTag::Compat),
+                    &[codepoint(0x28), codepoint(0x62), codepoint(0x29)],
+                )
+                .unwrap(),
+                numeric_type_decimal: None,
+                numeric_type_digit: None,
+                numeric_type_numeric: None,
+                bidi_mirrored: false,
+                unicode1_name: s(""),
+                iso_comment: s(""),
+                simple_uppercase_mapping: None,
+                simple_lowercase_mapping: None,
+                simple_titlecase_mapping: None,
+            }
+        );
     }
 
     #[test]
     fn parse2() {
         let line = "000D;<control>;Cc;0;B;;;;;N;CARRIAGE RETURN (CR);;;;\n";
         let data: UnicodeData = line.parse().unwrap();
-        assert_eq!(data, UnicodeData {
-            codepoint: codepoint(0x000D),
-            name: s("<control>"),
-            general_category: s("Cc"),
-            canonical_combining_class: 0,
-            bidi_class: s("B"),
-            decomposition: UnicodeDataDecomposition::new(
-                None, &[codepoint(0x000D)]).unwrap(),
-            numeric_type_decimal: None,
-            numeric_type_digit: None,
-            numeric_type_numeric: None,
-            bidi_mirrored: false,
-            unicode1_name: s("CARRIAGE RETURN (CR)"),
-            iso_comment: s(""),
-            simple_uppercase_mapping: None,
-            simple_lowercase_mapping: None,
-            simple_titlecase_mapping: None,
-        });
+        assert_eq!(
+            data,
+            UnicodeData {
+                codepoint: codepoint(0x000D),
+                name: s("<control>"),
+                general_category: s("Cc"),
+                canonical_combining_class: 0,
+                bidi_class: s("B"),
+                decomposition: UnicodeDataDecomposition::new(
+                    None,
+                    &[codepoint(0x000D)]
+                )
+                .unwrap(),
+                numeric_type_decimal: None,
+                numeric_type_digit: None,
+                numeric_type_numeric: None,
+                bidi_mirrored: false,
+                unicode1_name: s("CARRIAGE RETURN (CR)"),
+                iso_comment: s(""),
+                simple_uppercase_mapping: None,
+                simple_lowercase_mapping: None,
+                simple_titlecase_mapping: None,
+            }
+        );
     }
 
     #[test]
     fn parse3() {
         let line = "00BC;VULGAR FRACTION ONE QUARTER;No;0;ON;<fraction> 0031 2044 0034;;;1/4;N;FRACTION ONE QUARTER;;;;\n";
         let data: UnicodeData = line.parse().unwrap();
-        assert_eq!(data, UnicodeData {
-            codepoint: codepoint(0x00BC),
-            name: s("VULGAR FRACTION ONE QUARTER"),
-            general_category: s("No"),
-            canonical_combining_class: 0,
-            bidi_class: s("ON"),
-            decomposition: UnicodeDataDecomposition::new(
-                Some(UnicodeDataDecompositionTag::Fraction),
-                &[codepoint(0x31), codepoint(0x2044), codepoint(0x34)],
-            ).unwrap(),
-            numeric_type_decimal: None,
-            numeric_type_digit: None,
-            numeric_type_numeric: Some(UnicodeDataNumeric::Rational(1, 4)),
-            bidi_mirrored: false,
-            unicode1_name: s("FRACTION ONE QUARTER"),
-            iso_comment: s(""),
-            simple_uppercase_mapping: None,
-            simple_lowercase_mapping: None,
-            simple_titlecase_mapping: None,
-        });
+        assert_eq!(
+            data,
+            UnicodeData {
+                codepoint: codepoint(0x00BC),
+                name: s("VULGAR FRACTION ONE QUARTER"),
+                general_category: s("No"),
+                canonical_combining_class: 0,
+                bidi_class: s("ON"),
+                decomposition: UnicodeDataDecomposition::new(
+                    Some(UnicodeDataDecompositionTag::Fraction),
+                    &[codepoint(0x31), codepoint(0x2044), codepoint(0x34)],
+                )
+                .unwrap(),
+                numeric_type_decimal: None,
+                numeric_type_digit: None,
+                numeric_type_numeric: Some(UnicodeDataNumeric::Rational(1, 4)),
+                bidi_mirrored: false,
+                unicode1_name: s("FRACTION ONE QUARTER"),
+                iso_comment: s(""),
+                simple_uppercase_mapping: None,
+                simple_lowercase_mapping: None,
+                simple_titlecase_mapping: None,
+            }
+        );
     }
 
     #[test]
     fn parse4() {
         let line = "0041;LATIN CAPITAL LETTER A;Lu;0;L;;;;;N;;;;0061;\n";
         let data: UnicodeData = line.parse().unwrap();
-        assert_eq!(data, UnicodeData {
-            codepoint: codepoint(0x0041),
-            name: s("LATIN CAPITAL LETTER A"),
-            general_category: s("Lu"),
-            canonical_combining_class: 0,
-            bidi_class: s("L"),
-            decomposition: UnicodeDataDecomposition::new(
-                None, &[codepoint(0x0041)]).unwrap(),
-            numeric_type_decimal: None,
-            numeric_type_digit: None,
-            numeric_type_numeric: None,
-            bidi_mirrored: false,
-            unicode1_name: s(""),
-            iso_comment: s(""),
-            simple_uppercase_mapping: None,
-            simple_lowercase_mapping: Some(codepoint(0x0061)),
-            simple_titlecase_mapping: None,
-        });
+        assert_eq!(
+            data,
+            UnicodeData {
+                codepoint: codepoint(0x0041),
+                name: s("LATIN CAPITAL LETTER A"),
+                general_category: s("Lu"),
+                canonical_combining_class: 0,
+                bidi_class: s("L"),
+                decomposition: UnicodeDataDecomposition::new(
+                    None,
+                    &[codepoint(0x0041)]
+                )
+                .unwrap(),
+                numeric_type_decimal: None,
+                numeric_type_digit: None,
+                numeric_type_numeric: None,
+                bidi_mirrored: false,
+                unicode1_name: s(""),
+                iso_comment: s(""),
+                simple_uppercase_mapping: None,
+                simple_lowercase_mapping: Some(codepoint(0x0061)),
+                simple_titlecase_mapping: None,
+            }
+        );
     }
 
     #[test]
     fn parse5() {
         let line = "0F33;TIBETAN DIGIT HALF ZERO;No;0;L;;;;-1/2;N;;;;;\n";
         let data: UnicodeData = line.parse().unwrap();
-        assert_eq!(data, UnicodeData {
-            codepoint: codepoint(0x0F33),
-            name: s("TIBETAN DIGIT HALF ZERO"),
-            general_category: s("No"),
-            canonical_combining_class: 0,
-            bidi_class: s("L"),
-            decomposition: UnicodeDataDecomposition::new(
-                None, &[codepoint(0x0F33)]).unwrap(),
-            numeric_type_decimal: None,
-            numeric_type_digit: None,
-            numeric_type_numeric: Some(UnicodeDataNumeric::Rational(-1, 2)),
-            bidi_mirrored: false,
-            unicode1_name: s(""),
-            iso_comment: s(""),
-            simple_uppercase_mapping: None,
-            simple_lowercase_mapping: None,
-            simple_titlecase_mapping: None,
-        });
+        assert_eq!(
+            data,
+            UnicodeData {
+                codepoint: codepoint(0x0F33),
+                name: s("TIBETAN DIGIT HALF ZERO"),
+                general_category: s("No"),
+                canonical_combining_class: 0,
+                bidi_class: s("L"),
+                decomposition: UnicodeDataDecomposition::new(
+                    None,
+                    &[codepoint(0x0F33)]
+                )
+                .unwrap(),
+                numeric_type_decimal: None,
+                numeric_type_digit: None,
+                numeric_type_numeric: Some(UnicodeDataNumeric::Rational(
+                    -1, 2
+                )),
+                bidi_mirrored: false,
+                unicode1_name: s(""),
+                iso_comment: s(""),
+                simple_uppercase_mapping: None,
+                simple_lowercase_mapping: None,
+                simple_titlecase_mapping: None,
+            }
+        );
     }
 
     #[test]
     fn expander() {
-        use common::UcdLineParser;
         use super::UnicodeDataExpander;
+        use common::UcdLineParser;
 
         let data = "\
 ABF9;MEETEI MAYEK DIGIT NINE;Nd;0;L;;9;9;9;N;;;;;

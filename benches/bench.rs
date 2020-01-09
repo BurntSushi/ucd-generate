@@ -10,7 +10,7 @@ extern crate ucd_util;
 
 use std::cmp::Ordering;
 
-use byteorder::{ByteOrder, BigEndian as BE};
+use byteorder::{BigEndian as BE, ByteOrder};
 use test::Bencher;
 
 mod tables;

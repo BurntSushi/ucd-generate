@@ -28,9 +28,9 @@ mod util;
 mod writer;
 
 mod age;
+mod brk;
 mod case_folding;
 mod general_category;
-mod brk;
 mod jamo_short_name;
 mod names;
 mod property_bool;
@@ -53,30 +53,22 @@ fn run() -> Result<()> {
         ("general-category", Some(m)) => {
             general_category::command(ArgMatches::new(m))
         }
-        ("script", Some(m)) => {
-            script::command_script(ArgMatches::new(m))
-        }
+        ("script", Some(m)) => script::command_script(ArgMatches::new(m)),
         ("script-extension", Some(m)) => {
             script::command_script_extension(ArgMatches::new(m))
         }
         ("property-bool", Some(m)) => {
             property_bool::command(ArgMatches::new(m))
         }
-        ("age", Some(m)) => {
-            age::command(ArgMatches::new(m))
-        }
+        ("age", Some(m)) => age::command(ArgMatches::new(m)),
         ("perl-word", Some(m)) => {
             property_bool::command_perl_word(ArgMatches::new(m))
         }
         ("jamo-short-name", Some(m)) => {
             jamo_short_name::command(ArgMatches::new(m))
         }
-        ("names", Some(m)) => {
-            names::command(ArgMatches::new(m))
-        }
-        ("property-names", Some(m)) => {
-            cmd_property_names(ArgMatches::new(m))
-        }
+        ("names", Some(m)) => names::command(ArgMatches::new(m)),
+        ("property-names", Some(m)) => cmd_property_names(ArgMatches::new(m)),
         ("property-values", Some(m)) => {
             cmd_property_values(ArgMatches::new(m))
         }
@@ -86,18 +78,10 @@ fn run() -> Result<()> {
         ("grapheme-cluster-break", Some(m)) => {
             brk::grapheme_cluster(ArgMatches::new(m))
         }
-        ("word-break", Some(m)) => {
-            brk::word(ArgMatches::new(m))
-        }
-        ("sentence-break", Some(m)) => {
-            brk::sentence(ArgMatches::new(m))
-        }
-        ("dfa", Some(m)) => {
-            regex::command_dfa(ArgMatches::new(m))
-        }
-        ("regex", Some(m)) => {
-            regex::command_regex(ArgMatches::new(m))
-        }
+        ("word-break", Some(m)) => brk::word(ArgMatches::new(m)),
+        ("sentence-break", Some(m)) => brk::sentence(ArgMatches::new(m)),
+        ("dfa", Some(m)) => regex::command_dfa(ArgMatches::new(m)),
+        ("regex", Some(m)) => regex::command_regex(ArgMatches::new(m)),
         ("test-unicode-data", Some(m)) => {
             cmd_test_unicode_data(ArgMatches::new(m))
         }

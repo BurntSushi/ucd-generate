@@ -132,9 +132,7 @@ impl PropertyValues {
                 value
             };
 
-            let inner_map = outer_map
-                .entry(prop)
-                .or_insert(BTreeMap::new());
+            let inner_map = outer_map.entry(prop).or_insert(BTreeMap::new());
             if let Some(n) = a.numeric {
                 inner_map.insert(make_key(n.to_string()), canon.clone());
             }
@@ -172,24 +170,22 @@ impl PropertyValues {
     ///
     /// Note that this does not apply to "string" or "miscellaneous" properties
     /// such as `Name` or `Case_Folding`.
-    pub fn canonical(
-        &self,
-        property: &str,
-        value: &str,
-    ) -> Result<String> {
+    pub fn canonical(&self, property: &str, value: &str) -> Result<String> {
         let property = self.property.canonical(property)?;
         let mut value = value.to_string();
         ucd_util::symbolic_name_normalize(&mut value);
         match self.value.get(&*property).and_then(|m| m.get(&value)) {
             Some(v) => Ok(v.to_string()),
             None => err!(
-                "unrecognized property name/value: {:?}", (property, value)),
+                "unrecognized property name/value: {:?}",
+                (property, value)
+            ),
         }
     }
 }
 
 /// Convert an iterator of codepoints into a vec of sorted ranges.
-pub fn to_ranges<I: IntoIterator<Item=u32>>(it: I) -> Vec<(u32, u32)> {
+pub fn to_ranges<I: IntoIterator<Item = u32>>(it: I) -> Vec<(u32, u32)> {
     let mut codepoints: Vec<u32> = it.into_iter().collect();
     codepoints.sort();
     codepoints.dedup();
@@ -223,8 +219,9 @@ pub fn range_add(ranges: &mut Vec<(u32, u32)>, codepoint: u32) {
 ///
 /// This panics if the same codepoint is present multiple times.
 pub fn to_range_values<I, V>(it: I) -> Vec<(u32, u32, V)>
-    where I: IntoIterator<Item=(u32, V)>,
-          V: Ord
+where
+    I: IntoIterator<Item = (u32, V)>,
+    V: Ord,
 {
     let mut codepoints: Vec<(u32, V)> = it.into_iter().collect();
     codepoints.sort();

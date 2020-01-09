@@ -12,6 +12,10 @@ if [ "$TRAVIS_RUST_VERSION" = "1.24.1" ]; then
   cargo test --verbose --manifest-path ucd-util/Cargo.toml
   exit
 fi
+if [ "$TRAVIS_RUST_VERSION" = "stable" ]; then
+  rustup component add rustfmt
+  cargo fmt -- --check
+fi
 
 cargo build --all --verbose
 cargo doc --all --verbose

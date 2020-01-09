@@ -7,9 +7,7 @@ use unicode_tables::jamo_short_name::JAMO_SHORT_NAME;
 /// codepoints.
 ///
 /// These ranges are defined in Unicode 4.8 Table 4-13.
-pub const RANGE_HANGUL_SYLLABLE: &'static [(u32, u32)] = &[
-    (0xAC00, 0xD7A3),
-];
+pub const RANGE_HANGUL_SYLLABLE: &'static [(u32, u32)] = &[(0xAC00, 0xD7A3)];
 
 const S_BASE: u32 = 0xAC00;
 const L_BASE: u32 = 0x1100;
@@ -61,12 +59,7 @@ pub fn hangul_full_canonical_decomposition(
 
     let l_part = L_BASE + l_index;
     let v_part = V_BASE + v_index;
-    let t_part =
-        if t_index == 0 {
-            None
-        } else {
-            Some(T_BASE + t_index)
-        };
+    let t_part = if t_index == 0 { None } else { Some(T_BASE + t_index) };
     Some((l_part, v_part, t_part))
 }
 
@@ -77,13 +70,14 @@ fn jamo_short_name(cp: u32) -> &'static str {
 
 #[cfg(test)]
 mod tests {
-    use super::{hangul_name, hangul_full_canonical_decomposition};
+    use super::{hangul_full_canonical_decomposition, hangul_name};
 
     #[test]
     fn canon_decomp() {
         assert_eq!(
             hangul_full_canonical_decomposition(0xD4DB),
-            Some((0x1111, 0x1171, Some(0x11B6))));
+            Some((0x1111, 0x1171, Some(0x11B6)))
+        );
     }
 
     #[test]

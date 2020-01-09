@@ -5,7 +5,7 @@ use std::fmt;
 use std::io;
 use std::result;
 
-use super::{CHUNK_SIZE, TrieSetSlice};
+use super::{TrieSetSlice, CHUNK_SIZE};
 
 // This implementation was pretty much cribbed from raphlinus' contribution
 // to the standard library: https://github.com/rust-lang/rust/pull/33098/files
@@ -86,10 +86,12 @@ impl error::Error for Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            Error::InvalidCodepoint(cp) => {
-                write!(f, "could not construct trie set containing an \
-                           invalid Unicode codepoint: 0x{:X}", cp)
-            }
+            Error::InvalidCodepoint(cp) => write!(
+                f,
+                "could not construct trie set containing an \
+                 invalid Unicode codepoint: 0x{:X}",
+                cp
+            ),
             Error::GaveUp => write!(f, "{}", error::Error::description(self)),
         }
     }
@@ -131,21 +133,20 @@ impl TrieSetOwned {
             bitvectors.push(bitvector);
         }
 
-        let tree1_level1 = bitvectors
-            .iter()
-            .cloned()
-            .take(0x800 / CHUNK_SIZE)
-            .collect();
+        let tree1_level1 =
+            bitvectors.iter().cloned().take(0x800 / CHUNK_SIZE).collect();
 
         let (mut tree2_level1, mut tree2_level2) = compress_postfix_leaves(
-            &bitvectors[0x800 / CHUNK_SIZE..0x10000 / CHUNK_SIZE])?;
+            &bitvectors[0x800 / CHUNK_SIZE..0x10000 / CHUNK_SIZE],
+        )?;
         if tree2_level2.len() == 1 && tree2_level2[0] == 0 {
             tree2_level1.clear();
             tree2_level2.clear();
         }
 
         let (mid, mut tree3_level3) = compress_postfix_leaves(
-            &bitvectors[0x10000 / CHUNK_SIZE..0x110000 / CHUNK_SIZE])?;
+            &bitvectors[0x10000 / CHUNK_SIZE..0x110000 / CHUNK_SIZE],
+        )?;
         let (mut tree3_level1, mut tree3_level2) =
             compress_postfix_mid(&mid, 64)?;
         if tree3_level3.len() == 1 && tree3_level3[0] == 0 {
@@ -169,7 +170,9 @@ impl TrieSetOwned {
     /// This returns an error if a set could not be sufficiently compressed to
     /// fit into a trie.
     pub fn from_scalars<I, C>(scalars: I) -> Result<TrieSetOwned>
-    where I: IntoIterator<Item=C>, C: Borrow<char>
+    where
+        I: IntoIterator<Item = C>,
+        C: Borrow<char>,
     {
         let mut all = vec![false; 0x110000];
         for s in scalars {
@@ -184,7 +187,9 @@ impl TrieSetOwned {
     /// fit into a trie. This also returns an error if any of the given
     /// codepoints are greater than `0x10FFFF`.
     pub fn from_codepoints<I, C>(codepoints: I) -> Result<TrieSetOwned>
-    where I: IntoIterator<Item=C>, C: Borrow<u32>
+    where
+        I: IntoIterator<Item = C>,
+        C: Borrow<u32>,
     {
         let mut all = vec![false; 0x110000];
         for cp in codepoints {
@@ -251,7 +256,7 @@ fn compress_postfix_mid(
     let mut children = vec![];
     let mut bychild = HashMap::new();
     for i in 0..(chunks.len() / chunk_size) {
-        let chunk = &chunks[i * chunk_size..(i+1) * chunk_size];
+        let chunk = &chunks[i * chunk_size..(i + 1) * chunk_size];
         if !bychild.contains_key(chunk) {
             let start = bychild.len();
             if start > ::std::u8::MAX as usize {
@@ -267,9 +272,9 @@ fn compress_postfix_mid(
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashSet;
-    use general_category;
     use super::TrieSetOwned;
+    use general_category;
+    use std::collections::HashSet;
 
     fn mk(scalars: &[char]) -> TrieSetOwned {
         TrieSetOwned::from_scalars(scalars).unwrap()
@@ -327,7 +332,7 @@ mod tests {
                 assert!(!trie.contains_u32(0x110000));
                 assert!(!hashset.contains(&0x110000));
             }
-        }
+        };
     }
 
     category_test!(gencat_cased_letter, CASED_LETTER);

@@ -83,20 +83,18 @@ fn parse_properties<P: AsRef<Path>>(
     // die if it doesn't exist. But emit a helpful warning message.
     let emoji_prop: Vec<EmojiProperty> = match ucd_parse::parse(&ucd_dir) {
         Ok(props) => props,
-        Err(err) => {
-            match *err.kind() {
-                ucd_parse::ErrorKind::Io(_) => {
-                    eprintln!(
-                        "{}. skipping emoji properties. \
-                        emoji-data.txt can be downloaded from \
-                        https://unicode.org/Public/emoji/",
-                        err,
-                    );
-                    vec![]
-                }
-                _ => return Err(From::from(err)),
+        Err(err) => match *err.kind() {
+            ucd_parse::ErrorKind::Io(_) => {
+                eprintln!(
+                    "{}. skipping emoji properties. \
+                     emoji-data.txt can be downloaded from \
+                     https://unicode.org/Public/emoji/",
+                    err,
+                );
+                vec![]
             }
-        }
+            _ => return Err(From::from(err)),
+        },
     };
     for x in &emoji_prop {
         by_name
@@ -119,10 +117,9 @@ fn parse_general_categories<P: AsRef<Path>>(
     // Collect each general category into an ordered set.
     let mut bycat: BTreeMap<String, BTreeSet<u32>> = BTreeMap::new();
     for row in rows {
-        let gc = propvals
-            .canonical("gc", &row.general_category)?
-            .to_string();
-        bycat.entry(gc)
+        let gc = propvals.canonical("gc", &row.general_category)?.to_string();
+        bycat
+            .entry(gc)
             .or_insert(BTreeSet::new())
             .insert(row.codepoint.value());
     }
