@@ -75,6 +75,8 @@ pub enum Error {
 }
 
 impl error::Error for Error {
+    // TODO: Remove on next semver bump.
+    #[allow(deprecated)]
     fn description(&self) -> &str {
         match *self {
             Error::InvalidCodepoint(_) => "invalid Unicode codepoint",
@@ -92,6 +94,8 @@ impl fmt::Display for Error {
                  invalid Unicode codepoint: 0x{:X}",
                 cp
             ),
+            // TODO: Remove on next semver bump.
+            #[allow(deprecated)]
             Error::GaveUp => write!(f, "{}", error::Error::description(self)),
         }
     }
