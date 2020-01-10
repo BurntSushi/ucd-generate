@@ -1,4 +1,3 @@
-use std::fmt;
 use std::path::Path;
 use std::str::FromStr;
 
@@ -22,9 +21,46 @@ pub struct ArabicShaping {
     /// comment, and does not constitute a formal property value.
     pub schematic_name: String,
     /// The "joining type" of this codepoint.
-    pub joining_type: String,
+    pub joining_type: JoiningType,
     /// The "joining group" of this codepoint.
     pub joining_group: String,
+}
+
+/// The Joining_Type field read from ArabicShaping.txt
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum JoiningType {
+    RightJoining,
+    LeftJoining,
+    DualJoining,
+    JoinCausing,
+    NonJoining,
+    Transparent,
+}
+
+impl Default for JoiningType {
+    fn default() -> JoiningType {
+        JoiningType::NonJoining
+    }
+}
+
+impl FromStr for JoiningType {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<JoiningType, Error> {
+        match s {
+            "R" => Ok(JoiningType::RightJoining),
+            "L" => Ok(JoiningType::LeftJoining),
+            "D" => Ok(JoiningType::DualJoining),
+            "C" => Ok(JoiningType::JoinCausing),
+            "U" => Ok(JoiningType::NonJoining),
+            "T" => Ok(JoiningType::Transparent),
+            _ => err!(
+                "unrecognized joining type: '{}' \
+                 (must be one of R, L, D, C, U or T)",
+                s
+            ),
+        }
+    }
 }
 
 impl UcdFile for ArabicShaping {
@@ -64,19 +100,9 @@ impl FromStr for ArabicShaping {
         Ok(ArabicShaping {
             codepoint: caps["codepoint"].parse()?,
             schematic_name: caps["name"].to_string(),
-            joining_type: caps["joining_type"].to_string(),
+            joining_type: caps["joining_type"].parse()?,
             joining_group: caps["joining_group"].to_string(),
         })
-    }
-}
-
-impl fmt::Display for ArabicShaping {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{};", self.codepoint)?;
-        write!(f, "{};", self.schematic_name)?;
-        write!(f, "{};", self.joining_type)?;
-        write!(f, "{}", self.joining_group)?;
-        Ok(())
     }
 }
 
@@ -84,7 +110,7 @@ impl fmt::Display for ArabicShaping {
 mod tests {
     use common::Codepoint;
 
-    use super::ArabicShaping;
+    use super::{ArabicShaping, JoiningType};
 
     fn codepoint(n: u32) -> Codepoint {
         Codepoint::from_u32(n).unwrap()
@@ -103,7 +129,7 @@ mod tests {
             ArabicShaping {
                 codepoint: codepoint(0x0600),
                 schematic_name: s("ARABIC NUMBER SIGN"),
-                joining_type: s("U"),
+                joining_type: JoiningType::NonJoining,
                 joining_group: s("No_Joining_Group")
             }
         );
@@ -118,7 +144,7 @@ mod tests {
             ArabicShaping {
                 codepoint: codepoint(0x063D),
                 schematic_name: s("FARSI YEH WITH INVERTED V ABOVE"),
-                joining_type: s("D"),
+                joining_type: JoiningType::DualJoining,
                 joining_group: s("FARSI YEH")
             }
         );
@@ -136,7 +162,7 @@ mod tests {
                 schematic_name: s(
                     "HANIFI ROHINGYA DOTLESS KINNA YA WITH DOT ABOVE"
                 ),
-                joining_type: s("D"),
+                joining_type: JoiningType::DualJoining,
                 joining_group: s("HANIFI ROHINGYA KINNA YA")
             }
         );
