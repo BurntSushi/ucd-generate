@@ -522,17 +522,49 @@ impl Writer {
         self.header()?;
         self.separator()?;
 
+        writeln!(self.wtr, "use std::num::NonZeroU32;")?;
+        self.separator()?;
+
         let fn_name = rust_fn_name(name);
-        writeln!(self.wtr, "pub fn {}(cp: u32) -> u32 {{", fn_name)?;
+        writeln!(
+            self.wtr,
+            "pub fn {}(cp: u32) -> Option<NonZeroU32> {{",
+            fn_name
+        )?;
         self.wtr.indent("    ");
-        self.wtr.write_str("match cp {")?;
+        self.wtr.write_str(
+            "// new_unchecked is safe as ucd-generate checks \
+             that the destination",
+        )?;
+        self.wtr.flush_line()?;
+        self.wtr.write_str(
+            "// codepoint is non-zero at \
+             code generation time.",
+        )?;
+        self.wtr.flush_line()?;
+        self.wtr.write_str("unsafe {")?;
         self.wtr.flush_line()?;
         self.wtr.indent("        ");
+        self.wtr.write_str("match cp {")?;
+        self.wtr.flush_line()?;
+        self.wtr.indent("            ");
         for (from, to) in map {
-            self.wtr.write_str(&format!("{} => {},", from, to))?;
+            if *to == 0 {
+                return err!(
+                    "destination codepoint must not be 0 (NUL) for \
+                     rust-match output format"
+                );
+            }
+            self.wtr.write_str(&format!(
+                "{} => Some(NonZeroU32::new_unchecked({})),",
+                from, to
+            ))?;
             self.wtr.flush_line()?;
         }
-        self.wtr.write_str("_ => 0,")?;
+        self.wtr.write_str("_ => None,")?;
+        self.wtr.flush_line()?;
+        self.wtr.indent("        ");
+        self.wtr.write_str("}")?;
         self.wtr.flush_line()?;
         self.wtr.indent("    ");
         self.wtr.write_str("}")?;
@@ -1299,7 +1331,10 @@ fn smallest_unsigned_type(n: u64) -> &'static str {
 
 #[cfg(test)]
 mod tests {
+    use super::WriterBuilder;
     use super::{pack_str, rust_type_name};
+    use error::Error;
+    use std::io::Cursor;
 
     fn unpack_str(mut encoded: u64) -> String {
         let mut value = String::new();
@@ -1330,5 +1365,26 @@ mod tests {
         assert_eq!(&rust_type_name("dash-separated"), "DashSeparated");
         assert_eq!(&rust_type_name("white \tspace"), "WhiteSpace");
         assert_eq!(&rust_type_name("snake_case"), "SnakeCase");
+    }
+
+    #[test]
+    fn codepoint_to_codepoint_fn_error() {
+        let cursor = Cursor::new(Vec::new());
+        let builder = WriterBuilder::new("test");
+        let mut writer = builder.from_writer(cursor);
+
+        // Ensure that a destination codepoint of zero is rejected
+        let map = [(1, 0)].iter().copied().collect();
+        match writer.codepoint_to_codepoint_fn("err", &map) {
+            Err(Error::Other(msg)) => {
+                assert!(msg.contains("destination codepoint must not be 0"))
+            }
+            res => panic!(
+                "expected error matching, \
+                 'destination codepoint must not be 0' \
+                 got: {:?}",
+                res
+            ),
+        }
     }
 }
