@@ -17,6 +17,11 @@ categories = ["text-processing", "internationalization"]
 [workspace]
 members = ["ucd-parse", "ucd-trie", "ucd-util"]
 
+[[bin]]
+bench = false
+path = "src/main.rs"
+name = "ucd-generate"
+
 [dependencies]
 byteorder = "1"
 fst = { version = "0.3", default-features = false }
