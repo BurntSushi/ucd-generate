@@ -1125,7 +1125,11 @@ impl Writer {
         writeln!(self.wtr, "//")?;
         writeln!(self.wtr, "//  {}", argv.join(" "))?;
         writeln!(self.wtr, "//")?;
-        writeln!(self.wtr, "// ucd-generate is available on crates.io.")?;
+        writeln!(
+            self.wtr,
+            "// ucd-generate {} is available on crates.io.",
+            env!("CARGO_PKG_VERSION")
+        )?;
         self.wrote_header = true;
         Ok(())
     }
