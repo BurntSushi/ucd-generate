@@ -124,7 +124,14 @@ case-folding emits a table of Simple case folding mappings from codepoint
 to codepoint. When codepoints are mapped according to this table, then case
 differences (according to Unicode) are eliminated.
 ";
+const ABOUT_CASE_MAPPING: &'static str = "\
+case-mapping emits case mapping tables, which map from a codepoint to a
+list of codepoints (currently up to three), and are used to convert
+text between lower, upper, and title cases.
 
+This command currently has no support for emitting the conditional case
+mapping data, and can only produce the unconditional mapping tables.
+";
 const ABOUT_GRAPHEME_CLUSTER_BREAK: &'static str = "\
 grapheme-cluster-break emits the table of property values and their
 corresponding codepoints for the Grapheme_Cluster_Break property.
@@ -455,6 +462,21 @@ pub fn app() -> App<'static, 'static> {
             "Emit a table where each codepoint includes all possible \
              Simple mappings.",
         ));
+    let cmd_case_mapping = SubCommand::with_name("case-mapping")
+        .author(crate_authors!())
+        .version(crate_version!())
+        .template(TEMPLATE_SUB)
+        .about("Create unconditional case mapping tables for upper, lower and title case.")
+        .before_help(ABOUT_CASE_MAPPING)
+        .arg(flag_name("CASE_MAPPING"))
+        .arg(ucd_dir.clone())
+        .arg(flag_chars.clone())
+        .arg(Arg::with_name("simple").long("simple").help(
+            "Only emit the simple case mapping tables \
+             (emit maps of codepoint to codepoint, \
+             ignoring rules from SpecialCasing.txt)",
+        ));
+
     let cmd_grapheme_cluster_break =
         SubCommand::with_name("grapheme-cluster-break")
             .author(crate_authors!())
@@ -577,6 +599,7 @@ pub fn app() -> App<'static, 'static> {
         .subcommand(cmd_property_names)
         .subcommand(cmd_property_values)
         .subcommand(cmd_case_folding_simple)
+        .subcommand(cmd_case_mapping)
         .subcommand(cmd_grapheme_cluster_break)
         .subcommand(cmd_word_break)
         .subcommand(cmd_sentence_break)
