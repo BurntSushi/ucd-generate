@@ -9,7 +9,7 @@ This tool also supports serializing regular expressions as DFAs using the
 [regex-automata](https://github.com/BurntSushi/regex-automata)
 crate.
 
-[![Linux build status](https://api.travis-ci.org/BurntSushi/ucd-generate.png)](https://travis-ci.org/BurntSushi/ucd-generate)
+[![Build status](https://github.com/BurntSushi/ucd-generate/workflows/ci/badge.svg)](https://github.com/BurntSushi/ucd-generate/actions)
 [![](http://meritbadge.herokuapp.com/ucd-generate)](https://crates.io/crates/ucd-generate)
 
 
