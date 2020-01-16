@@ -114,7 +114,7 @@ dependencies = [
  "regex-automata 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "ucd-parse 0.1.5",
  "ucd-trie 0.1.2",
- "ucd-util 0.1.6",
+ "ucd-util 0.1.7",
 ]
 
 [[package]]
@@ -134,7 +134,7 @@ dependencies = [
 
 [[package]]
 name = "ucd-util"
-version = "0.1.6"
+version = "0.1.7"
 
 [[package]]
 name = "unicode-width"
