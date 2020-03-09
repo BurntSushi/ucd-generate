@@ -16,6 +16,7 @@ pub use crate::arabic_shaping::ArabicShaping;
 pub use crate::bidi_mirroring_glyph::BidiMirroring;
 pub use crate::case_folding::{CaseFold, CaseStatus};
 pub use crate::core_properties::CoreProperty;
+pub use crate::east_asian_width::EastAsianWidth;
 pub use crate::emoji_properties::EmojiProperty;
 pub use crate::grapheme_cluster_break::{
     GraphemeClusterBreak, GraphemeClusterBreakTest,
@@ -50,6 +51,7 @@ mod arabic_shaping;
 mod bidi_mirroring_glyph;
 mod case_folding;
 mod core_properties;
+mod east_asian_width;
 mod emoji_properties;
 mod grapheme_cluster_break;
 mod jamo_short_name;
