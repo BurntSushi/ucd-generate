@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
 use common::{
@@ -25,7 +25,27 @@ pub struct EmojiProperty {
 
 impl UcdFile for EmojiProperty {
     fn relative_file_path() -> &'static Path {
-        Path::new("emoji-data.txt")
+        Path::new("emoji/emoji-data.txt")
+    }
+
+    fn file_path<P: AsRef<Path>>(ucd_dir: P) -> PathBuf {
+        let ucd_dir = ucd_dir.as_ref();
+        // The standard location, but only on UCDs from 13.0.0 and up.
+        let std = ucd_dir.join(Self::relative_file_path());
+        if std.exists() {
+            std
+        } else {
+            // If the old location does exist, use it.
+            let legacy = ucd_dir.join("emoji-data.txt");
+            if legacy.exists() {
+                legacy
+            } else {
+                // This might end up in an error message, so use the standard
+                // one if forced to choose. Arguably we could do something like
+                // peek
+                std
+            }
+        }
     }
 }
 

@@ -99,8 +99,9 @@ fn parse_properties<P: AsRef<Path>>(
             ucd_parse::ErrorKind::Io(_) => {
                 eprintln!(
                     "{}. skipping emoji properties. \
-                     emoji-data.txt can be downloaded from \
-                     https://unicode.org/Public/emoji/",
+                     emoji-data.txt is included in UCD 13.0.0 and newer, and \
+                     can be downloaded from https://unicode.org/Public/emoji/ \
+                     for older releases.",
                     err,
                 );
                 vec![]
