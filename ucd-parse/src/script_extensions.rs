@@ -1,11 +1,11 @@
 use std::path::Path;
 use std::str::FromStr;
 
-use common::{
+use crate::common::{
     parse_codepoint_association, CodepointIter, Codepoints, UcdFile,
     UcdFileByCodepoint,
 };
-use error::Error;
+use crate::error::Error;
 
 /// A single row in the `ScriptExtensions.txt` file.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -34,7 +34,7 @@ impl FromStr for ScriptExtension {
     fn from_str(line: &str) -> Result<ScriptExtension, Error> {
         let (codepoints, scripts) = parse_codepoint_association(line)?;
         Ok(ScriptExtension {
-            codepoints: codepoints,
+            codepoints,
             scripts: scripts.split_whitespace().map(str::to_string).collect(),
         })
     }

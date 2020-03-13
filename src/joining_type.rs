@@ -2,12 +2,12 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use ucd_parse::{self, ArabicShaping};
 
-use args::ArgMatches;
-use error::Result;
-use general_category;
-use util::PropertyValues;
+use crate::args::ArgMatches;
+use crate::error::Result;
+use crate::general_category;
+use crate::util::PropertyValues;
 
-pub fn command(args: ArgMatches) -> Result<()> {
+pub fn command(args: ArgMatches<'_>) -> Result<()> {
     let dir = args.ucd_dir()?;
     let propvals = PropertyValues::from_ucd_dir(&dir)?;
     let rows: Vec<ArabicShaping> = ucd_parse::parse(&dir)?;

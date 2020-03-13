@@ -2,9 +2,9 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use ucd_parse::{self, CoreProperty, UnicodeData};
 
-use args::ArgMatches;
-use error::Result;
-use util::{print_property_values, PropertyValues};
+use crate::args::ArgMatches;
+use crate::error::Result;
+use crate::util::{print_property_values, PropertyValues};
 
 // Bidi Class (listing UnicodeData.txt, field 4: see UAX #44:
 // http://www.unicode.org/reports/tr44/) Unlike other properties, unassigned
@@ -68,7 +68,7 @@ const DEFAULT_CLASS_ASSIGNMENTS: &[(u32, u32, &str)] = &[
     (0x20A0, 0x20CF, "ET"),
 ];
 
-pub fn command(args: ArgMatches) -> Result<()> {
+pub fn command(args: ArgMatches<'_>) -> Result<()> {
     let dir = args.ucd_dir()?;
     let propvals = PropertyValues::from_ucd_dir(&dir)?;
     let rows: Vec<UnicodeData> = ucd_parse::parse(&dir)?;

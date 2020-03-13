@@ -2,10 +2,10 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use ucd_parse::{self, GraphemeClusterBreak, SentenceBreak, WordBreak};
 
-use args::ArgMatches;
-use error::Result;
+use crate::args::ArgMatches;
+use crate::error::Result;
 
-pub fn grapheme_cluster(args: ArgMatches) -> Result<()> {
+pub fn grapheme_cluster(args: ArgMatches<'_>) -> Result<()> {
     let ucd_dir = args.ucd_dir()?;
     let vals: Vec<GraphemeClusterBreak> = ucd_parse::parse(&ucd_dir)?;
 
@@ -29,7 +29,7 @@ pub fn grapheme_cluster(args: ArgMatches) -> Result<()> {
     Ok(())
 }
 
-pub fn word(args: ArgMatches) -> Result<()> {
+pub fn word(args: ArgMatches<'_>) -> Result<()> {
     let ucd_dir = args.ucd_dir()?;
     let vals: Vec<WordBreak> = ucd_parse::parse(&ucd_dir)?;
 
@@ -53,7 +53,7 @@ pub fn word(args: ArgMatches) -> Result<()> {
     Ok(())
 }
 
-pub fn sentence(args: ArgMatches) -> Result<()> {
+pub fn sentence(args: ArgMatches<'_>) -> Result<()> {
     let ucd_dir = args.ucd_dir()?;
     let vals: Vec<SentenceBreak> = ucd_parse::parse(&ucd_dir)?;
 

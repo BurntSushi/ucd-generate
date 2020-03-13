@@ -14,8 +14,8 @@ use fst::{MapBuilder, SetBuilder};
 use regex_automata::{DenseDFA, Regex, SparseDFA, StateID};
 use ucd_trie::TrieSetOwned;
 
-use error::Result;
-use util;
+use crate::error::Result;
+use crate::util;
 
 #[derive(Clone, Debug)]
 pub struct WriterBuilder(WriterOptions);
@@ -1338,7 +1338,7 @@ fn smallest_unsigned_type(n: u64) -> &'static str {
 mod tests {
     use super::WriterBuilder;
     use super::{pack_str, rust_type_name};
-    use error::Error;
+    use crate::error::Error;
     use std::io::Cursor;
 
     fn unpack_str(mut encoded: u64) -> String {

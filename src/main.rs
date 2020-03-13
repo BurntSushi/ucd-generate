@@ -1,23 +1,14 @@
-extern crate byteorder;
-#[macro_use]
-extern crate clap;
-extern crate fst;
-extern crate regex_automata;
-extern crate ucd_parse;
-extern crate ucd_trie;
-extern crate ucd_util;
-
 use std::io::{self, Write};
 use std::process;
 
 use ucd_parse::{UcdFile, UnicodeData};
 
-use args::ArgMatches;
-use error::Result;
+use crate::args::ArgMatches;
+use crate::error::Result;
 
 macro_rules! err {
     ($($tt:tt)*) => {
-        Err(::error::Error::Other(format!($($tt)*)))
+        Err(crate::error::Error::Other(format!($($tt)*)))
     }
 }
 
@@ -104,9 +95,9 @@ fn run() -> Result<()> {
     }
 }
 
-fn cmd_property_names(args: ArgMatches) -> Result<()> {
+fn cmd_property_names(args: ArgMatches<'_>) -> Result<()> {
+    use crate::util::PropertyNames;
     use std::collections::BTreeMap;
-    use util::PropertyNames;
 
     let dir = args.ucd_dir()?;
     let names = PropertyNames::from_ucd_dir(&dir)?;
@@ -123,9 +114,9 @@ fn cmd_property_names(args: ArgMatches) -> Result<()> {
     Ok(())
 }
 
-fn cmd_property_values(args: ArgMatches) -> Result<()> {
+fn cmd_property_values(args: ArgMatches<'_>) -> Result<()> {
+    use crate::util::{PropertyNames, PropertyValues};
     use std::collections::BTreeMap;
-    use util::{PropertyNames, PropertyValues};
 
     let dir = args.ucd_dir()?;
     let values = PropertyValues::from_ucd_dir(&dir)?;
@@ -143,7 +134,7 @@ fn cmd_property_values(args: ArgMatches) -> Result<()> {
     Ok(())
 }
 
-fn cmd_test_unicode_data(args: ArgMatches) -> Result<()> {
+fn cmd_test_unicode_data(args: ArgMatches<'_>) -> Result<()> {
     let dir = args.ucd_dir()?;
     let mut stdout = io::stdout();
     for result in UnicodeData::from_dir(dir)? {

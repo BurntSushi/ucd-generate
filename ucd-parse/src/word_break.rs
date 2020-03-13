@@ -1,11 +1,11 @@
 use std::path::Path;
 use std::str::FromStr;
 
-use common::{
+use crate::common::{
     parse_break_test, parse_codepoint_association, CodepointIter, Codepoints,
     UcdFile, UcdFileByCodepoint,
 };
-use error::Error;
+use crate::error::Error;
 
 /// A single row in the `auxiliary/WordBreakProperty.txt` file.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -33,7 +33,7 @@ impl FromStr for WordBreak {
 
     fn from_str(line: &str) -> Result<WordBreak, Error> {
         let (codepoints, value) = parse_codepoint_association(line)?;
-        Ok(WordBreak { codepoints: codepoints, value: value.to_string() })
+        Ok(WordBreak { codepoints, value: value.to_string() })
     }
 }
 
@@ -60,7 +60,7 @@ impl FromStr for WordBreakTest {
 
     fn from_str(line: &str) -> Result<WordBreakTest, Error> {
         let (groups, comment) = parse_break_test(line)?;
-        Ok(WordBreakTest { words: groups, comment: comment })
+        Ok(WordBreakTest { words: groups, comment })
     }
 }
 

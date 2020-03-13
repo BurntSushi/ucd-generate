@@ -7,9 +7,10 @@ use std::marker::PhantomData;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
+use lazy_static::lazy_static;
 use regex::Regex;
 
-use error::{Error, ErrorKind};
+use crate::error::{Error, ErrorKind};
 
 /// Parse a particular file in the UCD into a sequence of rows.
 ///
@@ -245,7 +246,7 @@ impl<R: io::Read, D> UcdLineParser<R, D> {
     /// need to provide their own buffering.
     pub(crate) fn new(path: Option<PathBuf>, rdr: R) -> UcdLineParser<R, D> {
         UcdLineParser {
-            path: path,
+            path,
             rdr: io::BufReader::new(rdr),
             line: String::new(),
             line_number: 0,
@@ -326,7 +327,7 @@ impl FromStr for Codepoints {
 }
 
 impl fmt::Display for Codepoints {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
             Codepoints::Single(ref x) => x.fmt(f),
             Codepoints::Range(ref x) => x.fmt(f),
@@ -408,12 +409,12 @@ impl FromStr for CodepointRange {
         let end = caps["end"].parse().or_else(|err| {
             err!("failed to parse '{}' as a codepoint range: {}", s, err)
         })?;
-        Ok(CodepointRange { start: start, end: end })
+        Ok(CodepointRange { start, end })
     }
 }
 
 impl fmt::Display for CodepointRange {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}..{}", self.start, self.end)
     }
 }
@@ -471,7 +472,7 @@ impl IntoIterator for Codepoint {
 
     fn into_iter(self) -> CodepointIter {
         let range = CodepointRange { start: self, end: self };
-        CodepointIter { next: self.value(), range: range }
+        CodepointIter { next: self.value(), range }
     }
 }
 
@@ -493,7 +494,7 @@ impl FromStr for Codepoint {
 }
 
 impl fmt::Display for Codepoint {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:04X}", self.0)
     }
 }

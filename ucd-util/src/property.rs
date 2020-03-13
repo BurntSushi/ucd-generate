@@ -83,8 +83,8 @@ pub fn canonical_property_value(
 
 #[cfg(test)]
 mod tests {
-    use unicode_tables::property_names::PROPERTY_NAMES;
-    use unicode_tables::property_values::PROPERTY_VALUES;
+    use crate::unicode_tables::property_names::PROPERTY_NAMES;
+    use crate::unicode_tables::property_values::PROPERTY_VALUES;
 
     use super::{
         canonical_property_name, canonical_property_value, property_values,

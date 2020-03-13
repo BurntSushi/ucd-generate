@@ -1,10 +1,11 @@
 use std::path::Path;
 use std::str::FromStr;
 
+use lazy_static::lazy_static;
 use regex::Regex;
 
-use common::{Codepoint, CodepointIter, UcdFile, UcdFileByCodepoint};
-use error::Error;
+use crate::common::{Codepoint, CodepointIter, UcdFile, UcdFileByCodepoint};
+use crate::error::Error;
 
 /// Represents a single row in the `ArabicShaping.txt` file.
 ///
@@ -121,7 +122,7 @@ impl FromStr for ArabicShaping {
 
 #[cfg(test)]
 mod tests {
-    use common::Codepoint;
+    use crate::common::Codepoint;
 
     use super::{ArabicShaping, JoiningType};
 

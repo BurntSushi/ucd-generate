@@ -2,10 +2,10 @@ use std::collections::BTreeMap;
 
 use ucd_parse::{self, BidiMirroring};
 
-use args::ArgMatches;
-use error::Result;
+use crate::args::ArgMatches;
+use crate::error::Result;
 
-pub fn command(args: ArgMatches) -> Result<()> {
+pub fn command(args: ArgMatches<'_>) -> Result<()> {
     let dir = args.ucd_dir()?;
     let rows: Vec<BidiMirroring> = ucd_parse::parse(&dir)?;
 

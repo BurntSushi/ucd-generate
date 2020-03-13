@@ -1,4 +1,4 @@
-use unicode_tables::jamo_short_name::JAMO_SHORT_NAME;
+use crate::unicode_tables::jamo_short_name::JAMO_SHORT_NAME;
 
 // This implementation should correspond to the algorithms described in
 // Unicode 3.12.

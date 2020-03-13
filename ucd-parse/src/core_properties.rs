@@ -1,11 +1,11 @@
 use std::path::Path;
 use std::str::FromStr;
 
-use common::{
+use crate::common::{
     parse_codepoint_association, CodepointIter, Codepoints, UcdFile,
     UcdFileByCodepoint,
 };
-use error::Error;
+use crate::error::Error;
 
 /// A single row in the `DerivedCoreProperties.txt` file.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -33,10 +33,7 @@ impl FromStr for CoreProperty {
 
     fn from_str(line: &str) -> Result<CoreProperty, Error> {
         let (codepoints, property) = parse_codepoint_association(line)?;
-        Ok(CoreProperty {
-            codepoints: codepoints,
-            property: property.to_string(),
-        })
+        Ok(CoreProperty { codepoints, property: property.to_string() })
     }
 }
 

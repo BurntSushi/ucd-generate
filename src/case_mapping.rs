@@ -2,10 +2,10 @@ use std::collections::BTreeMap;
 
 use ucd_parse::{SpecialCaseMapping, UcdFile, UnicodeData};
 
-use args::ArgMatches;
-use error::Result;
+use crate::args::ArgMatches;
+use crate::error::Result;
 
-pub fn command(args: ArgMatches) -> Result<()> {
+pub fn command(args: ArgMatches<'_>) -> Result<()> {
     let dir = args.ucd_dir()?;
     let mut lower_map: BTreeMap<u32, Vec<u32>> = BTreeMap::new();
     let mut upper_map: BTreeMap<u32, Vec<u32>> = BTreeMap::new();

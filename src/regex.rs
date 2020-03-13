@@ -1,9 +1,9 @@
-use args::ArgMatches;
-use error::Result;
+use crate::args::ArgMatches;
+use crate::error::Result;
 
 use regex_automata::{dense, RegexBuilder};
 
-pub fn command_dfa(args: ArgMatches) -> Result<()> {
+pub fn command_dfa(args: ArgMatches<'_>) -> Result<()> {
     let mut wtr = args.dfa_writer(args.name())?;
     let pattern = match args.value_of("pattern") {
         None => return err!("missing regex pattern"),
@@ -65,7 +65,7 @@ pub fn command_dfa(args: ArgMatches) -> Result<()> {
     Ok(())
 }
 
-pub fn command_regex(args: ArgMatches) -> Result<()> {
+pub fn command_regex(args: ArgMatches<'_>) -> Result<()> {
     let mut wtr = args.dfa_writer(args.name())?;
     let pattern = match args.value_of("pattern") {
         None => return err!("missing regex pattern"),
@@ -117,7 +117,7 @@ pub fn command_regex(args: ArgMatches) -> Result<()> {
     Ok(())
 }
 
-fn regex_builder(args: &ArgMatches) -> RegexBuilder {
+fn regex_builder(args: &ArgMatches<'_>) -> RegexBuilder {
     let mut builder = RegexBuilder::new();
     builder
         .minimize(args.is_present("minimize"))
@@ -128,7 +128,7 @@ fn regex_builder(args: &ArgMatches) -> RegexBuilder {
     builder
 }
 
-fn dfa_builder(args: &ArgMatches) -> dense::Builder {
+fn dfa_builder(args: &ArgMatches<'_>) -> dense::Builder {
     let mut builder = dense::Builder::new();
     builder
         .minimize(args.is_present("minimize"))
@@ -141,7 +141,7 @@ fn dfa_builder(args: &ArgMatches) -> dense::Builder {
     builder
 }
 
-fn state_size(args: &ArgMatches) -> u8 {
+fn state_size(args: &ArgMatches<'_>) -> u8 {
     // These unwraps are OK because clap should verify that there exists a
     // value and it must be 1, 2, 4 or 8.
     args.value_of("state-size").unwrap().parse().unwrap()

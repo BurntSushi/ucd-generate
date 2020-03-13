@@ -19,12 +19,12 @@ mod name;
 mod property;
 mod unicode_tables;
 
-pub use hangul::{
+pub use crate::hangul::{
     hangul_full_canonical_decomposition, hangul_name, RANGE_HANGUL_SYLLABLE,
 };
-pub use ideograph::{ideograph_name, RANGE_IDEOGRAPH};
-pub use name::{character_name_normalize, symbolic_name_normalize};
-pub use property::{
+pub use crate::ideograph::{ideograph_name, RANGE_IDEOGRAPH};
+pub use crate::name::{character_name_normalize, symbolic_name_normalize};
+pub use crate::property::{
     canonical_property_name, canonical_property_value, property_values,
     PropertyTable, PropertyValueTable, PropertyValues,
 };

@@ -27,16 +27,6 @@ impl Error {
 }
 
 impl error::Error for Error {
-    // TODO: Remove on next semver bump.
-    #[allow(deprecated)]
-    fn description(&self) -> &str {
-        match *self {
-            Error::Io(ref err) => err.description(),
-            Error::Clap(ref err) => err.description(),
-            Error::Other(ref msg) => msg,
-        }
-    }
-
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match *self {
             Error::Io(ref err) => Some(err),
@@ -47,7 +37,7 @@ impl error::Error for Error {
 }
 
 impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
             Error::Io(ref err) => err.fmt(f),
             Error::Clap(ref err) => err.fmt(f),
