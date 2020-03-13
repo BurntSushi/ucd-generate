@@ -73,6 +73,68 @@ where
     Ok(map)
 }
 
+/// Given a path pointing at the root of the `ucd_dir`, attempts to determine
+/// it's unicode version.
+///
+/// This just checks the readme and the very first line of PropList.txt -- in
+/// practice this works for all versions of UCD since 4.1.0.
+pub fn ucd_directory_version<D: ?Sized + AsRef<Path>>(
+    ucd_dir: &D,
+) -> Result<(u64, u64, u64), Error> {
+    // Avoid duplication from generic path parameter.
+    fn ucd_directory_version_inner(
+        ucd_dir: &Path,
+    ) -> Result<(u64, u64, u64), Error> {
+        lazy_static::lazy_static! {
+            static ref VERSION_RX: Regex =
+                Regex::new(r"-([0-9]+).([0-9]+).([0-9]+).txt").unwrap();
+        }
+
+        let proplist = ucd_dir.join("PropList.txt");
+        let contents = first_line(&proplist)?;
+        let caps = match VERSION_RX.captures(&contents) {
+            Some(c) => c,
+            None => {
+                return err!("Failed to find version in line {:?}", contents)
+            }
+        };
+
+        let capture_to_num = |n| {
+            caps.get(n).unwrap().as_str().parse::<u64>().map_err(|e| Error {
+                kind: ErrorKind::Parse(format!(
+                    "Failed to parse version from {:?} in PropList.txt: {}",
+                    contents, e
+                )),
+                line: Some(0),
+                path: Some(proplist.clone()),
+            })
+        };
+        let major = capture_to_num(1)?;
+        let minor = capture_to_num(2)?;
+        let patch = capture_to_num(3)?;
+
+        Ok((major, minor, patch))
+    }
+    ucd_directory_version_inner(ucd_dir.as_ref())
+}
+
+fn first_line(path: &Path) -> Result<String, Error> {
+    let file = std::fs::File::open(path).map_err(|e| Error {
+        kind: ErrorKind::Io(e),
+        line: None,
+        path: Some(path.into()),
+    })?;
+
+    let mut reader = std::io::BufReader::new(file);
+    let mut line_contents = String::new();
+    reader.read_line(&mut line_contents).map_err(|e| Error {
+        kind: ErrorKind::Io(e),
+        line: None,
+        path: Some(path.into()),
+    })?;
+    Ok(line_contents)
+}
+
 /// A helper function for parsing a common record format that associates one
 /// or more codepoints with a string value.
 pub fn parse_codepoint_association<'a>(
