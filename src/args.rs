@@ -38,6 +38,14 @@ impl<'a> ArgMatches<'a> {
         if let Some(p) = self.value_of_os("dfa-dir") {
             return builder.from_dfa_dir(p);
         }
+        // Some of the functionality of this crate works with a partial ucd
+        // directory.
+        match ucd_parse::ucd_directory_version(self.ucd_dir()?) {
+            Ok((major, minor, patch)) => {
+                builder.ucd_version(major, minor, patch)
+            }
+            Err(e) => return err!("Failed to determine UCD version: {}", e),
+        };
         match self.value_of_os("fst-dir") {
             None => Ok(builder.from_stdout()),
             Some(x) => builder.from_fst_dir(x),

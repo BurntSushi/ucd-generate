@@ -5,9 +5,9 @@ A library for parsing the Unicode character database.
 #![deny(missing_docs)]
 
 pub use crate::common::{
-    parse, parse_by_codepoint, parse_many_by_codepoint, Codepoint,
-    CodepointIter, CodepointRange, Codepoints, UcdFile, UcdFileByCodepoint,
-    UcdLineParser,
+    parse, parse_by_codepoint, parse_many_by_codepoint, ucd_directory_version,
+    Codepoint, CodepointIter, CodepointRange, Codepoints, UcdFile,
+    UcdFileByCodepoint, UcdLineParser,
 };
 pub use crate::error::{Error, ErrorKind};
 
