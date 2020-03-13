@@ -1,6 +1,6 @@
 [package]
 name = "ucd-util"
-version = "0.1.7"  #:version
+version = "0.1.8"  #:version
 authors = ["Andrew Gallant <jamslam@gmail.com>"]
 description = """
 A small utility library for working with the Unicode character database.
