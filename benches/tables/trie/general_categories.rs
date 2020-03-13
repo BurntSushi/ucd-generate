@@ -2,6 +2,8 @@
 //
 //  ucd-generate general-category ./ucd-13.0.0 --exclude unassigned --trie-set
 //
+// from UCD version 13.0.0.
+//
 // ucd-generate 0.2.6 is available on crates.io.
 
 pub const BY_NAME: &'static [(&'static str, &'static ::ucd_trie::TrieSet)] = &[

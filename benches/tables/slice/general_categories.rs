@@ -2,6 +2,8 @@
 //
 //  ucd-generate general-category ./ucd-13.0.0 --exclude unassigned
 //
+// from UCD version 13.0.0.
+//
 // ucd-generate 0.2.6 is available on crates.io.
 
 pub const BY_NAME: &'static [(&'static str, &'static [(u32, u32)])] = &[

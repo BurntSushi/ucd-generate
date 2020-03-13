@@ -2,6 +2,8 @@
 //
 //  ucd-generate names ./ucd-13.0.0 --no-aliases --no-hangul --no-ideograph
 //
+// from UCD version 13.0.0.
+//
 // ucd-generate 0.2.6 is available on crates.io.
 
 pub const NAMES: &'static [(&'static str, u32)] = &[

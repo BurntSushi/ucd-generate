@@ -2,6 +2,8 @@
 //
 //  ucd-generate property-names ./ucd-13.0.0
 //
+// from UCD version 13.0.0.
+//
 // ucd-generate 0.2.6 is available on crates.io.
 
 pub const PROPERTY_NAMES: &'static [(&'static str, &'static str)] = &[
