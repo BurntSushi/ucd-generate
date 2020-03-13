@@ -4,10 +4,11 @@ use std::ops::Range;
 use std::path::Path;
 use std::str::FromStr;
 
+use lazy_static::lazy_static;
 use regex::Regex;
 
-use common::{Codepoint, CodepointIter, UcdFile, UcdFileByCodepoint};
-use error::Error;
+use crate::common::{Codepoint, CodepointIter, UcdFile, UcdFileByCodepoint};
+use crate::error::Error;
 
 /// Represents a single row in the `UnicodeData.txt` file.
 ///
@@ -192,7 +193,7 @@ impl FromStr for UnicodeData {
 }
 
 impl fmt::Display for UnicodeData {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{};", self.codepoint)?;
         write!(f, "{};", self.name)?;
         write!(f, "{};", self.general_category)?;
@@ -332,7 +333,7 @@ impl FromStr for UnicodeDataDecomposition {
 }
 
 impl fmt::Display for UnicodeDataDecomposition {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Some(ref tag) = self.tag {
             write!(f, "<{}> ", tag)?;
         }
@@ -416,7 +417,7 @@ impl FromStr for UnicodeDataDecompositionTag {
 }
 
 impl fmt::Display for UnicodeDataDecompositionTag {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use self::UnicodeDataDecompositionTag::*;
         let s = match *self {
             Font => "font",
@@ -500,7 +501,7 @@ impl FromStr for UnicodeDataNumeric {
 }
 
 impl fmt::Display for UnicodeDataNumeric {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
             UnicodeDataNumeric::Integer(n) => write!(f, "{}", n),
             UnicodeDataNumeric::Rational(n, d) => write!(f, "{}/{}", n, d),
@@ -600,7 +601,7 @@ impl Iterator for CodepointRange {
 
 #[cfg(test)]
 mod tests {
-    use common::Codepoint;
+    use crate::common::Codepoint;
 
     use super::{
         UnicodeData, UnicodeDataDecomposition, UnicodeDataDecompositionTag,
@@ -770,7 +771,7 @@ mod tests {
     #[test]
     fn expander() {
         use super::UnicodeDataExpander;
-        use common::UcdLineParser;
+        use crate::common::UcdLineParser;
 
         let data = "\
 ABF9;MEETEI MAYEK DIGIT NINE;Nd;0;L;;9;9;9;N;;;;;

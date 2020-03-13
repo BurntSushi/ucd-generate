@@ -2,10 +2,11 @@ use std::fmt;
 use std::path::Path;
 use std::str::FromStr;
 
+use lazy_static::lazy_static;
 use regex::Regex;
 
-use common::{Codepoint, CodepointIter, UcdFile, UcdFileByCodepoint};
-use error::Error;
+use crate::common::{Codepoint, CodepointIter, UcdFile, UcdFileByCodepoint};
+use crate::error::Error;
 
 /// Represents a single row in the `BidiMirroring.txt` file.
 ///
@@ -61,7 +62,7 @@ impl FromStr for BidiMirroring {
 }
 
 impl fmt::Display for BidiMirroring {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{};", self.codepoint)?;
         write!(f, "{};", self.bidi_mirroring_glyph)?;
         Ok(())
@@ -70,7 +71,7 @@ impl fmt::Display for BidiMirroring {
 
 #[cfg(test)]
 mod tests {
-    use common::Codepoint;
+    use crate::common::Codepoint;
 
     use super::BidiMirroring;
 

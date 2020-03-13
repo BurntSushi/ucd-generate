@@ -1,8 +1,8 @@
 use std::path::Path;
 use std::str::FromStr;
 
-use common::{parse_break_test, UcdFile};
-use error::Error;
+use crate::common::{parse_break_test, UcdFile};
+use crate::error::Error;
 
 /// A single row in the `auxiliary/LineBreakTest.txt` file.
 ///
@@ -27,7 +27,7 @@ impl FromStr for LineBreakTest {
 
     fn from_str(line: &str) -> Result<LineBreakTest, Error> {
         let (groups, comment) = parse_break_test(line)?;
-        Ok(LineBreakTest { lines: groups, comment: comment })
+        Ok(LineBreakTest { lines: groups, comment })
     }
 }
 

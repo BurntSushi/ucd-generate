@@ -1,12 +1,8 @@
 #![feature(test)]
 
-extern crate byteorder;
-extern crate fst;
 #[macro_use]
 extern crate lazy_static;
 extern crate test;
-extern crate ucd_trie;
-extern crate ucd_util;
 
 use std::cmp::Ordering;
 

@@ -3,9 +3,9 @@ use std::ops;
 
 use clap;
 
-use error::Result;
-use util::Filter;
-use writer::{Writer, WriterBuilder};
+use crate::error::Result;
+use crate::util::Filter;
+use crate::writer::{Writer, WriterBuilder};
 
 /// Wraps clap matches and provides convenient accessors to various parameters.
 pub struct ArgMatches<'a>(&'a clap::ArgMatches<'a>);

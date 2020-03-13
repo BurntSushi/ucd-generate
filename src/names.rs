@@ -3,10 +3,10 @@ use std::collections::BTreeMap;
 use ucd_parse::{self, Codepoint, NameAlias, UnicodeData};
 use ucd_util;
 
-use args::ArgMatches;
-use error::Result;
+use crate::args::ArgMatches;
+use crate::error::Result;
 
-pub fn command(args: ArgMatches) -> Result<()> {
+pub fn command(args: ArgMatches<'_>) -> Result<()> {
     let dir = args.ucd_dir()?;
     let data = ucd_parse::parse_by_codepoint(&dir)?;
     let aliases = if args.is_present("no-aliases") {

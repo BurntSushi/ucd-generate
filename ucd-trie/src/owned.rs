@@ -74,19 +74,10 @@ pub enum Error {
     GaveUp,
 }
 
-impl error::Error for Error {
-    // TODO: Remove on next semver bump.
-    #[allow(deprecated)]
-    fn description(&self) -> &str {
-        match *self {
-            Error::InvalidCodepoint(_) => "invalid Unicode codepoint",
-            Error::GaveUp => "could not compress codepoint set into a trie",
-        }
-    }
-}
+impl error::Error for Error {}
 
 impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
             Error::InvalidCodepoint(cp) => write!(
                 f,
@@ -94,9 +85,9 @@ impl fmt::Display for Error {
                  invalid Unicode codepoint: 0x{:X}",
                 cp
             ),
-            // TODO: Remove on next semver bump.
-            #[allow(deprecated)]
-            Error::GaveUp => write!(f, "{}", error::Error::description(self)),
+            Error::GaveUp => {
+                write!(f, "could not compress codepoint set into a trie")
+            }
         }
     }
 }
@@ -119,7 +110,7 @@ pub struct TrieSetOwned {
 }
 
 impl fmt::Debug for TrieSetOwned {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "TrieSetOwned(...)")
     }
 }
@@ -208,7 +199,7 @@ impl TrieSetOwned {
 
     /// Return this set as a slice.
     #[inline(always)]
-    pub fn as_slice(&self) -> TrieSetSlice {
+    pub fn as_slice(&self) -> TrieSetSlice<'_> {
         TrieSetSlice {
             tree1_level1: &self.tree1_level1,
             tree2_level1: &self.tree2_level1,
@@ -277,7 +268,7 @@ fn compress_postfix_mid(
 #[cfg(test)]
 mod tests {
     use super::TrieSetOwned;
-    use general_category;
+    use crate::general_category;
     use std::collections::HashSet;
 
     fn mk(scalars: &[char]) -> TrieSetOwned {

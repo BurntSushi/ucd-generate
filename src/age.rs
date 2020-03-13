@@ -2,11 +2,11 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use ucd_parse::{self, Age};
 
-use args::ArgMatches;
-use error::Result;
-use util::PropertyValues;
+use crate::args::ArgMatches;
+use crate::error::Result;
+use crate::util::PropertyValues;
 
-pub fn command(args: ArgMatches) -> Result<()> {
+pub fn command(args: ArgMatches<'_>) -> Result<()> {
     let dir = args.ucd_dir()?;
     let propvals = PropertyValues::from_ucd_dir(&dir)?;
     let ages: Vec<Age> = ucd_parse::parse(&dir)?;

@@ -2,11 +2,11 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use ucd_parse::{self, Script, ScriptExtension};
 
-use args::ArgMatches;
-use error::Result;
-use util::{print_property_values, PropertyValues};
+use crate::args::ArgMatches;
+use crate::error::Result;
+use crate::util::{print_property_values, PropertyValues};
 
-pub fn command_script(args: ArgMatches) -> Result<()> {
+pub fn command_script(args: ArgMatches<'_>) -> Result<()> {
     let dir = args.ucd_dir()?;
     let propvals = PropertyValues::from_ucd_dir(&dir)?;
     let filter = args.filter(|name| propvals.canonical("Script", name))?;
@@ -43,7 +43,7 @@ pub fn command_script(args: ArgMatches) -> Result<()> {
     Ok(())
 }
 
-pub fn command_script_extension(args: ArgMatches) -> Result<()> {
+pub fn command_script_extension(args: ArgMatches<'_>) -> Result<()> {
     let dir = args.ucd_dir()?;
     let propvals = PropertyValues::from_ucd_dir(&dir)?;
     let filter = args.filter(|name| propvals.canonical("Script", name))?;

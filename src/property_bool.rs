@@ -6,11 +6,11 @@ use ucd_parse::{
     UnicodeData, UnicodeDataExpander,
 };
 
-use args::ArgMatches;
-use error::Result;
-use util::{PropertyNames, PropertyValues};
+use crate::args::ArgMatches;
+use crate::error::Result;
+use crate::util::{PropertyNames, PropertyValues};
 
-pub fn command(args: ArgMatches) -> Result<()> {
+pub fn command(args: ArgMatches<'_>) -> Result<()> {
     let dir = args.ucd_dir()?;
     let by_name = parse_properties(&dir)?;
     let properties = PropertyNames::from_ucd_dir(&dir)?;
@@ -32,7 +32,7 @@ pub fn command(args: ArgMatches) -> Result<()> {
     Ok(())
 }
 
-pub fn command_perl_word(args: ArgMatches) -> Result<()> {
+pub fn command_perl_word(args: ArgMatches<'_>) -> Result<()> {
     let dir = args.ucd_dir()?;
     let props = parse_properties(&dir)?;
     let gencats = parse_general_categories(&dir)?;

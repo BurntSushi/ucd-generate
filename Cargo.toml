@@ -13,6 +13,7 @@ readme = "README.md"
 keywords = ["unicode", "generate", "character", "table", "fst"]
 license = "MIT/Apache-2.0"
 categories = ["text-processing", "internationalization"]
+edition = "2018"
 
 [workspace]
 members = ["ucd-parse", "ucd-trie", "ucd-util"]

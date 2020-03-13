@@ -1,10 +1,11 @@
 use std::path::Path;
 use std::str::FromStr;
 
+use lazy_static::lazy_static;
 use regex::Regex;
 
-use common::UcdFile;
-use error::Error;
+use crate::common::UcdFile;
+use crate::error::Error;
 
 /// A single row in the `PropertyValueAliases.txt` file.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -106,7 +107,7 @@ impl FromStr for PropertyValueAlias {
             numeric: None,
             abbreviation: caps.name("abbrev").unwrap().as_str().to_string(),
             long: caps.name("long").unwrap().as_str().to_string(),
-            aliases: aliases,
+            aliases,
         })
     }
 }

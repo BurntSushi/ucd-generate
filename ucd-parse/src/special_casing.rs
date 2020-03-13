@@ -1,13 +1,14 @@
 use std::path::Path;
 use std::str::FromStr;
 
+use lazy_static::lazy_static;
 use regex::Regex;
 
-use common::{
+use crate::common::{
     parse_codepoint_sequence, Codepoint, CodepointIter, UcdFile,
     UcdFileByCodepoint,
 };
-use error::Error;
+use crate::error::Error;
 
 /// A single row in the `SpecialCasing.txt` file.
 ///
@@ -78,7 +79,7 @@ impl FromStr for SpecialCaseMapping {
             lowercase: parse_codepoint_sequence(&caps["lower"])?,
             titlecase: parse_codepoint_sequence(&caps["title"])?,
             uppercase: parse_codepoint_sequence(&caps["upper"])?,
-            conditions: conditions,
+            conditions,
         })
     }
 }

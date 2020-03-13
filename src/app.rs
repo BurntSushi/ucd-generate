@@ -202,8 +202,8 @@ pub fn app() -> App<'static, 'static> {
 
     // Subcommands.
     let cmd_bidi_class = SubCommand::with_name("bidi-class")
-        .author(crate_authors!())
-        .version(crate_version!())
+        .author(clap::crate_authors!())
+        .version(clap::crate_version!())
         .template(TEMPLATE_SUB)
         .about("Create the Bidi_Class property tables.")
         .before_help(ABOUT_BIDI_CLASS)
@@ -228,8 +228,8 @@ pub fn app() -> App<'static, 'static> {
         );
     let cmd_bidi_mirroring_glyph =
         SubCommand::with_name("bidi-mirroring-glyph")
-            .author(crate_authors!())
-            .version(crate_version!())
+            .author(clap::crate_authors!())
+            .version(clap::crate_version!())
             .template(TEMPLATE_SUB)
             .about("Create Unicode Bidi Mirroring Glyph table.")
             .before_help(ABOUT_BIDI_MIRRORING_GLYPH)
@@ -242,8 +242,8 @@ pub fn app() -> App<'static, 'static> {
                 "Emit a function that uses a match to map between codepoints.",
             ));
     let cmd_general_category = SubCommand::with_name("general-category")
-        .author(crate_authors!())
-        .version(crate_version!())
+        .author(clap::crate_authors!())
+        .version(clap::crate_version!())
         .template(TEMPLATE_SUB)
         .about("Create the General_Category property tables.")
         .before_help(ABOUT_GENERAL_CATEGORY)
@@ -275,8 +275,8 @@ pub fn app() -> App<'static, 'static> {
                 .help("List all of the category names with abbreviations."),
         );
     let cmd_script = SubCommand::with_name("script")
-        .author(crate_authors!())
-        .version(crate_version!())
+        .author(clap::crate_authors!())
+        .version(clap::crate_version!())
         .template(TEMPLATE_SUB)
         .about("Create the Script property tables.")
         .before_help(ABOUT_SCRIPT)
@@ -308,8 +308,8 @@ pub fn app() -> App<'static, 'static> {
                 .help("List all of the script names with abbreviations."),
         );
     let cmd_script_extension = SubCommand::with_name("script-extension")
-        .author(crate_authors!())
-        .version(crate_version!())
+        .author(clap::crate_authors!())
+        .version(clap::crate_version!())
         .template(TEMPLATE_SUB)
         .about("Create the Script_Extension property tables.")
         .before_help(ABOUT_SCRIPT_EXTENSION)
@@ -337,8 +337,8 @@ pub fn app() -> App<'static, 'static> {
                 ),
         );
     let cmd_age = SubCommand::with_name("age")
-        .author(crate_authors!())
-        .version(crate_version!())
+        .author(clap::crate_authors!())
+        .version(clap::crate_version!())
         .template(TEMPLATE_SUB)
         .about("Create Unicode Age tables.")
         .before_help(ABOUT_AGE)
@@ -352,8 +352,8 @@ pub fn app() -> App<'static, 'static> {
         ));
     let cmd_joining_type =
         SubCommand::with_name("joining-type")
-            .author(crate_authors!())
-            .version(crate_version!())
+            .author(clap::crate_authors!())
+            .version(clap::crate_version!())
             .template(TEMPLATE_SUB)
             .about("Create the Joining_Type property tables.")
             .before_help(ABOUT_JOINING_TYPE)
@@ -370,8 +370,8 @@ pub fn app() -> App<'static, 'static> {
                  joining type.",
             ));
     let cmd_prop_bool = SubCommand::with_name("property-bool")
-        .author(crate_authors!())
-        .version(crate_version!())
+        .author(clap::crate_authors!())
+        .version(clap::crate_version!())
         .template(TEMPLATE_SUB)
         .about("Create boolean property tables.")
         .before_help(ABOUT_PROP_BOOL)
@@ -393,8 +393,8 @@ pub fn app() -> App<'static, 'static> {
              command.",
         ));
     let cmd_perl_word = SubCommand::with_name("perl-word")
-        .author(crate_authors!())
-        .version(crate_version!())
+        .author(clap::crate_authors!())
+        .version(clap::crate_version!())
         .template(TEMPLATE_SUB)
         .about("Create a boolean property table for the \\w character class.")
         .before_help(ABOUT_PERL_WORD)
@@ -404,8 +404,8 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_trie_set.clone())
         .arg(flag_name("PERL_WORD"));
     let cmd_jamo_short_name = SubCommand::with_name("jamo-short-name")
-        .author(crate_authors!())
-        .version(crate_version!())
+        .author(clap::crate_authors!())
+        .version(clap::crate_version!())
         .template(TEMPLATE_SUB)
         .about("Create the Jamo_Short_Name property table.")
         .before_help(ABOUT_JAMO_SHORT_NAME)
@@ -415,8 +415,8 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_name("JAMO_SHORT_NAME"));
     let cmd_names =
         SubCommand::with_name("names")
-            .author(crate_authors!())
-            .version(crate_version!())
+            .author(clap::crate_authors!())
+            .version(clap::crate_version!())
             .template(TEMPLATE_SUB)
             .about("Create a mapping from character name to codepoint.")
             .before_help(ABOUT_NAMES)
@@ -448,8 +448,8 @@ pub fn app() -> App<'static, 'static> {
                 "Normalize all character names according to UAX44-LM2.",
             ));
     let cmd_property_names = SubCommand::with_name("property-names")
-        .author(crate_authors!())
-        .version(crate_version!())
+        .author(clap::crate_authors!())
+        .version(clap::crate_version!())
         .template(TEMPLATE_SUB)
         .about("Create the canonical property name table.")
         .before_help(ABOUT_PROPERTY_NAMES)
@@ -468,8 +468,8 @@ pub fn app() -> App<'static, 'static> {
             ),
         );
     let cmd_property_values = SubCommand::with_name("property-values")
-        .author(crate_authors!())
-        .version(crate_version!())
+        .author(clap::crate_authors!())
+        .version(clap::crate_version!())
         .template(TEMPLATE_SUB)
         .about("Create the canonical property value table.")
         .before_help(ABOUT_PROPERTY_VALUES)
@@ -489,8 +489,8 @@ pub fn app() -> App<'static, 'static> {
             ),
         );
     let cmd_case_folding_simple = SubCommand::with_name("case-folding-simple")
-        .author(crate_authors!())
-        .version(crate_version!())
+        .author(clap::crate_authors!())
+        .version(clap::crate_version!())
         .template(TEMPLATE_SUB)
         .about("Create a case folding table using the simple mapping.")
         .before_help(ABOUT_CASE_FOLDING_SIMPLE)
@@ -508,8 +508,8 @@ pub fn app() -> App<'static, 'static> {
              Simple mappings.",
         ));
     let cmd_case_mapping = SubCommand::with_name("case-mapping")
-        .author(crate_authors!())
-        .version(crate_version!())
+        .author(clap::crate_authors!())
+        .version(clap::crate_version!())
         .template(TEMPLATE_SUB)
         .about("Create unconditional case mapping tables for upper, lower and title case.")
         .before_help(ABOUT_CASE_MAPPING)
@@ -524,8 +524,8 @@ pub fn app() -> App<'static, 'static> {
 
     let cmd_grapheme_cluster_break =
         SubCommand::with_name("grapheme-cluster-break")
-            .author(crate_authors!())
-            .version(crate_version!())
+            .author(clap::crate_authors!())
+            .version(clap::crate_version!())
             .template(TEMPLATE_SUB)
             .about("Create a table for each Grapheme_Cluster_Break value.")
             .before_help(ABOUT_GRAPHEME_CLUSTER_BREAK)
@@ -540,8 +540,8 @@ pub fn app() -> App<'static, 'static> {
                 ),
             );
     let cmd_word_break = SubCommand::with_name("word-break")
-        .author(crate_authors!())
-        .version(crate_version!())
+        .author(clap::crate_authors!())
+        .version(clap::crate_version!())
         .template(TEMPLATE_SUB)
         .about("Create a table for each Word_Break value.")
         .before_help(ABOUT_WORD_BREAK)
@@ -556,8 +556,8 @@ pub fn app() -> App<'static, 'static> {
                 .help("Emit a single table that maps codepoints to values."),
         );
     let cmd_sentence_break = SubCommand::with_name("sentence-break")
-        .author(crate_authors!())
-        .version(crate_version!())
+        .author(clap::crate_authors!())
+        .version(clap::crate_version!())
         .template(TEMPLATE_SUB)
         .about("Create a table for each Sentence_Break value.")
         .before_help(ABOUT_SENTENCE_BREAK)
@@ -572,8 +572,8 @@ pub fn app() -> App<'static, 'static> {
                 .help("Emit a single table that maps codepoints to values."),
         );
     let cmd_dfa = SubCommand::with_name("dfa")
-        .author(crate_authors!())
-        .version(crate_version!())
+        .author(clap::crate_authors!())
+        .version(clap::crate_version!())
         .template(TEMPLATE_SUB)
         .about("Serialize a single DFAs")
         .before_help(ABOUT_DFA)
@@ -595,8 +595,8 @@ pub fn app() -> App<'static, 'static> {
                 .default_value("4"),
         );
     let cmd_regex = SubCommand::with_name("regex")
-        .author(crate_authors!())
-        .version(crate_version!())
+        .author(clap::crate_authors!())
+        .version(clap::crate_version!())
         .template(TEMPLATE_SUB)
         .about("Serialize regular expression DFAs.")
         .before_help(ABOUT_REGEX)
@@ -617,8 +617,8 @@ pub fn app() -> App<'static, 'static> {
         );
 
     let cmd_test_unicode_data = SubCommand::with_name("test-unicode-data")
-        .author(crate_authors!())
-        .version(crate_version!())
+        .author(clap::crate_authors!())
+        .version(clap::crate_version!())
         .template(TEMPLATE_SUB)
         .about("Test the UnicodeData.txt parser.")
         .before_help(ABOUT_TEST_UNICODE_DATA)
@@ -626,8 +626,8 @@ pub fn app() -> App<'static, 'static> {
 
     // The actual App.
     App::new("ucd-generate")
-        .author(crate_authors!())
-        .version(crate_version!())
+        .author(clap::crate_authors!())
+        .version(clap::crate_version!())
         .about(ABOUT)
         .template(TEMPLATE)
         .max_term_width(100)

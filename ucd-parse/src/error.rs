@@ -3,11 +3,6 @@ use std::fmt;
 use std::io;
 use std::path::{Path, PathBuf};
 
-/// Create a new parse error from the given message.
-pub fn error_parse(msg: String) -> Error {
-    Error { kind: ErrorKind::Parse(msg), line: None, path: None }
-}
-
 /// Represents any kind of error that can occur while parsing the UCD.
 #[derive(Debug)]
 pub struct Error {
@@ -26,6 +21,11 @@ pub enum ErrorKind {
 }
 
 impl Error {
+    /// Create a new parse error from the given message.
+    pub(crate) fn parse(msg: String) -> Error {
+        Error { kind: ErrorKind::Parse(msg), line: None, path: None }
+    }
+
     /// Return the specific kind of this error.
     pub fn kind(&self) -> &ErrorKind {
         &self.kind
@@ -59,15 +59,6 @@ impl Error {
 }
 
 impl error::Error for Error {
-    // TODO: Remove on next semver bump.
-    #[allow(deprecated)]
-    fn description(&self) -> &str {
-        match self.kind {
-            ErrorKind::Io(ref err) => err.description(),
-            ErrorKind::Parse(ref msg) => msg,
-        }
-    }
-
     fn cause(&self) -> Option<&dyn error::Error> {
         match self.kind {
             ErrorKind::Io(ref err) => Some(err),
@@ -77,7 +68,7 @@ impl error::Error for Error {
 }
 
 impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Some(ref path) = self.path {
             if let Some(line) = self.line {
                 write!(f, "{}:{}: ", path.display(), line)?;

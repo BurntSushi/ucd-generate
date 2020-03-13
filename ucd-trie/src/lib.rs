@@ -26,13 +26,10 @@ provided, which means `no_std` crates can still embed tries into their code.
 #![deny(missing_docs)]
 #![cfg_attr(not(feature = "std"), no_std)]
 
-#[cfg(feature = "std")]
-extern crate core;
-
 use core::fmt;
 
 #[cfg(feature = "std")]
-pub use owned::{Error, Result, TrieSetOwned};
+pub use crate::owned::{Error, Result, TrieSetOwned};
 
 #[cfg(test)]
 #[allow(dead_code)]
@@ -69,7 +66,7 @@ pub struct TrieSetSlice<'a> {
 }
 
 impl<'a> fmt::Debug for TrieSetSlice<'a> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "TrieSetSlice(...)")
     }
 }

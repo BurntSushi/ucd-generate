@@ -2,10 +2,10 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use ucd_parse::{self, CaseFold, CaseStatus, Codepoint};
 
-use args::ArgMatches;
-use error::Result;
+use crate::args::ArgMatches;
+use crate::error::Result;
 
-pub fn command(args: ArgMatches) -> Result<()> {
+pub fn command(args: ArgMatches<'_>) -> Result<()> {
     let dir = args.ucd_dir()?;
     let case_folding: BTreeMap<Codepoint, Vec<CaseFold>> =
         ucd_parse::parse_many_by_codepoint(dir)?;
