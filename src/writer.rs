@@ -10,7 +10,7 @@ use std::str;
 
 use byteorder::{BigEndian as BE, ByteOrder};
 use fst::raw::Fst;
-use fst::{Map, MapBuilder, Set, SetBuilder};
+use fst::{MapBuilder, SetBuilder};
 use regex_automata::{DenseDFA, Regex, SparseDFA, StateID};
 use ucd_trie::TrieSetOwned;
 
@@ -69,7 +69,7 @@ impl WriterBuilder {
         Ok(Writer {
             wtr: LineWriter::new(Box::new(File::create(fpath)?)),
             wrote_header: false,
-            opts: opts,
+            opts,
         })
     }
 
@@ -82,7 +82,7 @@ impl WriterBuilder {
         Ok(Writer {
             wtr: LineWriter::new(Box::new(File::create(fpath)?)),
             wrote_header: false,
-            opts: opts,
+            opts,
         })
     }
 
@@ -130,7 +130,7 @@ impl Writer {
         self.separator()?;
 
         let ty = if self.opts.fst_dir.is_some() {
-            "::fst::Set".to_string()
+            "::fst::Set<&'static [u8]>".to_string()
         } else if self.opts.trie_set {
             "&'static ::ucd_trie::TrieSet".to_string()
         } else {
@@ -174,7 +174,7 @@ impl Writer {
         if self.opts.fst_dir.is_some() {
             let mut builder = SetBuilder::memory();
             builder.extend_iter(codepoints.iter().cloned().map(u32_key))?;
-            let set = Set::from_bytes(builder.into_inner()?)?;
+            let set = builder.into_set();
             self.fst(&name, set.as_fst(), false)?;
         } else if self.opts.trie_set {
             let set: Vec<u32> = codepoints.iter().cloned().collect();
@@ -367,7 +367,7 @@ impl Writer {
             for (&k, &v) in map {
                 builder.insert(u32_key(k), v)?;
             }
-            let map = Map::from_bytes(builder.into_inner()?)?;
+            let map = builder.into_map();
             self.fst(&name, map.as_fst(), true)?;
         } else {
             let ranges =
@@ -499,7 +499,7 @@ impl Writer {
             for (&k, &v) in map {
                 builder.insert(u32_key(k), v as u64)?;
             }
-            let map = Map::from_bytes(builder.into_inner()?)?;
+            let map = builder.into_map();
             self.fst(&name, map.as_fst(), true)?;
         } else {
             let table: Vec<(u32, u32)> =
@@ -672,7 +672,7 @@ impl Writer {
                 let v = pack_str(v)?;
                 builder.insert(u32_key(k), v)?;
             }
-            let map = Map::from_bytes(builder.into_inner()?)?;
+            let map = builder.into_map();
             self.fst(&name, map.as_fst(), true)?;
         } else {
             let table: Vec<(u32, &str)> =
@@ -718,7 +718,7 @@ impl Writer {
             for (k, &v) in map {
                 builder.insert(k.as_bytes(), v as u64)?;
             }
-            let map = Map::from_bytes(builder.into_inner()?)?;
+            let map = builder.into_map();
             self.fst(&name, map.as_fst(), true)?;
         } else {
             let table: Vec<(&str, u32)> =
@@ -764,7 +764,7 @@ impl Writer {
             for (k, &v) in map {
                 builder.insert(k.as_bytes(), v)?;
             }
-            let map = Map::from_bytes(builder.into_inner()?)?;
+            let map = builder.into_map();
             self.fst(&name, map.as_fst(), true)?;
         } else {
             let table: Vec<(&str, u64)> =
@@ -792,7 +792,12 @@ impl Writer {
         Ok(())
     }
 
-    fn fst(&mut self, const_name: &str, fst: &Fst, map: bool) -> Result<()> {
+    fn fst<D: AsRef<[u8]>>(
+        &mut self,
+        const_name: &str,
+        fst: &Fst<D>,
+        map: bool,
+    ) -> Result<()> {
         let fst_dir = self.opts.fst_dir.as_ref().unwrap();
         let fst_file_name = format!("{}.fst", rust_module_name(const_name));
         let fst_file_path = fst_dir.join(&fst_file_name);
@@ -802,17 +807,13 @@ impl Writer {
         writeln!(self.wtr, "lazy_static! {{")?;
         writeln!(
             self.wtr,
-            "  pub static ref {}: ::fst::{} = ",
+            "  pub static ref {}: ::fst::{}<&'static [u8]> = ",
             const_name, ty
         )?;
+        writeln!(self.wtr, "    ::fst::{}::from(::fst::raw::Fst::new(", ty)?;
         writeln!(
             self.wtr,
-            "    ::fst::{}::from(::fst::raw::Fst::from_static_slice(",
-            ty
-        )?;
-        writeln!(
-            self.wtr,
-            "      include_bytes!({:?})).unwrap());",
+            "      &include_bytes!({:?})[..]).unwrap());",
             fst_file_name
         )?;
         writeln!(self.wtr, "}}")?;
@@ -1174,7 +1175,7 @@ struct LineWriter<W> {
 impl<W: io::Write> LineWriter<W> {
     fn new(wtr: W) -> LineWriter<W> {
         LineWriter {
-            wtr: wtr,
+            wtr,
             line: String::new(),
             columns: 79,
             indent: "  ".to_string(),
