@@ -24,7 +24,7 @@ name = "ucd-generate"
 
 [dependencies]
 byteorder = "1"
-fst = { version = "0.3", default-features = false }
+fst = "0.4.0"
 regex-automata = "0.1.3"
 ucd-parse = { version = "0.1.4", path = "ucd-parse" }
 ucd-trie = { version = "0.1.2", path = "ucd-trie" }
