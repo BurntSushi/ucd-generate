@@ -60,3 +60,5 @@ ucd-generate property-values "$ucddir" > "$out/property_values.rs"
 echo "generating small JAMO_SHORT_NAME table for ucd-util"
 out="ucd-util/src/unicode_tables"
 ucd-generate jamo-short-name "$ucddir" > "$out/jamo_short_name.rs"
+
+cargo +stable fmt
