@@ -196,10 +196,16 @@ pub fn app() -> App<'static, 'static> {
         .long("fst-dir")
         .help("Emit the table as a FST in Rust source code.")
         .takes_value(true);
+    let flag_flat_table = Arg::with_name("flat-table").long("flat-table").help(
+        "When emitting a map of a single codepoint to multiple codepoints, emit \
+         entries as `(u32, [u32; 3])` instead of as `(u32, &[u32])` (replacing \
+         `u32` with `char` if `--chars` is passed). \
+         Conceptually unoccupied indices of the array will contain `!0u32` (for \
+         u32) or `\\u{0}` (for `char`)."
+    );
     let ucd_dir = Arg::with_name("ucd-dir")
         .required(true)
         .help("Directory containing the Unicode character database files.");
-
     // Subcommands.
     let cmd_bidi_class = SubCommand::with_name("bidi-class")
         .author(clap::crate_authors!())
@@ -506,7 +512,8 @@ pub fn app() -> App<'static, 'static> {
         .arg(Arg::with_name("all-pairs").long("all-pairs").help(
             "Emit a table where each codepoint includes all possible \
              Simple mappings.",
-        ));
+        ))
+        .arg(flag_flat_table.clone().requires("all-pairs"));
     let cmd_case_mapping = SubCommand::with_name("case-mapping")
         .author(clap::crate_authors!())
         .version(clap::crate_version!())
@@ -520,7 +527,8 @@ pub fn app() -> App<'static, 'static> {
             "Only emit the simple case mapping tables \
              (emit maps of codepoint to codepoint, \
              ignoring rules from SpecialCasing.txt)",
-        ));
+        ))
+        .arg(flag_flat_table.clone().conflicts_with("simple"));
 
     let cmd_grapheme_cluster_break =
         SubCommand::with_name("grapheme-cluster-break")
