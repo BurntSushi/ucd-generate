@@ -67,7 +67,8 @@ pub fn command(args: ArgMatches<'_>) -> Result<()> {
         }
         wtr.codepoint_to_codepoint(args.name(), &equiv)?;
     } else if args.is_present("all-pairs") {
-        wtr.multi_codepoint_to_codepoint(args.name(), &table_all)?;
+        let flat = args.is_present("flat-table");
+        wtr.multi_codepoint_to_codepoint(args.name(), &table_all, flat)?;
     } else {
         wtr.codepoint_to_codepoint(args.name(), &table)?;
     }
