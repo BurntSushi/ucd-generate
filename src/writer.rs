@@ -27,6 +27,7 @@ struct WriterOptions {
     char_literals: bool,
     fst_dir: Option<PathBuf>,
     trie_set: bool,
+    split_ranges: bool,
     dfa_dir: Option<PathBuf>,
     ucd_version: Option<(u64, u64, u64)>,
 }
@@ -43,6 +44,7 @@ impl WriterBuilder {
             char_literals: false,
             fst_dir: None,
             trie_set: false,
+            split_ranges: false,
             dfa_dir: None,
             ucd_version: None,
         })
@@ -104,6 +106,13 @@ impl WriterBuilder {
         self
     }
 
+    /// Emit both (u16, u16) and (u32, u32) range tables, in order to reduce
+    /// size.
+    pub fn split_ranges(&mut self, yes: bool) -> &mut WriterBuilder {
+        self.0.split_ranges = yes;
+        self
+    }
+
     /// Emit a trie when writing sets of codepoints instead of a slice of
     /// ranges.
     pub fn trie_set(&mut self, yes: bool) -> &mut WriterBuilder {
@@ -145,6 +154,8 @@ impl Writer {
             "::fst::Set<&'static [u8]>".to_string()
         } else if self.opts.trie_set {
             "&'static ::ucd_trie::TrieSet".to_string()
+        } else if self.opts.split_ranges {
+            "(&'static [(u16, u16)], &'static [(u32, u32)])".to_string()
         } else {
             let charty = self.rust_codepoint_type();
             format!("&'static [({}, {})]", charty, charty)
@@ -192,6 +203,9 @@ impl Writer {
             let set: Vec<u32> = codepoints.iter().cloned().collect();
             let trie = TrieSetOwned::from_codepoints(&set)?;
             self.trie_set(&name, &trie)?;
+        } else if self.opts.split_ranges {
+            let ranges = util::to_ranges(codepoints.iter().cloned());
+            self.split_ranges_slice(&name, &ranges)?;
         } else {
             let ranges = util::to_ranges(codepoints.iter().cloned());
             self.ranges_slice(&name, &ranges)?;
@@ -219,6 +233,19 @@ impl Writer {
         }
         writeln!(self.wtr, "];")?;
         Ok(())
+    }
+
+    fn split_ranges_slice(
+        &mut self,
+        name: &str,
+        table: &[(u32, u32)],
+    ) -> Result<()> {
+        self.emit_split_range_table(
+            name,
+            None,
+            table.iter().map(|r| (r.0, r.1, ())),
+            |start, end, _| format!("({}, {}), ", start, end),
+        )
     }
 
     fn trie_set(&mut self, name: &str, trie: &TrieSetOwned) -> Result<()> {
@@ -337,10 +364,13 @@ impl Writer {
         table: &[(u32, u32, S)],
     ) -> Result<()>
     where
-        S: fmt::Display,
+        S: fmt::Display + Clone,
     {
-        let cp_ty = self.rust_codepoint_type();
+        if self.opts.split_ranges {
+            return self.ranges_to_split_enum_slices(name, enum_ty, table);
+        }
 
+        let cp_ty = self.rust_codepoint_type();
         writeln!(
             self.wtr,
             "pub const {}: &'static [({}, {}, {})] = &[",
@@ -359,6 +389,25 @@ impl Writer {
         }
         writeln!(self.wtr, "];")?;
         Ok(())
+    }
+
+    fn ranges_to_split_enum_slices<S>(
+        &mut self,
+        name: &str,
+        enum_ty: &str,
+        table: &[(u32, u32, S)],
+    ) -> Result<()>
+    where
+        S: fmt::Display + Clone,
+    {
+        self.emit_split_range_table(
+            name,
+            Some(enum_ty),
+            table.iter().cloned(),
+            |start, end, variant| {
+                format!("({}, {}, {}::{}), ", start, end, enum_ty, variant)
+            },
+        )
     }
 
     /// Write a map that associates ranges of codepoints with an arbitrary
@@ -395,6 +444,9 @@ impl Writer {
         name: &str,
         table: &[(u32, u32, u64)],
     ) -> Result<()> {
+        if self.opts.split_ranges {
+            return self.split_ranges_to_unsigned_integer_slice(name, table);
+        }
         let cp_ty = self.rust_codepoint_type();
         let num_ty = match table.iter().map(|&(_, _, n)| n).max() {
             None => "u8",
@@ -415,6 +467,23 @@ impl Writer {
         }
         writeln!(self.wtr, "];")?;
         Ok(())
+    }
+
+    fn split_ranges_to_unsigned_integer_slice(
+        &mut self,
+        name: &str,
+        table: &[(u32, u32, u64)],
+    ) -> Result<()> {
+        let num_ty = match table.iter().map(|&(_, _, n)| n).max() {
+            None => "u8",
+            Some(max_num) => smallest_unsigned_type(max_num),
+        };
+        self.emit_split_range_table(
+            name,
+            Some(num_ty),
+            table.iter().cloned(),
+            |start, end, value| format!("({}, {}, {}), ", start, end, value),
+        )
     }
 
     /// Write a map that associates strings to strings.
@@ -448,6 +517,48 @@ impl Writer {
         Ok(())
     }
 
+    /// Shared code for split range table emission.
+    ///
+    /// Handles both tables that map to a value, and those that do not. For
+    /// example, to emit a table for `(u32, u32, u32)`, Some("u32") should be
+    /// used as `val_ty`. If you pass `None` here, you should ignore the 3rd to
+    /// `format`, and your iterator should be something like:
+    /// `ranges.iter().map(|r| (r.0, r.1, ()))`.
+    fn emit_split_range_table<S, I, F>(
+        &mut self,
+        name: &str,
+        val_ty: Option<&str>,
+        iter: I,
+        mut format: F,
+    ) -> Result<()>
+    where
+        S: Clone,
+        I: IntoIterator<Item = (u32, u32, S)>,
+        F: FnMut(u32, u32, S) -> String,
+    {
+        let suffix = if let Some(t) = val_ty {
+            format!(", {}", t)
+        } else {
+            "".to_string()
+        };
+        writeln!(
+            self.wtr,
+            "pub const {name}: (&'static [(u16, u16{suffix})], &'static [(u32, u32{suffix})]) = (&[",
+            name = name,
+            suffix = suffix,
+        )?;
+
+        let (tab16, tab32) = util::split_ranges(iter);
+        for (start, end, value) in tab16 {
+            self.wtr.write_str(&format(start as u32, end as u32, value))?;
+        }
+        writeln!(self.wtr, "], &[")?;
+        for (start, end, value) in tab32 {
+            self.wtr.write_str(&format(start, end, value))?;
+        }
+        writeln!(self.wtr, "]);")?;
+        Ok(())
+    }
     /// Write a map that associates strings to another map from strings to
     /// strings.
     ///

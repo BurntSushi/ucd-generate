@@ -197,6 +197,42 @@ pub fn to_ranges<I: IntoIterator<Item = u32>>(it: I) -> Vec<(u32, u32)> {
     ranges
 }
 
+/// split ranges into the ones which fit in u16 and those that fit in u32,
+/// handling ranges that cross the boundary by producing a `(lo as u16, 0xffffu16)`
+/// entry into the u16 vec, and a `(0x10000, hi)` entry in the u32 vec
+pub fn split_ranges<T: Clone>(
+    iter: impl IntoIterator<Item = (u32, u32, T)>,
+) -> (Vec<(u16, u16, T)>, Vec<(u32, u32, T)>) {
+    use std::convert::TryFrom;
+    let mut u16s = vec![];
+    let mut u32s = vec![];
+    for (start32, end32, baggage) in iter {
+        assert!(
+            end32 >= start32,
+            "bug: bad range passed to split_ranges {:?}"
+        );
+        match (u16::try_from(start32), u16::try_from(end32)) {
+            // Fits entirely in u16.
+            (Ok(start16), Ok(end16)) => {
+                debug_assert!(u32s.is_empty());
+                u16s.push((start16, end16, baggage));
+            }
+            // Fits entirely in u32
+            (Err(_), Err(_)) => {
+                u32s.push((start32, end32, baggage));
+            }
+            // Straddles the border. Should only happen once.
+            (Ok(start16), Err(_)) => {
+                u16s.push((start16, 0xffff, baggage.clone()));
+                u32s.push((0x10000, end32, baggage));
+            }
+            // Would have hit the above assert.
+            (Err(_), Ok(_)) => unreachable!(),
+        }
+    }
+    (u16s, u32s)
+}
+
 /// Push a codepoint onto a vec of ranges. If the codepoint belongs to the
 /// most recently added range, then increase the range. Otherwise, add a new
 /// range containing only the codepoint given.

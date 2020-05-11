@@ -192,6 +192,10 @@ pub fn app() -> App<'static, 'static> {
         "Write codepoint sets as a compressed trie. \
          Code using this trie depends on the ucd_trie crate.",
     );
+    let flag_split_ranges = Arg::with_name("split-ranges").long("split-ranges").help(
+        "Write two separate codepoint sets, one as pairs of (u16, u16) and one as (u32, u32). \
+         This is incompatible with outputting tables containing `char` literals.",
+    ).conflicts_with("chars").conflicts_with("trie-set");
     let flag_fst_dir = Arg::with_name("fst-dir")
         .long("fst-dir")
         .help("Emit the table as a FST in Rust source code.")
@@ -218,6 +222,7 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_name("BIDI_CLASS"))
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
+        .arg(flag_split_ranges.clone())
         .arg(flag_short_names.clone())
         .arg(
             Arg::with_name("enum").long("enum").help(
@@ -244,6 +249,7 @@ pub fn app() -> App<'static, 'static> {
             .arg(flag_name("BIDI_MIRRORING_GLYPH"))
             .arg(flag_chars.clone())
             .arg(flag_trie_set.clone())
+            .arg(flag_split_ranges.clone())
             .arg(Arg::with_name("rust-match").long("rust-match").help(
                 "Emit a function that uses a match to map between codepoints.",
             ));
@@ -258,6 +264,7 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_name("GENERAL_CATEGORY"))
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
+        .arg(flag_split_ranges.clone())
         .arg(
             Arg::with_name("enum").long("enum").help(
                 "Emit a single table that maps codepoints to categories.",
@@ -291,6 +298,7 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_name("SCRIPT"))
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
+        .arg(flag_split_ranges.clone())
         .arg(
             Arg::with_name("enum")
                 .long("enum")
@@ -324,6 +332,7 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_name("SCRIPT_EXTENSION"))
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
+        .arg(flag_split_ranges.clone())
         .arg(Arg::with_name("include").long("include").takes_value(true).help(
             "A comma separated list of script extensions to include. \
              When absent, all scripts extensions are included.",
@@ -385,6 +394,7 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_fst_dir.clone())
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
+        .arg(flag_split_ranges.clone())
         .arg(Arg::with_name("include").long("include").takes_value(true).help(
             "A comma separated list of properties to include. \
              When absent, all available properties are included.",
@@ -408,6 +418,7 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_fst_dir.clone())
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
+        .arg(flag_split_ranges.clone())
         .arg(flag_name("PERL_WORD"));
     let cmd_jamo_short_name = SubCommand::with_name("jamo-short-name")
         .author(clap::crate_authors!())
@@ -542,6 +553,7 @@ pub fn app() -> App<'static, 'static> {
             .arg(flag_fst_dir.clone())
             .arg(flag_chars.clone())
             .arg(flag_trie_set.clone())
+            .arg(flag_split_ranges.clone())
             .arg(
                 Arg::with_name("enum").long("enum").help(
                     "Emit a single table that maps codepoints to values.",
@@ -558,6 +570,7 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_fst_dir.clone())
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
+        .arg(flag_split_ranges.clone())
         .arg(
             Arg::with_name("enum")
                 .long("enum")
@@ -574,6 +587,7 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_fst_dir.clone())
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
+        .arg(flag_split_ranges.clone())
         .arg(
             Arg::with_name("enum")
                 .long("enum")
