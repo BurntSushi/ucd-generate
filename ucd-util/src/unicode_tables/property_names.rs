@@ -4,7 +4,7 @@
 //
 // Unicode version: 13.0.0.
 //
-// ucd-generate 0.2.7 is available on crates.io.
+// ucd-generate 0.2.8 is available on crates.io.
 
 pub const PROPERTY_NAMES: &'static [(&'static str, &'static str)] = &[
     ("age", "Age"),
