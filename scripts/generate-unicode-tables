@@ -16,49 +16,55 @@
 # the data directory downloaded above:
 #
 #   $ ./scripts/generate-unicode-tables path/to/ucd
+#
+# Note:
+#
+#   $ cargo build --release
+#   $ ./scripts/generate-unicode-tables path/to/ucd target/release/ucd-generate
 
-if [ $# != 1 ]; then
-    echo "Usage: $(basename "$0") <ucd-data-directory>" >&2
+if [ $# -lt 1 ]; then
+    echo "Usage: $(basename "$0") <ucd-data-directory> [executable=ucd-generate]" >&2
     exit 1
 fi
 ucddir="$1"
+ucd_generate="${2:-ucd-generate}"
 
 echo "generating FSTs for benchmarks"
 out="benches/tables/fst"
-ucd-generate general-category \
+$ucd_generate general-category \
     "$ucddir" --exclude unassigned --enum --fst-dir "$out"
-ucd-generate jamo-short-name \
+$ucd_generate jamo-short-name \
     "$ucddir" --fst-dir "$out"
-ucd-generate names "$ucddir" \
+$ucd_generate names "$ucddir" \
     --no-aliases --no-hangul --no-ideograph --fst-dir "$out"
 
 echo "generating sorted slices for benchmarks"
 out="benches/tables/slice"
-ucd-generate general-category \
+$ucd_generate general-category \
     "$ucddir" --exclude unassigned > "$out/general_categories.rs"
-ucd-generate general-category \
+$ucd_generate general-category \
     "$ucddir" --exclude unassigned --enum > "$out/general_category.rs"
-ucd-generate jamo-short-name \
+$ucd_generate jamo-short-name \
     "$ucddir" > "$out/jamo_short_name.rs"
-ucd-generate names \
+$ucd_generate names \
     "$ucddir" --no-aliases --no-hangul --no-ideograph > "$out/names.rs"
 
 echo "generating tables for ucd-trie benchmarks"
 out="benches/tables/trie"
-ucd-generate general-category \
+$ucd_generate general-category \
     "$ucddir" --exclude unassigned --trie-set > "$out/general_categories.rs"
 
 echo "generating tables for ucd-trie tests"
 out="ucd-trie/src"
-ucd-generate general-category "$ucddir" > "$out/general_category.rs"
+$ucd_generate general-category "$ucddir" > "$out/general_category.rs"
 
 echo "generating tables for ucd-util tests"
 out="ucd-util/src/unicode_tables"
-ucd-generate property-names "$ucddir" > "$out/property_names.rs"
-ucd-generate property-values "$ucddir" > "$out/property_values.rs"
+$ucd_generate property-names "$ucddir" > "$out/property_names.rs"
+$ucd_generate property-values "$ucddir" > "$out/property_values.rs"
 
 echo "generating small JAMO_SHORT_NAME table for ucd-util"
 out="ucd-util/src/unicode_tables"
-ucd-generate jamo-short-name "$ucddir" > "$out/jamo_short_name.rs"
+$ucd_generate jamo-short-name "$ucddir" > "$out/jamo_short_name.rs"
 
 cargo +stable fmt
