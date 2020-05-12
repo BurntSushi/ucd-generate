@@ -196,6 +196,12 @@ pub fn app() -> App<'static, 'static> {
         "Write two separate codepoint sets, one as pairs of (u16, u16) and one as (u32, u32). \
          This is incompatible with outputting tables containing `char` literals.",
     ).conflicts_with("chars").conflicts_with("trie-set");
+    let flag_sep_value_array = Arg::with_name("separate-values").long("separate-values").help(
+        "When used with `--enum` or `--rust-enum`, emit the enum values in an array \
+         parallel to the ranges (in order to avoid overhead from padding). If \
+         `--split-ranges` is also used, only a single values array will be generated, and \
+         it is assumed that the values for u32 pairs directly follow those for u16.",
+    );
     let flag_fst_dir = Arg::with_name("fst-dir")
         .long("fst-dir")
         .help("Emit the table as a FST in Rust source code.")
@@ -224,6 +230,7 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_trie_set.clone())
         .arg(flag_split_ranges.clone())
         .arg(flag_short_names.clone())
+        .arg(flag_sep_value_array.clone())
         .arg(
             Arg::with_name("enum").long("enum").help(
                 "Emit a single table that maps codepoints to bidi class.",
@@ -265,6 +272,7 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
         .arg(flag_split_ranges.clone())
+        .arg(flag_sep_value_array.clone())
         .arg(
             Arg::with_name("enum").long("enum").help(
                 "Emit a single table that maps codepoints to categories.",
@@ -299,6 +307,7 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
         .arg(flag_split_ranges.clone())
+        .arg(flag_sep_value_array.clone())
         .arg(
             Arg::with_name("enum")
                 .long("enum")
@@ -377,6 +386,7 @@ pub fn app() -> App<'static, 'static> {
             .arg(flag_name("JOINING_TYPE"))
             .arg(flag_chars.clone())
             .arg(flag_trie_set.clone())
+            .arg(flag_sep_value_array.clone())
             .arg(Arg::with_name("enum").long("enum").help(
                 "Emit a single table that maps codepoints to joining type.",
             ))
@@ -554,6 +564,7 @@ pub fn app() -> App<'static, 'static> {
             .arg(flag_chars.clone())
             .arg(flag_trie_set.clone())
             .arg(flag_split_ranges.clone())
+            .arg(flag_sep_value_array.clone())
             .arg(
                 Arg::with_name("enum").long("enum").help(
                     "Emit a single table that maps codepoints to values.",
@@ -571,6 +582,7 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
         .arg(flag_split_ranges.clone())
+        .arg(flag_sep_value_array.clone())
         .arg(
             Arg::with_name("enum")
                 .long("enum")

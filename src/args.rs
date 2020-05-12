@@ -35,7 +35,8 @@ impl<'a> ArgMatches<'a> {
             .columns(79)
             .char_literals(self.is_present("chars"))
             .trie_set(self.is_present("trie-set"))
-            .split_ranges(self.is_present("split-ranges"));
+            .split_ranges(self.is_present("split-ranges"))
+            .sep_value_array(self.is_present("separate-values"));
         if let Some(p) = self.value_of_os("dfa-dir") {
             return builder.from_dfa_dir(p);
         }

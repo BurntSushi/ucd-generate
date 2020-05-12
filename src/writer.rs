@@ -28,6 +28,7 @@ struct WriterOptions {
     fst_dir: Option<PathBuf>,
     trie_set: bool,
     split_ranges: bool,
+    sep_value_array: bool,
     dfa_dir: Option<PathBuf>,
     ucd_version: Option<(u64, u64, u64)>,
 }
@@ -45,6 +46,7 @@ impl WriterBuilder {
             fst_dir: None,
             trie_set: false,
             split_ranges: false,
+            sep_value_array: false,
             dfa_dir: None,
             ucd_version: None,
         })
@@ -110,6 +112,15 @@ impl WriterBuilder {
     /// size.
     pub fn split_ranges(&mut self, yes: bool) -> &mut WriterBuilder {
         self.0.split_ranges = yes;
+        self
+    }
+
+    /// Instead of emitting `(lo, hi, val)`, emit the array of values separately
+    /// to avoid overhead from padding due to `char` alignment. Works with
+    /// `split_ranges`, by declaring that the `u32` ranges follow directly from
+    /// those for u16.
+    pub fn sep_value_array(&mut self, yes: bool) -> &mut WriterBuilder {
+        self.0.sep_value_array = yes;
         self
     }
 
@@ -244,7 +255,7 @@ impl Writer {
             name,
             None,
             table.iter().map(|r| (r.0, r.1, ())),
-            |start, end, _| format!("({}, {}), ", start, end),
+            |_| Default::default(),
         )
     }
 
@@ -367,27 +378,63 @@ impl Writer {
         S: fmt::Display + Clone,
     {
         if self.opts.split_ranges {
-            return self.ranges_to_split_enum_slices(name, enum_ty, table);
+            self.ranges_to_split_enum_slices(name, enum_ty, table)?;
+        } else {
+            self.ranges_to_impl_display(
+                name,
+                enum_ty,
+                table
+                    .iter()
+                    .map(|t| (t.0, t.1, format!("{}::{}", enum_ty, t.2))),
+            )?;
         }
-
+        Ok(())
+    }
+    fn ranges_to_impl_display<S>(
+        &mut self,
+        name: &str,
+        ty_name: &str,
+        table: impl IntoIterator<Item = (u32, u32, S)>,
+    ) -> Result<()>
+    where
+        S: fmt::Display + Clone,
+    {
         let cp_ty = self.rust_codepoint_type();
-        writeln!(
-            self.wtr,
-            "pub const {}: &'static [({}, {}, {})] = &[",
-            name, cp_ty, cp_ty, enum_ty,
-        )?;
-        for (start, end, variant) in table {
-            let range =
-                (self.rust_codepoint(*start), self.rust_codepoint(*end));
+        if self.opts.sep_value_array {
+            writeln!(
+                self.wtr,
+                "pub const {}: (&'static [({}, {})], &'static [{}]) = (&[",
+                name, cp_ty, cp_ty, ty_name,
+            )?;
+        } else {
+            writeln!(
+                self.wtr,
+                "pub const {}: &'static [({}, {}, {})] = &[",
+                name, cp_ty, cp_ty, ty_name,
+            )?;
+        }
+        let mut separate = vec![];
+        for (start, end, value) in table {
+            let range = (self.rust_codepoint(start), self.rust_codepoint(end));
             if let (Some(start), Some(end)) = range {
-                let src = format!(
-                    "({}, {}, {}::{}), ",
-                    start, end, enum_ty, variant,
-                );
+                let src = if self.opts.sep_value_array {
+                    separate.push(value.to_string());
+                    format!("({}, {}), ", start, end)
+                } else {
+                    format!("({}, {}, {}), ", start, end, value)
+                };
                 self.wtr.write_str(&src)?;
             }
         }
-        writeln!(self.wtr, "];")?;
+        if self.opts.sep_value_array {
+            writeln!(self.wtr, "], &[")?;
+            for s in separate {
+                self.wtr.write_str(&format!("{}, ", s))?;
+            }
+            writeln!(self.wtr, "]);")?;
+        } else {
+            writeln!(self.wtr, "];")?;
+        }
         Ok(())
     }
 
@@ -404,9 +451,7 @@ impl Writer {
             name,
             Some(enum_ty),
             table.iter().cloned(),
-            |start, end, variant| {
-                format!("({}, {}, {}::{}), ", start, end, enum_ty, variant)
-            },
+            |variant| format!("{}::{}", enum_ty, variant),
         )
     }
 
@@ -444,28 +489,15 @@ impl Writer {
         name: &str,
         table: &[(u32, u32, u64)],
     ) -> Result<()> {
-        if self.opts.split_ranges {
-            return self.split_ranges_to_unsigned_integer_slice(name, table);
-        }
-        let cp_ty = self.rust_codepoint_type();
         let num_ty = match table.iter().map(|&(_, _, n)| n).max() {
             None => "u8",
             Some(max_num) => smallest_unsigned_type(max_num),
         };
-
-        writeln!(
-            self.wtr,
-            "pub const {}: &'static [({}, {}, {})] = &[",
-            name, cp_ty, cp_ty, num_ty
-        )?;
-        for &(start, end, num) in table {
-            let range = (self.rust_codepoint(start), self.rust_codepoint(end));
-            if let (Some(start), Some(end)) = range {
-                let src = format!("({}, {}, {}), ", start, end, num);
-                self.wtr.write_str(&src)?;
-            }
+        if self.opts.split_ranges {
+            self.split_ranges_to_unsigned_integer_slice(name, table)?;
+        } else {
+            self.ranges_to_impl_display(name, num_ty, table.iter().copied())?;
         }
-        writeln!(self.wtr, "];")?;
         Ok(())
     }
 
@@ -482,7 +514,7 @@ impl Writer {
             name,
             Some(num_ty),
             table.iter().cloned(),
-            |start, end, value| format!("({}, {}, {}), ", start, end, value),
+            |value| value.to_string(),
         )
     }
 
@@ -534,27 +566,60 @@ impl Writer {
     where
         S: Clone,
         I: IntoIterator<Item = (u32, u32, S)>,
-        F: FnMut(u32, u32, S) -> String,
+        F: FnMut(S) -> String,
     {
-        let suffix = if let Some(t) = val_ty {
-            format!(", {}", t)
+        let (suffix, sep_arr_ext) = if let Some(t) = val_ty {
+            if self.opts.sep_value_array {
+                ("".to_string(), format!(", &'static [{}]", t))
+            } else {
+                (format!(", {}", t), "".to_string())
+            }
         } else {
-            "".to_string()
+            ("".to_string(), "".to_string())
         };
         writeln!(
             self.wtr,
-            "pub const {name}: (&'static [(u16, u16{suffix})], &'static [(u32, u32{suffix})]) = (&[",
+            "pub const {name}: (&'static [(u16, u16{suffix})], &'static [(u32, u32{suffix})]{sep_arr_ext}) = (&[",
             name = name,
             suffix = suffix,
+            sep_arr_ext = sep_arr_ext,
         )?;
 
         let (tab16, tab32) = util::split_ranges(iter);
-        for (start, end, value) in tab16 {
-            self.wtr.write_str(&format(start as u32, end as u32, value))?;
+        for (start, end, value) in tab16.iter().cloned() {
+            if self.opts.sep_value_array || val_ty.is_none() {
+                self.wtr.write_str(&format!("({}, {}), ", start, end))?;
+            } else {
+                self.wtr.write_str(&format!(
+                    "({}, {}, {}), ",
+                    start,
+                    end,
+                    format(value)
+                ))?;
+            }
         }
         writeln!(self.wtr, "], &[")?;
-        for (start, end, value) in tab32 {
-            self.wtr.write_str(&format(start, end, value))?;
+        for (start, end, value) in tab32.iter().cloned() {
+            if self.opts.sep_value_array || val_ty.is_none() {
+                self.wtr.write_str(&format!("({}, {}), ", start, end))?;
+            } else {
+                self.wtr.write_str(&format!(
+                    "({}, {}, {}), ",
+                    start,
+                    end,
+                    format(value)
+                ))?;
+            }
+        }
+        if self.opts.sep_value_array {
+            writeln!(self.wtr, "], &[")?;
+            for value in tab16
+                .into_iter()
+                .map(|t| t.2)
+                .chain(tab32.into_iter().map(|t| t.2))
+            {
+                self.wtr.write_str(&format!("{}, ", format(value)))?;
+            }
         }
         writeln!(self.wtr, "]);")?;
         Ok(())
