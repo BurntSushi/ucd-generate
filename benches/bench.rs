@@ -18,6 +18,47 @@ fn u32_key(cp: u32) -> [u8; 4] {
 }
 
 #[bench]
+fn general_category_split_separate_slice(b: &mut Bencher) {
+    let (slice16, slice32, values) =
+        tables::slice::general_category_split_separate::GENERAL_CATEGORY;
+    let reference_slice = tables::slice::general_category::GENERAL_CATEGORY;
+    let mut i = 0;
+    b.iter(|| {
+        let (query, _, value) = reference_slice[i];
+        i = (i + 1) % reference_slice.len();
+        let (offset, pos) = if query <= 0xffff {
+            let query = query as u16;
+            (
+                0,
+                slice16.binary_search_by(|&(s, e)| {
+                    if s > query {
+                        Ordering::Greater
+                    } else if e < query {
+                        Ordering::Less
+                    } else {
+                        Ordering::Equal
+                    }
+                }),
+            )
+        } else {
+            (
+                slice16.len(),
+                slice32.binary_search_by(|&(s, e)| {
+                    if s > query {
+                        Ordering::Greater
+                    } else if e < query {
+                        Ordering::Less
+                    } else {
+                        Ordering::Equal
+                    }
+                }),
+            )
+        };
+        assert_eq!(values[pos.unwrap() + offset], value);
+    });
+}
+
+#[bench]
 fn general_category_slice(b: &mut Bencher) {
     let slice = tables::slice::general_category::GENERAL_CATEGORY;
     let mut i = 0;
@@ -38,6 +79,27 @@ fn general_category_slice(b: &mut Bencher) {
         assert_eq!(found.2, value);
     });
 }
+#[bench]
+fn general_category_separate_slice(b: &mut Bencher) {
+    let (slice, values) =
+        tables::slice::general_category_separate::GENERAL_CATEGORY;
+    let reference_slice = tables::slice::general_category::GENERAL_CATEGORY;
+    let mut i = 0;
+    b.iter(|| {
+        let (query, _, value) = reference_slice[i];
+        i = (i + 1) % reference_slice.len();
+        let pos = slice.binary_search_by(|&(s, e)| {
+            if s > query {
+                Ordering::Greater
+            } else if e < query {
+                Ordering::Less
+            } else {
+                Ordering::Equal
+            }
+        });
+        assert_eq!(values[pos.unwrap()], value);
+    });
+}
 
 #[bench]
 fn general_category_fst(b: &mut Bencher) {
@@ -53,7 +115,40 @@ fn general_category_fst(b: &mut Bencher) {
         assert_eq!(found, value);
     });
 }
-
+#[bench]
+fn lowercase_letter_split(b: &mut Bencher) {
+    let reference_slice = tables::slice::general_categories::LOWERCASE_LETTER;
+    let mut i = 0;
+    let (split16, split32) =
+        tables::slice::general_categories_split::LOWERCASE_LETTER;
+    b.iter(|| {
+        let (query, _) = reference_slice[i];
+        i = (i + 1) % reference_slice.len();
+        let pos = if query <= 0xffff {
+            let query = query as u16;
+            split16.binary_search_by(|&(s, e)| {
+                if s > query {
+                    Ordering::Greater
+                } else if e < query {
+                    Ordering::Less
+                } else {
+                    Ordering::Equal
+                }
+            })
+        } else {
+            split32.binary_search_by(|&(s, e)| {
+                if s > query {
+                    Ordering::Greater
+                } else if e < query {
+                    Ordering::Less
+                } else {
+                    Ordering::Equal
+                }
+            })
+        };
+        assert!(pos.is_ok());
+    });
+}
 #[bench]
 fn lowercase_letter_slice(b: &mut Bencher) {
     let slice = tables::slice::general_categories::LOWERCASE_LETTER;

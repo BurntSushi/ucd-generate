@@ -17,7 +17,7 @@
 #
 #   $ ./scripts/generate-unicode-tables path/to/ucd
 #
-# Note:
+# Note: By providing a second argument,
 #
 #   $ cargo build --release
 #   $ ./scripts/generate-unicode-tables path/to/ucd target/release/ucd-generate
@@ -48,6 +48,13 @@ $ucd_generate jamo-short-name \
     "$ucddir" > "$out/jamo_short_name.rs"
 $ucd_generate names \
     "$ucddir" --no-aliases --no-hangul --no-ideograph > "$out/names.rs"
+
+$ucd_generate general-category \
+    "$ucddir" --exclude unassigned --split-ranges > "$out/general_categories_split.rs"
+$ucd_generate general-category \
+    "$ucddir" --exclude unassigned --enum --split-ranges --separate-values > "$out/general_category_split_separate.rs"
+$ucd_generate general-category \
+    "$ucddir" --exclude unassigned --enum --separate-values > "$out/general_category_separate.rs"
 
 echo "generating tables for ucd-trie benchmarks"
 out="benches/tables/trie"
