@@ -4,7 +4,7 @@
 //
 // Unicode version: 13.0.0.
 //
-// ucd-generate 0.2.7 is available on crates.io.
+// ucd-generate 0.2.8 is available on crates.io.
 
 pub const NAMES: &'static [(&'static str, u32)] = &[
   ("ABACUS", 129518), ("AC CURRENT", 9190), ("ACCORDION", 129687),

@@ -1,4 +1,4 @@
-use clap::{App, AppSettings, Arg, SubCommand};
+use clap::{App, AppSettings, Arg, ArgGroup, SubCommand};
 
 const TEMPLATE: &'static str = "\
 {bin} {version}
@@ -192,14 +192,32 @@ pub fn app() -> App<'static, 'static> {
         "Write codepoint sets as a compressed trie. \
          Code using this trie depends on the ucd_trie crate.",
     );
+    let flag_split_ranges = Arg::with_name("split-ranges").long("split-ranges").help(
+        "Write two separate codepoint sets, one as pairs of (u16, u16) and one as (u32, u32). \
+         This is incompatible with outputting tables containing `char` literals.",
+    ).conflicts_with("chars").conflicts_with("trie-set");
+    let flag_sep_value_array = Arg::with_name("separate-values").long("separate-values").help(
+        "When used with `--enum` or `--rust-enum`, emit the enum values in an array \
+         parallel to the ranges (in order to avoid overhead from padding). If \
+         `--split-ranges` is also used, only a single values array will be generated, and \
+         it is assumed that the values for u32 pairs directly follow those for u16.",
+    );
+    let group_enum_flags =
+        ArgGroup::with_name("enum-flags").args(&["enum", "rust-enum"]);
     let flag_fst_dir = Arg::with_name("fst-dir")
         .long("fst-dir")
         .help("Emit the table as a FST in Rust source code.")
         .takes_value(true);
+    let flag_flat_table = Arg::with_name("flat-table").long("flat-table").help(
+        "When emitting a map of a single codepoint to multiple codepoints, emit \
+         entries as `(u32, [u32; 3])` instead of as `(u32, &[u32])` (replacing \
+         `u32` with `char` if `--chars` is passed). \
+         Conceptually unoccupied indices of the array will contain `!0u32` (for \
+         u32) or `\\u{0}` (for `char`)."
+    );
     let ucd_dir = Arg::with_name("ucd-dir")
         .required(true)
         .help("Directory containing the Unicode character database files.");
-
     // Subcommands.
     let cmd_bidi_class = SubCommand::with_name("bidi-class")
         .author(clap::crate_authors!())
@@ -212,7 +230,10 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_name("BIDI_CLASS"))
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
+        .arg(flag_split_ranges.clone())
         .arg(flag_short_names.clone())
+        .group(group_enum_flags.clone())
+        .arg(flag_sep_value_array.clone().requires("enum-flags"))
         .arg(
             Arg::with_name("enum").long("enum").help(
                 "Emit a single table that maps codepoints to bidi class.",
@@ -238,6 +259,7 @@ pub fn app() -> App<'static, 'static> {
             .arg(flag_name("BIDI_MIRRORING_GLYPH"))
             .arg(flag_chars.clone())
             .arg(flag_trie_set.clone())
+            .arg(flag_split_ranges.clone())
             .arg(Arg::with_name("rust-match").long("rust-match").help(
                 "Emit a function that uses a match to map between codepoints.",
             ));
@@ -252,6 +274,9 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_name("GENERAL_CATEGORY"))
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
+        .arg(flag_split_ranges.clone())
+        .group(group_enum_flags.clone())
+        .arg(flag_sep_value_array.clone().requires("enum-flags"))
         .arg(
             Arg::with_name("enum").long("enum").help(
                 "Emit a single table that maps codepoints to categories.",
@@ -285,6 +310,9 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_name("SCRIPT"))
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
+        .arg(flag_split_ranges.clone())
+        .group(group_enum_flags.clone())
+        .arg(flag_sep_value_array.clone().requires("enum-flags"))
         .arg(
             Arg::with_name("enum")
                 .long("enum")
@@ -318,6 +346,7 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_name("SCRIPT_EXTENSION"))
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
+        .arg(flag_split_ranges.clone())
         .arg(Arg::with_name("include").long("include").takes_value(true).help(
             "A comma separated list of script extensions to include. \
              When absent, all scripts extensions are included.",
@@ -346,6 +375,7 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_fst_dir.clone())
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
+        .arg(flag_split_ranges.clone())
         .arg(Arg::with_name("list-properties").long("list-properties").help(
             "List the properties that can be generated with this \
              command.",
@@ -362,6 +392,9 @@ pub fn app() -> App<'static, 'static> {
             .arg(flag_name("JOINING_TYPE"))
             .arg(flag_chars.clone())
             .arg(flag_trie_set.clone())
+            .group(group_enum_flags.clone())
+            .arg(flag_sep_value_array.clone().requires("enum-flags"))
+            .arg(flag_split_ranges.clone())
             .arg(Arg::with_name("enum").long("enum").help(
                 "Emit a single table that maps codepoints to joining type.",
             ))
@@ -379,6 +412,7 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_fst_dir.clone())
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
+        .arg(flag_split_ranges.clone())
         .arg(Arg::with_name("include").long("include").takes_value(true).help(
             "A comma separated list of properties to include. \
              When absent, all available properties are included.",
@@ -402,6 +436,7 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_fst_dir.clone())
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
+        .arg(flag_split_ranges.clone())
         .arg(flag_name("PERL_WORD"));
     let cmd_jamo_short_name = SubCommand::with_name("jamo-short-name")
         .author(clap::crate_authors!())
@@ -506,7 +541,8 @@ pub fn app() -> App<'static, 'static> {
         .arg(Arg::with_name("all-pairs").long("all-pairs").help(
             "Emit a table where each codepoint includes all possible \
              Simple mappings.",
-        ));
+        ))
+        .arg(flag_flat_table.clone().requires("all-pairs"));
     let cmd_case_mapping = SubCommand::with_name("case-mapping")
         .author(clap::crate_authors!())
         .version(clap::crate_version!())
@@ -520,7 +556,8 @@ pub fn app() -> App<'static, 'static> {
             "Only emit the simple case mapping tables \
              (emit maps of codepoint to codepoint, \
              ignoring rules from SpecialCasing.txt)",
-        ));
+        ))
+        .arg(flag_flat_table.clone().conflicts_with("simple"));
 
     let cmd_grapheme_cluster_break =
         SubCommand::with_name("grapheme-cluster-break")
@@ -534,6 +571,8 @@ pub fn app() -> App<'static, 'static> {
             .arg(flag_fst_dir.clone())
             .arg(flag_chars.clone())
             .arg(flag_trie_set.clone())
+            .arg(flag_split_ranges.clone())
+            .arg(flag_sep_value_array.clone().requires("enum"))
             .arg(
                 Arg::with_name("enum").long("enum").help(
                     "Emit a single table that maps codepoints to values.",
@@ -550,6 +589,8 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_fst_dir.clone())
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
+        .arg(flag_split_ranges.clone())
+        .arg(flag_sep_value_array.clone().requires("enum"))
         .arg(
             Arg::with_name("enum")
                 .long("enum")
@@ -566,6 +607,8 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_fst_dir.clone())
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
+        .arg(flag_split_ranges.clone())
+        .arg(flag_sep_value_array.clone().requires("enum"))
         .arg(
             Arg::with_name("enum")
                 .long("enum")

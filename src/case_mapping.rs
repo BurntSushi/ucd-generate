@@ -60,9 +60,10 @@ pub fn command(args: ArgMatches<'_>) -> Result<()> {
                 );
             }
         }
-        wtr.codepoint_to_codepoints("LOWER", &lower_map)?;
-        wtr.codepoint_to_codepoints("UPPER", &upper_map)?;
-        wtr.codepoint_to_codepoints("TITLE", &upper_map)?;
+        let flat = args.is_present("flat-table");
+        wtr.codepoint_to_codepoints("LOWER", &lower_map, flat)?;
+        wtr.codepoint_to_codepoints("UPPER", &upper_map, flat)?;
+        wtr.codepoint_to_codepoints("TITLE", &upper_map, flat)?;
     }
     Ok(())
 }

@@ -4,7 +4,7 @@
 //
 // Unicode version: 13.0.0.
 //
-// ucd-generate 0.2.7 is available on crates.io.
+// ucd-generate 0.2.8 is available on crates.io.
 
 pub const JAMO_SHORT_NAME: &'static [(u32, &'static str)] = &[
     (4352, "G"),

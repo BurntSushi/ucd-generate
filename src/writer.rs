@@ -27,6 +27,8 @@ struct WriterOptions {
     char_literals: bool,
     fst_dir: Option<PathBuf>,
     trie_set: bool,
+    split_ranges: bool,
+    sep_value_array: bool,
     dfa_dir: Option<PathBuf>,
     ucd_version: Option<(u64, u64, u64)>,
 }
@@ -43,6 +45,8 @@ impl WriterBuilder {
             char_literals: false,
             fst_dir: None,
             trie_set: false,
+            split_ranges: false,
+            sep_value_array: false,
             dfa_dir: None,
             ucd_version: None,
         })
@@ -104,6 +108,22 @@ impl WriterBuilder {
         self
     }
 
+    /// Emit both (u16, u16) and (u32, u32) range tables, in order to reduce
+    /// size.
+    pub fn split_ranges(&mut self, yes: bool) -> &mut WriterBuilder {
+        self.0.split_ranges = yes;
+        self
+    }
+
+    /// Instead of emitting `(lo, hi, val)`, emit the array of values separately
+    /// to avoid overhead from padding due to `char` alignment. Works with
+    /// `split_ranges`, by declaring that the `u32` ranges follow directly from
+    /// those for u16.
+    pub fn sep_value_array(&mut self, yes: bool) -> &mut WriterBuilder {
+        self.0.sep_value_array = yes;
+        self
+    }
+
     /// Emit a trie when writing sets of codepoints instead of a slice of
     /// ranges.
     pub fn trie_set(&mut self, yes: bool) -> &mut WriterBuilder {
@@ -145,6 +165,8 @@ impl Writer {
             "::fst::Set<&'static [u8]>".to_string()
         } else if self.opts.trie_set {
             "&'static ::ucd_trie::TrieSet".to_string()
+        } else if self.opts.split_ranges {
+            "(&'static [(u16, u16)], &'static [(u32, u32)])".to_string()
         } else {
             let charty = self.rust_codepoint_type();
             format!("&'static [({}, {})]", charty, charty)
@@ -192,6 +214,9 @@ impl Writer {
             let set: Vec<u32> = codepoints.iter().cloned().collect();
             let trie = TrieSetOwned::from_codepoints(&set)?;
             self.trie_set(&name, &trie)?;
+        } else if self.opts.split_ranges {
+            let ranges = util::to_ranges(codepoints.iter().cloned());
+            self.split_ranges_slice(&name, &ranges)?;
         } else {
             let ranges = util::to_ranges(codepoints.iter().cloned());
             self.ranges_slice(&name, &ranges)?;
@@ -219,6 +244,19 @@ impl Writer {
         }
         writeln!(self.wtr, "];")?;
         Ok(())
+    }
+
+    fn split_ranges_slice(
+        &mut self,
+        name: &str,
+        table: &[(u32, u32)],
+    ) -> Result<()> {
+        self.emit_split_range_table(
+            name,
+            None,
+            table.iter().map(|r| (r.0, r.1, ())),
+            |_| Default::default(),
+        )
     }
 
     fn trie_set(&mut self, name: &str, trie: &TrieSetOwned) -> Result<()> {
@@ -337,28 +375,84 @@ impl Writer {
         table: &[(u32, u32, S)],
     ) -> Result<()>
     where
-        S: fmt::Display,
+        S: fmt::Display + Clone,
+    {
+        if self.opts.split_ranges {
+            self.ranges_to_split_enum_slices(name, enum_ty, table)?;
+        } else {
+            self.ranges_to_impl_display(
+                name,
+                enum_ty,
+                table
+                    .iter()
+                    .map(|t| (t.0, t.1, format!("{}::{}", enum_ty, t.2))),
+            )?;
+        }
+        Ok(())
+    }
+    fn ranges_to_impl_display<S>(
+        &mut self,
+        name: &str,
+        ty_name: &str,
+        table: impl IntoIterator<Item = (u32, u32, S)>,
+    ) -> Result<()>
+    where
+        S: fmt::Display + Clone,
     {
         let cp_ty = self.rust_codepoint_type();
-
-        writeln!(
-            self.wtr,
-            "pub const {}: &'static [({}, {}, {})] = &[",
-            name, cp_ty, cp_ty, enum_ty,
-        )?;
-        for (start, end, variant) in table {
-            let range =
-                (self.rust_codepoint(*start), self.rust_codepoint(*end));
+        if self.opts.sep_value_array {
+            writeln!(
+                self.wtr,
+                "pub const {}: (&'static [({}, {})], &'static [{}]) = (&[",
+                name, cp_ty, cp_ty, ty_name,
+            )?;
+        } else {
+            writeln!(
+                self.wtr,
+                "pub const {}: &'static [({}, {}, {})] = &[",
+                name, cp_ty, cp_ty, ty_name,
+            )?;
+        }
+        let mut separate = vec![];
+        for (start, end, value) in table {
+            let range = (self.rust_codepoint(start), self.rust_codepoint(end));
             if let (Some(start), Some(end)) = range {
-                let src = format!(
-                    "({}, {}, {}::{}), ",
-                    start, end, enum_ty, variant,
-                );
+                let src = if self.opts.sep_value_array {
+                    separate.push(value.to_string());
+                    format!("({}, {}), ", start, end)
+                } else {
+                    format!("({}, {}, {}), ", start, end, value)
+                };
                 self.wtr.write_str(&src)?;
             }
         }
-        writeln!(self.wtr, "];")?;
+        if self.opts.sep_value_array {
+            writeln!(self.wtr, "], &[")?;
+            for s in separate {
+                self.wtr.write_str(&format!("{}, ", s))?;
+            }
+            writeln!(self.wtr, "]);")?;
+        } else {
+            writeln!(self.wtr, "];")?;
+        }
         Ok(())
+    }
+
+    fn ranges_to_split_enum_slices<S>(
+        &mut self,
+        name: &str,
+        enum_ty: &str,
+        table: &[(u32, u32, S)],
+    ) -> Result<()>
+    where
+        S: fmt::Display + Clone,
+    {
+        self.emit_split_range_table(
+            name,
+            Some(enum_ty),
+            table.iter().cloned(),
+            |variant| format!("{}::{}", enum_ty, variant),
+        )
     }
 
     /// Write a map that associates ranges of codepoints with an arbitrary
@@ -395,26 +489,33 @@ impl Writer {
         name: &str,
         table: &[(u32, u32, u64)],
     ) -> Result<()> {
-        let cp_ty = self.rust_codepoint_type();
         let num_ty = match table.iter().map(|&(_, _, n)| n).max() {
             None => "u8",
             Some(max_num) => smallest_unsigned_type(max_num),
         };
-
-        writeln!(
-            self.wtr,
-            "pub const {}: &'static [({}, {}, {})] = &[",
-            name, cp_ty, cp_ty, num_ty
-        )?;
-        for &(start, end, num) in table {
-            let range = (self.rust_codepoint(start), self.rust_codepoint(end));
-            if let (Some(start), Some(end)) = range {
-                let src = format!("({}, {}, {}), ", start, end, num);
-                self.wtr.write_str(&src)?;
-            }
+        if self.opts.split_ranges {
+            self.split_ranges_to_unsigned_integer_slice(name, table)?;
+        } else {
+            self.ranges_to_impl_display(name, num_ty, table.iter().copied())?;
         }
-        writeln!(self.wtr, "];")?;
         Ok(())
+    }
+
+    fn split_ranges_to_unsigned_integer_slice(
+        &mut self,
+        name: &str,
+        table: &[(u32, u32, u64)],
+    ) -> Result<()> {
+        let num_ty = match table.iter().map(|&(_, _, n)| n).max() {
+            None => "u8",
+            Some(max_num) => smallest_unsigned_type(max_num),
+        };
+        self.emit_split_range_table(
+            name,
+            Some(num_ty),
+            table.iter().cloned(),
+            |value| value.to_string(),
+        )
     }
 
     /// Write a map that associates strings to strings.
@@ -448,6 +549,81 @@ impl Writer {
         Ok(())
     }
 
+    /// Shared code for split range table emission.
+    ///
+    /// Handles both tables that map to a value, and those that do not. For
+    /// example, to emit a table for `(u32, u32, u32)`, Some("u32") should be
+    /// used as `val_ty`. If you pass `None` here, you should ignore the 3rd to
+    /// `format`, and your iterator should be something like:
+    /// `ranges.iter().map(|r| (r.0, r.1, ()))`.
+    fn emit_split_range_table<S, I, F>(
+        &mut self,
+        name: &str,
+        val_ty: Option<&str>,
+        iter: I,
+        mut format: F,
+    ) -> Result<()>
+    where
+        S: Clone,
+        I: IntoIterator<Item = (u32, u32, S)>,
+        F: FnMut(S) -> String,
+    {
+        let (suffix, sep_arr_ext) = if let Some(t) = val_ty {
+            if self.opts.sep_value_array {
+                ("".to_string(), format!(", &'static [{}]", t))
+            } else {
+                (format!(", {}", t), "".to_string())
+            }
+        } else {
+            ("".to_string(), "".to_string())
+        };
+        writeln!(
+            self.wtr,
+            "pub const {name}: (&'static [(u16, u16{suffix})], &'static [(u32, u32{suffix})]{sep_arr_ext}) = (&[",
+            name = name,
+            suffix = suffix,
+            sep_arr_ext = sep_arr_ext,
+        )?;
+
+        let (tab16, tab32) = util::split_ranges(iter);
+        for (start, end, value) in tab16.iter().cloned() {
+            if self.opts.sep_value_array || val_ty.is_none() {
+                self.wtr.write_str(&format!("({}, {}), ", start, end))?;
+            } else {
+                self.wtr.write_str(&format!(
+                    "({}, {}, {}), ",
+                    start,
+                    end,
+                    format(value)
+                ))?;
+            }
+        }
+        writeln!(self.wtr, "], &[")?;
+        for (start, end, value) in tab32.iter().cloned() {
+            if self.opts.sep_value_array || val_ty.is_none() {
+                self.wtr.write_str(&format!("({}, {}), ", start, end))?;
+            } else {
+                self.wtr.write_str(&format!(
+                    "({}, {}, {}), ",
+                    start,
+                    end,
+                    format(value)
+                ))?;
+            }
+        }
+        if self.opts.sep_value_array {
+            writeln!(self.wtr, "], &[")?;
+            for value in tab16
+                .into_iter()
+                .map(|t| t.2)
+                .chain(tab32.into_iter().map(|t| t.2))
+            {
+                self.wtr.write_str(&format!("{}, ", format(value)))?;
+            }
+        }
+        writeln!(self.wtr, "]);")?;
+        Ok(())
+    }
     /// Write a map that associates strings to another map from strings to
     /// strings.
     ///
@@ -594,6 +770,7 @@ impl Writer {
         &mut self,
         name: &str,
         map: &BTreeMap<u32, BTreeSet<u32>>,
+        emit_flat_table: bool,
     ) -> Result<()> {
         if self.opts.fst_dir.is_some() {
             return err!("cannot emit codepoint multimaps as an FST");
@@ -604,7 +781,7 @@ impl Writer {
             let vs2 = vs.iter().cloned().collect();
             map2.insert(k, vs2);
         }
-        self.codepoint_to_codepoints(name, &map2)
+        self.codepoint_to_codepoints(name, &map2, emit_flat_table)
     }
 
     /// Write a map that associates codepoints with a sequence of other
@@ -615,6 +792,7 @@ impl Writer {
         &mut self,
         name: &str,
         map: &BTreeMap<u32, Vec<u32>>,
+        emit_flat_table: bool,
     ) -> Result<()> {
         if self.opts.fst_dir.is_some() {
             return err!("cannot emit codepoint->codepoints map as an FST");
@@ -625,11 +803,19 @@ impl Writer {
 
         let name = rust_const_name(name);
         let ty = self.rust_codepoint_type();
-        writeln!(
-            self.wtr,
-            "pub const {}: &'static [({}, &'static [{}])] = &[",
-            name, ty, ty
-        )?;
+        if !emit_flat_table {
+            writeln!(
+                self.wtr,
+                "pub const {}: &'static [({}, &'static [{}])] = &[",
+                name, ty, ty
+            )?;
+        } else {
+            writeln!(
+                self.wtr,
+                "pub const {}: &'static [({}, [{}; 3])] = &[",
+                name, ty, ty
+            )?;
+        }
         'LOOP: for (&k, vs) in map {
             // Make sure both our keys and values can be represented in the
             // user's chosen codepoint format.
@@ -637,15 +823,43 @@ impl Writer {
                 None => continue 'LOOP,
                 Some(k) => k,
             };
+
+            let (padded_vs, slice_prefix) = if emit_flat_table {
+                // These checks are for future-proofing and cannot be hit currently.
+                if vs.len() > 3 {
+                    return err!(
+                        "flat-table representation cannot be used when value \
+                         arrays may contain more than 3 entries"
+                    );
+                }
+                let flat_padding =
+                    if self.opts.char_literals { 0 } else { !0 };
+                if vs.contains(&flat_padding) {
+                    return err!(
+                        "flat-table --chars representation cannot be used when \
+                         the NUL character is present in the value array. (This \
+                         error probably can be fixed by removing `--chars`)"
+                    );
+                }
+                let res = vs
+                    .iter()
+                    .copied()
+                    .chain(std::iter::repeat(flat_padding))
+                    .take(3)
+                    .collect::<Vec<_>>();
+                (res, "")
+            } else {
+                (vs.clone(), "&")
+            };
             let mut vstrs = vec![];
-            for &v in vs {
+            for v in padded_vs {
                 match self.rust_codepoint(v) {
                     None => continue 'LOOP,
                     Some(v) => vstrs.push(v),
                 }
             }
 
-            self.wtr.write_str(&format!("({}, &[", kstr))?;
+            self.wtr.write_str(&format!("({}, {}[", kstr, slice_prefix))?;
             if vstrs.len() == 1 {
                 self.wtr.write_str(&format!("{}", &vstrs[0]))?;
             } else {
@@ -1168,6 +1382,12 @@ impl Writer {
     fn rust_codepoint(&self, cp: u32) -> Option<String> {
         if self.opts.char_literals {
             char::from_u32(cp).map(|c| format!("{:?}", c))
+        } else if cp == !0 {
+            // Used to represent missing entries in some cases (specifically
+            // --flat-table), and writing it as `!0` makes the whole table much
+            // easier to read while maintaining identical semantics, even if
+            // `--flat-table` is not in use.
+            Some("!0".to_string())
         } else {
             Some(cp.to_string())
         }
