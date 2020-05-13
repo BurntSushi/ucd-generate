@@ -222,6 +222,11 @@ pub fn app() -> App<'static, 'static> {
             "Emit a Rust enum and a table that maps codepoints to bidi class.",
         ))
         .arg(
+            Arg::with_name("combined").long("combined").help(
+                "Emit a single table with all included codepoint ranges.",
+            ),
+        )
+        .arg(
             Arg::with_name("list-classes")
                 .long("list-classes")
                 .help("List all of the bidi class names with abbreviations."),
@@ -260,6 +265,11 @@ pub fn app() -> App<'static, 'static> {
         .arg(Arg::with_name("rust-enum").long("rust-enum").help(
             "Emit a Rust enum and a table that maps codepoints to categories.",
         ))
+        .arg(
+            Arg::with_name("combined").long("combined").help(
+                "Emit a single table with all included codepoint ranges.",
+            ),
+        )
         .arg(Arg::with_name("include").long("include").takes_value(true).help(
             "A comma separated list of categories to include. \
              When absent, all categories are included.",
@@ -293,6 +303,11 @@ pub fn app() -> App<'static, 'static> {
         .arg(Arg::with_name("rust-enum").long("rust-enum").help(
             "Emit a Rust enum and a table that maps codepoints to scripts.",
         ))
+        .arg(
+            Arg::with_name("combined").long("combined").help(
+                "Emit a single table with all included codepoint ranges.",
+            ),
+        )
         .arg(Arg::with_name("include").long("include").takes_value(true).help(
             "A comma separated list of scripts to include. \
              When absent, all scripts are included.",
@@ -368,6 +383,9 @@ pub fn app() -> App<'static, 'static> {
             .arg(Arg::with_name("rust-enum").long("rust-enum").help(
                 "Emit a Rust enum and a table that maps codepoints to \
                  joining type.",
+            ))
+            .arg(Arg::with_name("combined").long("combined").help(
+                "Emit a single table with all included codepoint ranges.",
             ));
     let cmd_prop_bool = SubCommand::with_name("property-bool")
         .author(clap::crate_authors!())
