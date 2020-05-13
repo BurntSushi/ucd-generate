@@ -199,6 +199,9 @@ pub fn app() -> App<'static, 'static> {
     let ucd_dir = Arg::with_name("ucd-dir")
         .required(true)
         .help("Directory containing the Unicode character database files.");
+    let flag_combined = Arg::with_name("combined")
+        .long("combined")
+        .help("Emit a single table with all included codepoint ranges.");
 
     // Subcommands.
     let cmd_bidi_class = SubCommand::with_name("bidi-class")
@@ -213,6 +216,7 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
         .arg(flag_short_names.clone())
+        .arg(flag_combined.clone())
         .arg(
             Arg::with_name("enum").long("enum").help(
                 "Emit a single table that maps codepoints to bidi class.",
@@ -221,11 +225,6 @@ pub fn app() -> App<'static, 'static> {
         .arg(Arg::with_name("rust-enum").long("rust-enum").help(
             "Emit a Rust enum and a table that maps codepoints to bidi class.",
         ))
-        .arg(
-            Arg::with_name("combined").long("combined").help(
-                "Emit a single table with all included codepoint ranges.",
-            ),
-        )
         .arg(
             Arg::with_name("list-classes")
                 .long("list-classes")
@@ -257,6 +256,7 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_name("GENERAL_CATEGORY"))
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
+        .arg(flag_combined.clone())
         .arg(
             Arg::with_name("enum").long("enum").help(
                 "Emit a single table that maps codepoints to categories.",
@@ -265,11 +265,6 @@ pub fn app() -> App<'static, 'static> {
         .arg(Arg::with_name("rust-enum").long("rust-enum").help(
             "Emit a Rust enum and a table that maps codepoints to categories.",
         ))
-        .arg(
-            Arg::with_name("combined").long("combined").help(
-                "Emit a single table with all included codepoint ranges.",
-            ),
-        )
         .arg(Arg::with_name("include").long("include").takes_value(true).help(
             "A comma separated list of categories to include. \
              When absent, all categories are included.",
@@ -295,6 +290,7 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_name("SCRIPT"))
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
+        .arg(flag_combined.clone())
         .arg(
             Arg::with_name("enum")
                 .long("enum")
@@ -303,11 +299,6 @@ pub fn app() -> App<'static, 'static> {
         .arg(Arg::with_name("rust-enum").long("rust-enum").help(
             "Emit a Rust enum and a table that maps codepoints to scripts.",
         ))
-        .arg(
-            Arg::with_name("combined").long("combined").help(
-                "Emit a single table with all included codepoint ranges.",
-            ),
-        )
         .arg(Arg::with_name("include").long("include").takes_value(true).help(
             "A comma separated list of scripts to include. \
              When absent, all scripts are included.",
@@ -377,15 +368,13 @@ pub fn app() -> App<'static, 'static> {
             .arg(flag_name("JOINING_TYPE"))
             .arg(flag_chars.clone())
             .arg(flag_trie_set.clone())
+            .arg(flag_combined.clone())
             .arg(Arg::with_name("enum").long("enum").help(
                 "Emit a single table that maps codepoints to joining type.",
             ))
             .arg(Arg::with_name("rust-enum").long("rust-enum").help(
                 "Emit a Rust enum and a table that maps codepoints to \
                  joining type.",
-            ))
-            .arg(Arg::with_name("combined").long("combined").help(
-                "Emit a single table with all included codepoint ranges.",
             ));
     let cmd_prop_bool = SubCommand::with_name("property-bool")
         .author(clap::crate_authors!())
