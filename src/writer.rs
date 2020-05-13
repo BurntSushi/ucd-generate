@@ -339,11 +339,11 @@ impl Writer {
         name: &str,
         enum_map: &BTreeMap<String, BTreeSet<u32>>,
     ) -> Result<()> {
-        let mut set = Vec::new();
+        let mut set = BTreeSet::new();
         for other_set in enum_map.values() {
             set.extend(other_set.iter().cloned());
         }
-        self.range_set(name, &set)?;
+        self.ranges(name, &set)?;
         self.wtr.flush()?;
         Ok(())
     }
@@ -408,29 +408,6 @@ impl Writer {
         Ok(())
     }
 
-    /// Write a set that contains ranges of codepoints.
-    ///
-    /// The smallest numeric type is used when applicable.
-    pub fn range_set(&mut self, name: &str, set: &[u32]) -> Result<()> {
-        self.header()?;
-        self.separator()?;
-
-        let name = rust_const_name(name);
-        if self.opts.fst_dir.is_some() {
-            let mut builder = SetBuilder::memory();
-            for &k in set {
-                builder.insert(u32_key(k))?;
-            }
-            let set = builder.into_set();
-            self.fst(&name, set.as_fst(), false)?;
-        } else {
-            let ranges = util::to_ranges(set.iter().cloned());
-            self.range_set_slice(&name, &ranges)?;
-        }
-        self.wtr.flush()?;
-        Ok(())
-    }
-
     fn ranges_to_unsigned_integer_slice(
         &mut self,
         name: &str,
@@ -451,29 +428,6 @@ impl Writer {
             let range = (self.rust_codepoint(start), self.rust_codepoint(end));
             if let (Some(start), Some(end)) = range {
                 let src = format!("({}, {}, {}), ", start, end, num);
-                self.wtr.write_str(&src)?;
-            }
-        }
-        writeln!(self.wtr, "];")?;
-        Ok(())
-    }
-
-    fn range_set_slice(
-        &mut self,
-        name: &str,
-        table: &[(u32, u32)],
-    ) -> Result<()> {
-        let cp_ty = self.rust_codepoint_type();
-
-        writeln!(
-            self.wtr,
-            "pub const {}: &'static [({}, {})] = &[",
-            name, cp_ty, cp_ty
-        )?;
-        for &(start, end) in table {
-            let range = (self.rust_codepoint(start), self.rust_codepoint(end));
-            if let (Some(start), Some(end)) = range {
-                let src = format!("({}, {}), ", start, end);
                 self.wtr.write_str(&src)?;
             }
         }
