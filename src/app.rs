@@ -1,4 +1,4 @@
-use clap::{App, AppSettings, Arg, SubCommand};
+use clap::{App, AppSettings, Arg, ArgGroup, SubCommand};
 
 const TEMPLATE: &'static str = "\
 {bin} {version}
@@ -202,6 +202,8 @@ pub fn app() -> App<'static, 'static> {
          `--split-ranges` is also used, only a single values array will be generated, and \
          it is assumed that the values for u32 pairs directly follow those for u16.",
     );
+    let group_enum_flags =
+        ArgGroup::with_name("enum-flags").args(&["enum", "rust-enum"]);
     let flag_fst_dir = Arg::with_name("fst-dir")
         .long("fst-dir")
         .help("Emit the table as a FST in Rust source code.")
@@ -230,7 +232,8 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_trie_set.clone())
         .arg(flag_split_ranges.clone())
         .arg(flag_short_names.clone())
-        .arg(flag_sep_value_array.clone())
+        .group(group_enum_flags.clone())
+        .arg(flag_sep_value_array.clone().requires("enum-flags"))
         .arg(
             Arg::with_name("enum").long("enum").help(
                 "Emit a single table that maps codepoints to bidi class.",
@@ -272,7 +275,8 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
         .arg(flag_split_ranges.clone())
-        .arg(flag_sep_value_array.clone())
+        .group(group_enum_flags.clone())
+        .arg(flag_sep_value_array.clone().requires("enum-flags"))
         .arg(
             Arg::with_name("enum").long("enum").help(
                 "Emit a single table that maps codepoints to categories.",
@@ -307,7 +311,8 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
         .arg(flag_split_ranges.clone())
-        .arg(flag_sep_value_array.clone())
+        .group(group_enum_flags.clone())
+        .arg(flag_sep_value_array.clone().requires("enum-flags"))
         .arg(
             Arg::with_name("enum")
                 .long("enum")
@@ -370,6 +375,7 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_fst_dir.clone())
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
+        .arg(flag_split_ranges.clone())
         .arg(Arg::with_name("list-properties").long("list-properties").help(
             "List the properties that can be generated with this \
              command.",
@@ -386,7 +392,9 @@ pub fn app() -> App<'static, 'static> {
             .arg(flag_name("JOINING_TYPE"))
             .arg(flag_chars.clone())
             .arg(flag_trie_set.clone())
-            .arg(flag_sep_value_array.clone())
+            .group(group_enum_flags.clone())
+            .arg(flag_sep_value_array.clone().requires("enum-flags"))
+            .arg(flag_split_ranges.clone())
             .arg(Arg::with_name("enum").long("enum").help(
                 "Emit a single table that maps codepoints to joining type.",
             ))
@@ -564,7 +572,7 @@ pub fn app() -> App<'static, 'static> {
             .arg(flag_chars.clone())
             .arg(flag_trie_set.clone())
             .arg(flag_split_ranges.clone())
-            .arg(flag_sep_value_array.clone())
+            .arg(flag_sep_value_array.clone().requires("enum"))
             .arg(
                 Arg::with_name("enum").long("enum").help(
                     "Emit a single table that maps codepoints to values.",
@@ -582,7 +590,7 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
         .arg(flag_split_ranges.clone())
-        .arg(flag_sep_value_array.clone())
+        .arg(flag_sep_value_array.clone().requires("enum"))
         .arg(
             Arg::with_name("enum")
                 .long("enum")
@@ -600,6 +608,7 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
         .arg(flag_split_ranges.clone())
+        .arg(flag_sep_value_array.clone().requires("enum"))
         .arg(
             Arg::with_name("enum")
                 .long("enum")
