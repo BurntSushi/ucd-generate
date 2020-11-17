@@ -62,7 +62,7 @@ pub fn command(args: ArgMatches<'_>) -> Result<()> {
         }
         wtr.codepoint_to_codepoints("LOWER", &lower_map)?;
         wtr.codepoint_to_codepoints("UPPER", &upper_map)?;
-        wtr.codepoint_to_codepoints("TITLE", &upper_map)?;
+        wtr.codepoint_to_codepoints("TITLE", &title_map)?;
     }
     Ok(())
 }
