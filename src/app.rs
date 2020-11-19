@@ -199,9 +199,12 @@ pub fn app() -> App<'static, 'static> {
     let ucd_dir = Arg::with_name("ucd-dir")
         .required(true)
         .help("Directory containing the Unicode character database files.");
-    let flag_combined = Arg::with_name("combined")
-        .long("combined")
-        .help("Emit a single table with all included codepoint ranges.");
+    let flag_combined = Arg::with_name("combined").long("combined").help(
+        "Emit a single table with all included codepoint ranges. You might \
+        want to use this option when checking if characters belong to a \
+        subset of categories, since only one table will need to be checked. \
+        Searching the combined table should be simpler and more efficient.",
+    );
 
     // Subcommands.
     let cmd_bidi_class = SubCommand::with_name("bidi-class")
