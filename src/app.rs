@@ -199,6 +199,12 @@ pub fn app() -> App<'static, 'static> {
     let ucd_dir = Arg::with_name("ucd-dir")
         .required(true)
         .help("Directory containing the Unicode character database files.");
+    let flag_combined = Arg::with_name("combined").long("combined").help(
+        "Emit a single table with all included codepoint ranges. You might \
+        want to use this option when checking if characters belong to a \
+        subset of categories, since only one table will need to be checked. \
+        Searching the combined table should be simpler and more efficient.",
+    );
 
     // Subcommands.
     let cmd_bidi_class = SubCommand::with_name("bidi-class")
@@ -213,6 +219,7 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
         .arg(flag_short_names.clone())
+        .arg(flag_combined.clone())
         .arg(
             Arg::with_name("enum").long("enum").help(
                 "Emit a single table that maps codepoints to bidi class.",
@@ -252,6 +259,7 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_name("GENERAL_CATEGORY"))
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
+        .arg(flag_combined.clone())
         .arg(
             Arg::with_name("enum").long("enum").help(
                 "Emit a single table that maps codepoints to categories.",
@@ -285,6 +293,7 @@ pub fn app() -> App<'static, 'static> {
         .arg(flag_name("SCRIPT"))
         .arg(flag_chars.clone())
         .arg(flag_trie_set.clone())
+        .arg(flag_combined.clone())
         .arg(
             Arg::with_name("enum")
                 .long("enum")
@@ -362,6 +371,7 @@ pub fn app() -> App<'static, 'static> {
             .arg(flag_name("JOINING_TYPE"))
             .arg(flag_chars.clone())
             .arg(flag_trie_set.clone())
+            .arg(flag_combined.clone())
             .arg(Arg::with_name("enum").long("enum").help(
                 "Emit a single table that maps codepoints to joining type.",
             ))

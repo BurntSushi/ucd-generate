@@ -43,6 +43,8 @@ pub fn command(args: ArgMatches<'_>) -> Result<()> {
     } else if args.is_present("rust-enum") {
         let variants = bycat.keys().map(String::as_str).collect::<Vec<_>>();
         wtr.ranges_to_rust_enum(args.name(), &variants, &bycat)?;
+    } else if args.is_present("combined") {
+        wtr.ranges_to_combined(args.name(), &bycat)?;
     } else {
         wtr.names(bycat.keys().filter(|n| filter.contains(n)))?;
         for (name, set) in bycat {

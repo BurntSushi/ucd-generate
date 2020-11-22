@@ -330,6 +330,24 @@ impl Writer {
         Ok(())
     }
 
+    /// Write a map that combines codepoint ranges into a single table.
+    ///
+    /// The given map should be a map from the variant value to the set of
+    /// codepoints that have that value.
+    pub fn ranges_to_combined(
+        &mut self,
+        name: &str,
+        enum_map: &BTreeMap<String, BTreeSet<u32>>,
+    ) -> Result<()> {
+        let mut set = BTreeSet::new();
+        for other_set in enum_map.values() {
+            set.extend(other_set.iter().cloned());
+        }
+        self.ranges(name, &set)?;
+        self.wtr.flush()?;
+        Ok(())
+    }
+
     fn ranges_to_enum_slice<S>(
         &mut self,
         name: &str,
