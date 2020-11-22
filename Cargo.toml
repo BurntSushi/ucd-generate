@@ -34,7 +34,7 @@ ucd-util = { version = "0.1.8", path = "ucd-util"  }
 [dependencies.clap]
 version = "2.33.0"
 default-features = false
-features = ["suggestions", "color"]
+features = ["suggestions"]
 
 [dev-dependencies]
 lazy_static = "1"
