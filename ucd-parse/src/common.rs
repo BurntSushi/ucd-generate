@@ -435,7 +435,9 @@ impl PartialEq<(Codepoint, Codepoint)> for Codepoints {
 
 /// A range of Unicode codepoints. The range is inclusive; both ends of the
 /// range are guaranteed to be valid codepoints.
-#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, PartialOrd, Ord)]
+#[derive(
+    Clone, Copy, Debug, Default, Eq, Hash, PartialEq, PartialOrd, Ord,
+)]
 pub struct CodepointRange {
     /// The start of the codepoint range.
     pub start: Codepoint,
@@ -499,7 +501,9 @@ impl PartialEq<(Codepoint, Codepoint)> for CodepointRange {
 /// to be in the range `[0, 10FFFF]`.
 ///
 /// Note that unlike Rust's `char` type, this may be a surrogate codepoint.
-#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, PartialOrd, Ord)]
+#[derive(
+    Clone, Copy, Debug, Default, Eq, Hash, PartialEq, PartialOrd, Ord,
+)]
 pub struct Codepoint(u32);
 
 impl Codepoint {
