@@ -834,7 +834,7 @@ impl Writer {
         File::create(fst_file_path)?.write_all(&fst.to_vec())?;
 
         let ty = if map { "Map" } else { "Set" };
-        writeln!(self.wtr, "lazy_static! {{")?;
+        writeln!(self.wtr, "lazy_static::lazy_static! {{")?;
         writeln!(
             self.wtr,
             "  pub static ref {}: ::fst::{}<&'static [u8]> = ",
@@ -1027,7 +1027,7 @@ impl Writer {
         file_name_fwd: &str,
         file_name_rev: &str,
     ) -> Result<()> {
-        writeln!(self.wtr, "lazy_static! {{")?;
+        writeln!(self.wtr, "lazy_static::lazy_static! {{")?;
         writeln!(
             self.wtr,
             "  pub static ref {}: ::regex_automata::{} = {{",
@@ -1060,7 +1060,7 @@ impl Writer {
         align_to: &str,
         file_name: &str,
     ) -> Result<()> {
-        writeln!(self.wtr, "lazy_static! {{")?;
+        writeln!(self.wtr, "lazy_static::lazy_static! {{")?;
         writeln!(
             self.wtr,
             "  pub static ref {}: ::regex_automata::{} = {{",
