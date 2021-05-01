@@ -14,7 +14,7 @@ use crate::error::Error;
 ///
 /// These fields were taken from UAX44, Table 9, as part of the documentation
 /// for the
-/// [`UnicodeData.txt` file](http://www.unicode.org/reports/tr44/#UnicodeData.txt).
+/// [`UnicodeData.txt` file](https://www.unicode.org/reports/tr44/#UnicodeData.txt).
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct UnicodeData {
     /// The codepoint corresponding to this row.
@@ -26,12 +26,12 @@ pub struct UnicodeData {
     /// The class of this codepoint used in the Canonical Ordering Algorithm.
     ///
     /// Note that some classes map to a particular symbol. See
-    /// [UAX44, Table 15](http://www.unicode.org/reports/tr44/#Canonical_Combining_Class_Values).
+    /// [UAX44, Table 15](https://www.unicode.org/reports/tr44/#Canonical_Combining_Class_Values).
     pub canonical_combining_class: u8,
     /// The bidirectional class of this codepoint.
     ///
     /// Possible values are listed in
-    /// [UAX44, Table 13](http://www.unicode.org/reports/tr44/#Bidi_Class_Values).
+    /// [UAX44, Table 13](https://www.unicode.org/reports/tr44/#Bidi_Class_Values).
     pub bidi_class: String,
     /// The decomposition mapping for this codepoint. This includes its
     /// formatting tag (if present).
@@ -352,7 +352,7 @@ impl fmt::Display for UnicodeDataDecomposition {
 /// The formatting tag on a decomposition mapping.
 ///
 /// This is taken from
-/// [UAX44, Table 14](http://www.unicode.org/reports/tr44/#Character_Decomposition_Mappings).
+/// [UAX44, Table 14](https://www.unicode.org/reports/tr44/#Character_Decomposition_Mappings).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum UnicodeDataDecompositionTag {
     /// <font>

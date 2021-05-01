@@ -4,7 +4,7 @@ Unicode codepoints. The principle use case for such a trie is to represent
 properties defined by Unicode that correspond to sets of Unicode codepoints.
 (These properties are formally called boolean properties or "single valued"
 properties. See
-[UTR#23 S3.3](http://www.unicode.org/reports/tr23/#PropertyTypeDefinitions)
+[UTR#23 S3.3](https://www.unicode.org/reports/tr23/#PropertyTypeDefinitions)
 for more details.)
 
 This crate has two principle types: `TrieSetOwned` and `TrieSetSlice`,
