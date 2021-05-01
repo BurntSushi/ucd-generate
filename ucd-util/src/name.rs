@@ -1,6 +1,6 @@
 /// Normalize the given character name in place according to UAX44-LM2.
 ///
-/// See: http://unicode.org/reports/tr44/#UAX44-LM2
+/// See: https://unicode.org/reports/tr44/#UAX44-LM2
 pub fn character_name_normalize(string: &mut String) {
     let bytes = unsafe {
         // SAFETY: `character_name_normalize_bytes` guarantees that
@@ -16,7 +16,7 @@ pub fn character_name_normalize(string: &mut String) {
 /// The slice returned is guaranteed to be valid UTF-8 for all possible values
 /// of `slice`.
 ///
-/// See: http://unicode.org/reports/tr44/#UAX44-LM2
+/// See: https://unicode.org/reports/tr44/#UAX44-LM2
 fn character_name_normalize_bytes(slice: &mut [u8]) -> &mut [u8] {
     // According to Unicode 4.8, character names consist only of Latin
     // capital letters A to Z, ASCII digits, ASCII space or ASCII hypen.
@@ -75,7 +75,7 @@ fn character_name_normalize_bytes(slice: &mut [u8]) -> &mut [u8] {
 /// value aliases. Note, though, that it should not be applied to property
 /// string values.
 ///
-/// See: http://unicode.org/reports/tr44/#UAX44-LM2
+/// See: https://unicode.org/reports/tr44/#UAX44-LM2
 pub fn symbolic_name_normalize(string: &mut String) {
     let bytes = unsafe {
         // SAFETY: `symbolic_name_normalize_bytes` guarantees that
@@ -95,7 +95,7 @@ pub fn symbolic_name_normalize(string: &mut String) {
 /// The slice returned is guaranteed to be valid UTF-8 for all possible values
 /// of `slice`.
 ///
-/// See: http://unicode.org/reports/tr44/#UAX44-LM3
+/// See: https://unicode.org/reports/tr44/#UAX44-LM3
 fn symbolic_name_normalize_bytes(slice: &mut [u8]) -> &mut [u8] {
     // I couldn't find a place in the standard that specified that property
     // names/aliases had a particular structure (unlike character names), but

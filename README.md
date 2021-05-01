@@ -10,7 +10,7 @@ This tool also supports serializing regular expressions as DFAs using the
 crate.
 
 [![Build status](https://github.com/BurntSushi/ucd-generate/workflows/ci/badge.svg)](https://github.com/BurntSushi/ucd-generate/actions)
-[![](http://meritbadge.herokuapp.com/ucd-generate)](https://crates.io/crates/ucd-generate)
+[![](https://meritbadge.herokuapp.com/ucd-generate)](https://crates.io/crates/ucd-generate)
 
 
 ### Installation
@@ -131,7 +131,7 @@ This repository is home to three sub-crates:
 
 This project is licensed under either of
  * Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or
-   http://www.apache.org/licenses/LICENSE-2.0)
+   https://www.apache.org/licenses/LICENSE-2.0)
  * MIT license ([LICENSE-MIT](LICENSE-MIT) or
-   http://opensource.org/licenses/MIT)
+   https://opensource.org/licenses/MIT)
 at your option.

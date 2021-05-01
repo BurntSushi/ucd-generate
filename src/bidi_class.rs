@@ -7,7 +7,7 @@ use crate::error::Result;
 use crate::util::{print_property_values, PropertyValues};
 
 // Bidi Class (listing UnicodeData.txt, field 4: see UAX #44:
-// http://www.unicode.org/reports/tr44/) Unlike other properties, unassigned
+// https://www.unicode.org/reports/tr44/) Unlike other properties, unassigned
 // code points in blocks reserved for right-to-left scripts are given either
 // types R or AL.
 //
