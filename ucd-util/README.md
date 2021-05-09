@@ -4,7 +4,7 @@ A library for small auxiliary Unicode functions. This includes things like
 symbol or character name canonicalization, ideograph name generation and helper
 functions for searching property name and value tables.
 
-[![Linux build status](https://api.travis-ci.org/BurntSushi/ucd-generate.png)](https://travis-ci.org/BurntSushi/ucd-generate)
+[![Build status](https://github.com/BurntSushi/ucd-generate/workflows/ci/badge.svg)](https://github.com/BurntSushi/ucd-generate/actions)
 [![](https://meritbadge.herokuapp.com/ucd-generate)](https://crates.io/crates/ucd-util)
 
 

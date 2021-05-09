@@ -3,7 +3,7 @@ ucd-trie
 A library that provides compressed trie sets specifically tailored toward
 representing boolean Unicode character properties.
 
-[![Linux build status](https://api.travis-ci.org/BurntSushi/ucd-generate.png)](https://travis-ci.org/BurntSushi/ucd-generate)
+[![Build status](https://github.com/BurntSushi/ucd-generate/workflows/ci/badge.svg)](https://github.com/BurntSushi/ucd-generate/actions)
 [![](https://meritbadge.herokuapp.com/ucd-generate)](https://crates.io/crates/ucd-trie)
 
 
