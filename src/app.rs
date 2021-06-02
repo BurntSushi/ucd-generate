@@ -42,6 +42,11 @@ bidi-class produces one table of Unicode codepoint ranges for each
 possible Bidi_Class value.
 ";
 
+const ABOUT_CANONICAL_COMBINING_CLASS: &'static str = "\
+canonical-combining-class produces one table of Unicode codepoint ranges for
+each possible Canonical_Combining_Class value.
+";
+
 const ABOUT_GENERAL_CATEGORY: &'static str = "\
 general-category produces one table of Unicode codepoint ranges for each
 possible General_Category value.
@@ -254,6 +259,30 @@ pub fn app() -> App<'static, 'static> {
             .arg(flag_trie_set.clone())
             .arg(Arg::with_name("rust-match").long("rust-match").help(
                 "Emit a function that uses a match to map between codepoints.",
+            ));
+    let cmd_canonical_combining_class =
+        SubCommand::with_name("canonical-combining-class")
+            .author(clap::crate_authors!())
+            .version(clap::crate_version!())
+            .template(TEMPLATE_SUB)
+            .about("Create the Canonical_Combining_Class table.")
+            .before_help(ABOUT_CANONICAL_COMBINING_CLASS)
+            .arg(ucd_dir.clone())
+            .arg(flag_fst_dir.clone())
+            .arg(flag_name("CANONICAL_COMBINING_CLASS"))
+            .arg(flag_chars.clone())
+            .arg(flag_trie_set.clone())
+            .arg(Arg::with_name("enum").long("enum").help(
+                "Emit a single table that maps codepoints to canonical \
+                 combining class.",
+            ))
+            .arg(Arg::with_name("rust-enum").long("rust-enum").help(
+                "Emit a Rust enum and a table that maps codepoints to \
+                 canonical combining class.",
+            ))
+            .arg(Arg::with_name("list-classes").long("list-classes").help(
+                "List all of the canonical combining class names with \
+                 abbreviations.",
             ));
     let cmd_general_category = SubCommand::with_name("general-category")
         .author(clap::crate_authors!())
@@ -655,6 +684,7 @@ pub fn app() -> App<'static, 'static> {
         .max_term_width(100)
         .setting(AppSettings::UnifiedHelpMessage)
         .subcommand(cmd_bidi_class)
+        .subcommand(cmd_canonical_combining_class)
         .subcommand(cmd_general_category)
         .subcommand(cmd_script)
         .subcommand(cmd_script_extension)
