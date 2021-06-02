@@ -330,6 +330,50 @@ impl Writer {
         Ok(())
     }
 
+    /// Write a map that associates codepoint ranges to a single value in a
+    /// Rust enum with custom discriminants.
+    ///
+    /// The given `variants_map` should be a map from the custom discriminant
+    /// to the enum variant value.
+    ///
+    /// The given `enum_map` should be a map from the enum variant value to the
+    /// set of codepoints that have that value.
+    pub fn ranges_to_rust_enum_with_custom_discriminants(
+        &mut self,
+        name: &str,
+        variants_map: &BTreeMap<isize, String>,
+        enum_map: &BTreeMap<String, BTreeSet<u32>>,
+    ) -> Result<()> {
+        self.header()?;
+        self.separator()?;
+
+        writeln!(
+            self.wtr,
+            "#[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]",
+        )?;
+        let enum_name = rust_type_name(name);
+        writeln!(self.wtr, "pub enum {} {{", enum_name)?;
+        for (discriminant, variant) in variants_map {
+            self.wtr.write_str(&format!(
+                "{} = {}, ",
+                rust_type_name(variant),
+                discriminant
+            ))?;
+        }
+        writeln!(self.wtr, "}}\n")?;
+
+        let mut map = BTreeMap::new();
+        for (variant, ref set) in enum_map.iter() {
+            map.extend(set.iter().cloned().map(|cp| (cp, variant)));
+        }
+        let ranges = util::to_range_values(
+            map.iter().map(|(&k, &v)| (k, rust_type_name(v))),
+        );
+        self.ranges_to_enum_slice(name, &enum_name, &ranges)?;
+        self.wtr.flush()?;
+        Ok(())
+    }
+
     /// Write a map that combines codepoint ranges into a single table.
     ///
     /// The given map should be a map from the variant value to the set of
