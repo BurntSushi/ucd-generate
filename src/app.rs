@@ -47,6 +47,11 @@ general-category produces one table of Unicode codepoint ranges for each
 possible General_Category value.
 ";
 
+const ABOUT_CANONICAL_COMBINING_CLASS: &'static str = "\
+canonical-combining-class produces one table of Unicode codepoint ranges for
+each possible Canonical_Combining_Class value.
+";
+
 const ABOUT_SCRIPT: &'static str = "\
 script produces one table of Unicode codepoint ranges for each possible Script
 value.
@@ -282,6 +287,30 @@ pub fn app() -> App<'static, 'static> {
                 .long("list-categories")
                 .help("List all of the category names with abbreviations."),
         );
+    let cmd_canonical_combining_class =
+        SubCommand::with_name("canonical-combining-class")
+            .author(clap::crate_authors!())
+            .version(clap::crate_version!())
+            .template(TEMPLATE_SUB)
+            .about("Create the Canonical_Combining_Class table.")
+            .before_help(ABOUT_CANONICAL_COMBINING_CLASS)
+            .arg(ucd_dir.clone())
+            .arg(flag_fst_dir.clone())
+            .arg(flag_name("CANONICAL_COMBINING_CLASS"))
+            .arg(flag_chars.clone())
+            .arg(flag_trie_set.clone())
+            .arg(Arg::with_name("enum").long("enum").help(
+                "Emit a single table that maps codepoints to canonical \
+                 combining class.",
+            ))
+            .arg(Arg::with_name("rust-enum").long("rust-enum").help(
+                "Emit a Rust enum and a table that maps codepoints to \
+                 canonical combining class.",
+            ))
+            .arg(Arg::with_name("list-classes").long("list-classes").help(
+                "List all of the canonical combining class names with \
+                 abbreviations.",
+            ));
     let cmd_script = SubCommand::with_name("script")
         .author(clap::crate_authors!())
         .version(clap::crate_version!())
@@ -644,6 +673,7 @@ pub fn app() -> App<'static, 'static> {
         .setting(AppSettings::UnifiedHelpMessage)
         .subcommand(cmd_bidi_class)
         .subcommand(cmd_general_category)
+        .subcommand(cmd_canonical_combining_class)
         .subcommand(cmd_script)
         .subcommand(cmd_script_extension)
         .subcommand(cmd_joining_type)
