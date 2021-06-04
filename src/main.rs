@@ -22,6 +22,7 @@ mod age;
 mod bidi_class;
 mod bidi_mirroring_glyph;
 mod brk;
+mod canonical_combining_class;
 mod case_folding;
 mod case_mapping;
 mod general_category;
@@ -48,6 +49,9 @@ fn run() -> Result<()> {
         ("bidi-class", Some(m)) => bidi_class::command(ArgMatches::new(m)),
         ("bidi-mirroring-glyph", Some(m)) => {
             bidi_mirroring_glyph::command(ArgMatches::new(m))
+        }
+        ("canonical-combining-class", Some(m)) => {
+            canonical_combining_class::command(ArgMatches::new(m))
         }
         ("general-category", Some(m)) => {
             general_category::command(ArgMatches::new(m))
