@@ -21,13 +21,16 @@ pub fn command(args: ArgMatches<'_>) -> Result<()> {
     }
 
     // Collect each canonical combining class into an ordered set.
+    let mut name_map: BTreeMap<isize, String> = BTreeMap::new();
     let mut by_name: BTreeMap<String, BTreeSet<u32>> = BTreeMap::new();
     let mut assigned = BTreeSet::new();
     for row in rows {
         assigned.insert(row.codepoint.value());
-        let ccc = ccc_name(row.canonical_combining_class)?;
+        let ccc_value = row.canonical_combining_class;
+        let ccc_name = ccc_name(ccc_value)?;
+        name_map.entry(ccc_value as isize).or_insert_with(|| ccc_name.clone());
         by_name
-            .entry(ccc)
+            .entry(ccc_name)
             .or_insert(BTreeSet::new())
             .insert(row.codepoint.value());
     }
@@ -48,8 +51,11 @@ pub fn command(args: ArgMatches<'_>) -> Result<()> {
     if args.is_present("enum") {
         wtr.ranges_to_enum(args.name(), &by_name)?;
     } else if args.is_present("rust-enum") {
-        let variants = by_name.keys().map(String::as_str).collect::<Vec<_>>();
-        wtr.ranges_to_rust_enum(args.name(), &variants, &by_name)?;
+        wtr.ranges_to_rust_enum_with_custom_discriminants(
+            args.name(),
+            &name_map,
+            &by_name,
+        )?;
     } else {
         wtr.names(by_name.keys())?;
         for (name, set) in by_name {
