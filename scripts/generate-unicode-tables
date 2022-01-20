@@ -9,7 +9,7 @@
 #
 #   $ mkdir ucd
 #   $ cd ucd
-#   $ curl -LO https://www.unicode.org/Public/zipped/13.0.0/UCD.zip
+#   $ curl -LO https://www.unicode.org/Public/zipped/14.0.0/UCD.zip
 #   $ unzip UCD.zip
 #
 # And then run this script from the root of this repository by pointing it at
