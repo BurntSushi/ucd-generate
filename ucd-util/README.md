@@ -5,7 +5,7 @@ symbol or character name canonicalization, ideograph name generation and helper
 functions for searching property name and value tables.
 
 [![Build status](https://github.com/BurntSushi/ucd-generate/workflows/ci/badge.svg)](https://github.com/BurntSushi/ucd-generate/actions)
-[![](https://meritbadge.herokuapp.com/ucd-generate)](https://crates.io/crates/ucd-util)
+[![crates.io](https://img.shields.io/crates/v/ucd-util.svg)](https://crates.io/crates/ucd-util)
 
 
 ### Documentation

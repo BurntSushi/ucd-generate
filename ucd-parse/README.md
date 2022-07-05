@@ -4,7 +4,7 @@ A library for parsing Unicode Character Database (UCD) files into structured
 data.
 
 [![Build status](https://github.com/BurntSushi/ucd-generate/workflows/ci/badge.svg)](https://github.com/BurntSushi/ucd-generate/actions)
-[![](https://meritbadge.herokuapp.com/ucd-generate)](https://crates.io/crates/ucd-parse)
+[![crates.io](https://img.shields.io/crates/v/ucd-parse.svg)](https://crates.io/crates/ucd-parse)
 
 
 ### Documentation

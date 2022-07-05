@@ -10,7 +10,7 @@ This tool also supports serializing regular expressions as DFAs using the
 crate.
 
 [![Build status](https://github.com/BurntSushi/ucd-generate/workflows/ci/badge.svg)](https://github.com/BurntSushi/ucd-generate/actions)
-[![](https://meritbadge.herokuapp.com/ucd-generate)](https://crates.io/crates/ucd-generate)
+[![crates.io](https://img.shields.io/crates/v/ucd-generate.svg)](https://crates.io/crates/ucd-generate)
 
 
 ### Installation
@@ -106,7 +106,7 @@ responsible for this task today in various Unicode crates.
 
 It is likely, and perhaps desirable, that this tool will eventually be
 deprecated in favor of a more complete project like
-[UNIC](https://github.com/behnam/rust-unic).
+[UNIC](https://github.com/open-i18n/rust-unic).
 The `ucd-generate` tool was born out of desire to add more principled Unicode
 support to Rust's regex crate, and it was much easier to develop this
 out-of-band for my specific requirements.

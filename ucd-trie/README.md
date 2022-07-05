@@ -4,7 +4,7 @@ A library that provides compressed trie sets specifically tailored toward
 representing boolean Unicode character properties.
 
 [![Build status](https://github.com/BurntSushi/ucd-generate/workflows/ci/badge.svg)](https://github.com/BurntSushi/ucd-generate/actions)
-[![](https://meritbadge.herokuapp.com/ucd-generate)](https://crates.io/crates/ucd-trie)
+[![crates.io](https://img.shields.io/crates/v/ucd-trie.svg)](https://crates.io/crates/ucd-trie)
 
 
 ### Documentation

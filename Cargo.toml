@@ -11,7 +11,7 @@ homepage = "https://github.com/BurntSushi/ucd-generate"
 repository = "https://github.com/BurntSushi/ucd-generate"
 readme = "README.md"
 keywords = ["unicode", "generate", "character", "table", "fst"]
-license = "MIT/Apache-2.0"
+license = "MIT OR Apache-2.0"
 categories = ["text-processing", "internationalization"]
 edition = "2018"
 
