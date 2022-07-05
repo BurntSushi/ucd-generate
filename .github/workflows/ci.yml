@@ -19,7 +19,7 @@ jobs:
         include:
         - build: pinned
           os: ubuntu-18.04
-          rust: 1.51.0
+          rust: 1.62.0
         - build: stable
           os: ubuntu-18.04
           rust: stable
@@ -31,13 +31,13 @@ jobs:
           rust: nightly
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v1
-      with:
-        fetch-depth: 1
+      uses: actions/checkout@v3
     - name: Install Rust
-      uses: hecrj/setup-rust-action@v1
+      uses: actions-rs/toolchain@v1
       with:
-        rust-version: ${{ matrix.rust }}
+        override: true
+        toolchain: ${{ matrix.rust }}
+        profile: minimal
     - run: cargo build --all --verbose
     - run: cargo doc --all --verbose
     - run: cargo test --all --verbose
@@ -49,15 +49,14 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v1
-      with:
-        fetch-depth: 1
+      uses: actions/checkout@v3
     - name: Install Rust
-      uses: hecrj/setup-rust-action@v1
+      uses: actions-rs/toolchain@v1
       with:
-        rust-version: stable
-    - name: Install rustfmt
-      run: rustup component add rustfmt
+        override: true
+        toolchain: stable
+        profile: minimal
+        components: rustfmt
     - name: Check formatting
       run: |
         cargo fmt -- --check
