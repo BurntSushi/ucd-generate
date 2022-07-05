@@ -94,7 +94,7 @@ dependencies = [
 
 [[package]]
 name = "ucd-parse"
-version = "0.1.8"
+version = "0.1.9"
 dependencies = [
  "lazy_static",
  "regex",
