@@ -33,11 +33,9 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
     - name: Install Rust
-      uses: actions-rs/toolchain@v1
+      uses: dtolnay/rust-toolchain@v1
       with:
-        override: true
         toolchain: ${{ matrix.rust }}
-        profile: minimal
     - run: cargo build --all --verbose
     - run: cargo doc --all --verbose
     - run: cargo test --all --verbose
@@ -51,11 +49,9 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
     - name: Install Rust
-      uses: actions-rs/toolchain@v1
+      uses: dtolnay/rust-toolchain@v1
       with:
-        override: true
         toolchain: stable
-        profile: minimal
         components: rustfmt
     - name: Check formatting
       run: |
