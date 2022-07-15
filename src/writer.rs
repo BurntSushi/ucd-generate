@@ -349,7 +349,7 @@ impl Writer {
 
         writeln!(
             self.wtr,
-            "#[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]",
+            "#[derive(Clone, Copy, Debug, Hash, Eq, PartialEq, Ord, PartialOrd)]",
         )?;
         let enum_name = rust_type_name(name);
         writeln!(self.wtr, "pub enum {} {{", enum_name)?;
