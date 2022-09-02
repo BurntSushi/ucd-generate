@@ -1,7 +1,7 @@
 use std::path::Path;
 use std::str::FromStr;
 
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use regex::Regex;
 
 use crate::common::{
@@ -46,8 +46,8 @@ impl FromStr for SpecialCaseMapping {
     type Err = Error;
 
     fn from_str(line: &str) -> Result<SpecialCaseMapping, Error> {
-        lazy_static! {
-            static ref PARTS: Regex = Regex::new(
+        static PARTS: Lazy<Regex> = Lazy::new(|| {
+            Regex::new(
                 r"(?x)
                 ^
                 \s*(?P<codepoint>[^\s;]+)\s*;
@@ -55,10 +55,10 @@ impl FromStr for SpecialCaseMapping {
                 \s*(?P<title>[^;]+)\s*;
                 \s*(?P<upper>[^;]+)\s*;
                 \s*(?P<conditions>[^;\x23]+)?
-                "
+                ",
             )
-            .unwrap();
-        };
+            .unwrap()
+        });
 
         let caps = match PARTS.captures(line.trim()) {
             Some(caps) => caps,

@@ -1,7 +1,7 @@
 use std::path::Path;
 use std::str::FromStr;
 
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use regex::Regex;
 
 use crate::common::UcdFile;
@@ -28,19 +28,20 @@ impl FromStr for PropertyAlias {
     type Err = Error;
 
     fn from_str(line: &str) -> Result<PropertyAlias, Error> {
-        lazy_static! {
-            static ref PARTS: Regex = Regex::new(
+        static PARTS: Lazy<Regex> = Lazy::new(|| {
+            Regex::new(
                 r"(?x)
                 ^
                 \s*(?P<abbrev>[^\s;]+)\s*;
                 \s*(?P<long>[^\s;]+)\s*
                 (?:;(?P<aliases>.*))?
-                "
+                ",
             )
-            .unwrap();
-            static ref ALIASES: Regex =
-                Regex::new(r"\s*(?P<alias>[^\s;]+)\s*;?\s*").unwrap();
-        };
+            .unwrap()
+        });
+        static ALIASES: Lazy<Regex> = Lazy::new(|| {
+            Regex::new(r"\s*(?P<alias>[^\s;]+)\s*;?\s*").unwrap()
+        });
 
         let caps = match PARTS.captures(line.trim()) {
             Some(caps) => caps,

@@ -1,7 +1,7 @@
 use std::path::Path;
 use std::str::FromStr;
 
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use regex::Regex;
 
 use crate::common::{Codepoint, CodepointIter, UcdFile, UcdFileByCodepoint};
@@ -42,17 +42,17 @@ impl FromStr for CaseFold {
     type Err = Error;
 
     fn from_str(line: &str) -> Result<CaseFold, Error> {
-        lazy_static! {
-            static ref PARTS: Regex = Regex::new(
+        static PARTS: Lazy<Regex> = Lazy::new(|| {
+            Regex::new(
                 r"(?x)
                 ^
                 \s*(?P<codepoint>[^\s;]+)\s*;
                 \s*(?P<status>[^\s;]+)\s*;
                 \s*(?P<mapping>[^;]+)\s*;
-                "
+                ",
             )
-            .unwrap();
-        };
+            .unwrap()
+        });
 
         let caps = match PARTS.captures(line.trim()) {
             Some(caps) => caps,

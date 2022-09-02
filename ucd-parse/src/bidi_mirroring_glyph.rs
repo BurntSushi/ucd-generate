@@ -2,7 +2,7 @@ use std::fmt;
 use std::path::Path;
 use std::str::FromStr;
 
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use regex::Regex;
 
 use crate::common::{Codepoint, CodepointIter, UcdFile, UcdFileByCodepoint};
@@ -36,8 +36,8 @@ impl FromStr for BidiMirroring {
     type Err = Error;
 
     fn from_str(line: &str) -> Result<BidiMirroring, Error> {
-        lazy_static! {
-            static ref PARTS: Regex = Regex::new(
+        static PARTS: Lazy<Regex> = Lazy::new(|| {
+            Regex::new(
                 r"(?x)
                 ^
                 \s*(?P<codepoint>[A-F0-9]+)\s*;
@@ -45,10 +45,10 @@ impl FromStr for BidiMirroring {
                 \s+
                 \#(?:.+)
                 $
-                "
+                ",
             )
-            .unwrap();
-        };
+            .unwrap()
+        });
         let caps = match PARTS.captures(line.trim()) {
             Some(caps) => caps,
             None => return err!("invalid BidiMirroring line"),

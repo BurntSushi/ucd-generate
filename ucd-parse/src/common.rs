@@ -7,7 +7,7 @@ use std::marker::PhantomData;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use regex::Regex;
 
 use crate::error::{Error, ErrorKind};
@@ -85,10 +85,9 @@ pub fn ucd_directory_version<D: ?Sized + AsRef<Path>>(
     fn ucd_directory_version_inner(
         ucd_dir: &Path,
     ) -> Result<(u64, u64, u64), Error> {
-        lazy_static::lazy_static! {
-            static ref VERSION_RX: Regex =
-                Regex::new(r"-([0-9]+).([0-9]+).([0-9]+).txt").unwrap();
-        }
+        static VERSION_RX: Lazy<Regex> = Lazy::new(|| {
+            Regex::new(r"-([0-9]+).([0-9]+).([0-9]+).txt").unwrap()
+        });
 
         let proplist = ucd_dir.join("PropList.txt");
         let contents = first_line(&proplist)?;
@@ -140,16 +139,16 @@ fn first_line(path: &Path) -> Result<String, Error> {
 pub fn parse_codepoint_association<'a>(
     line: &'a str,
 ) -> Result<(Codepoints, &'a str), Error> {
-    lazy_static! {
-        static ref PARTS: Regex = Regex::new(
+    static PARTS: Lazy<Regex> = Lazy::new(|| {
+        Regex::new(
             r"(?x)
             ^
             \s*(?P<codepoints>[^\s;]+)\s*;
             \s*(?P<property>[^;\x23]+)\s*
-            "
+            ",
         )
-        .unwrap();
-    };
+        .unwrap()
+    });
 
     let caps = match PARTS.captures(line.trim()) {
         Some(caps) => caps,
@@ -184,8 +183,8 @@ pub fn parse_codepoint_sequence(s: &str) -> Result<Vec<Codepoint>, Error> {
 /// with the comment associated with the test. The comment is a human readable
 /// description of the test that may prove useful for debugging.
 pub fn parse_break_test(line: &str) -> Result<(Vec<String>, String), Error> {
-    lazy_static! {
-        static ref PARTS: Regex = Regex::new(
+    static PARTS: Lazy<Regex> = Lazy::new(|| {
+        Regex::new(
             r"(?x)
             ^
             (?:÷|×)
@@ -193,16 +192,18 @@ pub fn parse_break_test(line: &str) -> Result<(Vec<String>, String), Error> {
             \s+
             \#(?P<comment>.+)
             $
-            "
+            ",
         )
-        .unwrap();
-        static ref GROUP: Regex = Regex::new(
+        .unwrap()
+    });
+    static GROUP: Lazy<Regex> = Lazy::new(|| {
+        Regex::new(
             r"(?x)
             (?P<codepoint>[0-9A-Fa-f]{4,5})\s(?P<kind>÷|×)
-            "
+            ",
         )
-        .unwrap();
-    }
+        .unwrap()
+    });
 
     let caps = match PARTS.captures(line.trim()) {
         Some(caps) => caps,
@@ -458,11 +459,10 @@ impl FromStr for CodepointRange {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<CodepointRange, Error> {
-        lazy_static! {
-            static ref PARTS: Regex =
-                Regex::new(r"^(?P<start>[A-Z0-9]+)\.\.(?P<end>[A-Z0-9]+)$")
-                    .unwrap();
-        }
+        static PARTS: Lazy<Regex> = Lazy::new(|| {
+            Regex::new(r"^(?P<start>[A-Z0-9]+)\.\.(?P<end>[A-Z0-9]+)$")
+                .unwrap()
+        });
         let caps = match PARTS.captures(s) {
             Some(caps) => caps,
             None => return err!("invalid codepoint range: '{}'", s),

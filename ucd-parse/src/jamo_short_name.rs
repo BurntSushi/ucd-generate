@@ -1,7 +1,7 @@
 use std::path::Path;
 use std::str::FromStr;
 
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use regex::Regex;
 
 use crate::common::{Codepoint, CodepointIter, UcdFile, UcdFileByCodepoint};
@@ -35,17 +35,17 @@ impl FromStr for JamoShortName {
     type Err = Error;
 
     fn from_str(line: &str) -> Result<JamoShortName, Error> {
-        lazy_static! {
-            static ref PARTS: Regex = Regex::new(
+        static PARTS: Lazy<Regex> = Lazy::new(|| {
+            Regex::new(
                 r"(?x)
                 ^
                 (?P<codepoint>[A-Z0-9]+);
                 \s*
                 (?P<name>[A-Z]*)
-                "
+                ",
             )
-            .unwrap();
-        };
+            .unwrap()
+        });
 
         let caps = match PARTS.captures(line.trim()) {
             Some(caps) => caps,
