@@ -28,7 +28,7 @@ byteorder = "1"
 fst = "0.4.0"
 regex-automata = "0.1.9"
 ucd-parse = { version = "0.1.9", path = "ucd-parse" }
-ucd-trie = { version = "0.1.4", path = "ucd-trie" }
+ucd-trie = { version = "0.1.5", path = "ucd-trie" }
 ucd-util = { version = "0.1.9", path = "ucd-util"  }
 
 [dependencies.clap]
