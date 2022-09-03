@@ -101,7 +101,7 @@ dependencies = [
 
 [[package]]
 name = "ucd-trie"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "once_cell",
 ]
