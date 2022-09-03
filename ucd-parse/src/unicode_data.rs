@@ -4,7 +4,7 @@ use std::ops::Range;
 use std::path::Path;
 use std::str::FromStr;
 
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use regex::Regex;
 
 use crate::common::{Codepoint, CodepointIter, UcdFile, UcdFileByCodepoint};
@@ -99,8 +99,8 @@ impl FromStr for UnicodeData {
     type Err = Error;
 
     fn from_str(line: &str) -> Result<UnicodeData, Error> {
-        lazy_static! {
-            static ref PARTS: Regex = Regex::new(
+        static PARTS: Lazy<Regex> = Lazy::new(|| {
+            Regex::new(
                 r"(?x)
                 ^
                 ([A-Z0-9]+);  #  1; codepoint
@@ -119,10 +119,10 @@ impl FromStr for UnicodeData {
                 ([^;]*);      # 14; simple lowercase mapping
                 ([^;]*)       # 15; simple titlecase mapping
                 $
-                "
+                ",
             )
-            .unwrap();
-        };
+            .unwrap()
+        });
         let caps = match PARTS.captures(line.trim()) {
             Some(caps) => caps,
             None => return err!("invalid UnicodeData line"),
@@ -301,13 +301,12 @@ impl FromStr for UnicodeDataDecomposition {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<UnicodeDataDecomposition, Error> {
-        lazy_static! {
-            static ref WITH_TAG: Regex = Regex::new(
-                r"^(?:<(?P<tag>[^>]+)>)?\s*(?P<chars>[\s0-9A-F]+)$"
-            )
-            .unwrap();
-            static ref CHARS: Regex = Regex::new(r"[0-9A-F]+").unwrap();
-        };
+        static WITH_TAG: Lazy<Regex> = Lazy::new(|| {
+            Regex::new(r"^(?:<(?P<tag>[^>]+)>)?\s*(?P<chars>[\s0-9A-F]+)$")
+                .unwrap()
+        });
+        static CHARS: Lazy<Regex> =
+            Lazy::new(|| Regex::new(r"[0-9A-F]+").unwrap());
         if s.is_empty() {
             return err!(
                 "expected non-empty string for \

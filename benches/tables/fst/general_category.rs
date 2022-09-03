@@ -38,8 +38,11 @@ pub const GENERAL_CATEGORY_ENUM: &'static [&'static str] = &[
     "Uppercase_Letter",
 ];
 
-lazy_static::lazy_static! {
-  pub static ref GENERAL_CATEGORY: ::fst::Map<&'static [u8]> =
-    ::fst::Map::from(::fst::raw::Fst::new(
-      &include_bytes!("general_category.fst")[..]).unwrap());
-}
+pub static GENERAL_CATEGORY: ::once_cell::sync::Lazy<
+    ::fst::Map<&'static [u8]>,
+> = ::once_cell::sync::Lazy::new(|| {
+    ::fst::Map::from(
+        ::fst::raw::Fst::new(&include_bytes!("general_category.fst")[..])
+            .unwrap(),
+    )
+});

@@ -916,19 +916,19 @@ impl Writer {
         File::create(fst_file_path)?.write_all(&fst.to_vec())?;
 
         let ty = if map { "Map" } else { "Set" };
-        writeln!(self.wtr, "lazy_static::lazy_static! {{")?;
         writeln!(
             self.wtr,
-            "  pub static ref {}: ::fst::{}<&'static [u8]> = ",
+            "pub static {}: ::once_cell::sync::Lazy<::fst::{}<&'static [u8]>> =",
             const_name, ty
         )?;
+        writeln!(self.wtr, "  ::once_cell::sync::Lazy::new(|| {{")?;
         writeln!(self.wtr, "    ::fst::{}::from(::fst::raw::Fst::new(", ty)?;
         writeln!(
             self.wtr,
-            "      &include_bytes!({:?})[..]).unwrap());",
+            "      &include_bytes!({:?})[..]).unwrap())",
             fst_file_name
         )?;
-        writeln!(self.wtr, "}}")?;
+        writeln!(self.wtr, "  }});")?;
         Ok(())
     }
 
@@ -1109,12 +1109,12 @@ impl Writer {
         file_name_fwd: &str,
         file_name_rev: &str,
     ) -> Result<()> {
-        writeln!(self.wtr, "lazy_static::lazy_static! {{")?;
         writeln!(
             self.wtr,
-            "  pub static ref {}: ::regex_automata::{} = {{",
+            "pub static {}: ::once_cell::sync::Lazy<::regex_automata::{}> =",
             const_name, full_regex_ty
         )?;
+        writeln!(self.wtr, "  ::once_cell::sync::Lazy::new(|| {{")?;
 
         writeln!(self.wtr, "    let fwd =")?;
         self.write_dfa_deserialize(short_dfa_ty, align_to, file_name_fwd)?;
@@ -1128,8 +1128,7 @@ impl Writer {
             self.wtr,
             "    ::regex_automata::Regex::from_dfas(fwd, rev)"
         )?;
-        writeln!(self.wtr, "  }};")?;
-        writeln!(self.wtr, "}}")?;
+        writeln!(self.wtr, "  }});")?;
 
         Ok(())
     }
@@ -1142,15 +1141,14 @@ impl Writer {
         align_to: &str,
         file_name: &str,
     ) -> Result<()> {
-        writeln!(self.wtr, "lazy_static::lazy_static! {{")?;
         writeln!(
             self.wtr,
-            "  pub static ref {}: ::regex_automata::{} = {{",
+            "pub static {}: ::once_cell::sync::Lazy<::regex_automata::{}> =",
             const_name, full_dfa_ty
         )?;
+        writeln!(self.wtr, "  ::once_cell::sync::Lazy::new(|| {{")?;
         self.write_dfa_deserialize(short_dfa_ty, align_to, file_name)?;
-        writeln!(self.wtr, "  }};")?;
-        writeln!(self.wtr, "}}")?;
+        writeln!(self.wtr, "  }});")?;
 
         Ok(())
     }

@@ -6,8 +6,11 @@
 //
 // ucd-generate 0.2.10 is available on crates.io.
 
-lazy_static::lazy_static! {
-  pub static ref JAMO_SHORT_NAME: ::fst::Map<&'static [u8]> =
-    ::fst::Map::from(::fst::raw::Fst::new(
-      &include_bytes!("jamo_short_name.fst")[..]).unwrap());
-}
+pub static JAMO_SHORT_NAME: ::once_cell::sync::Lazy<
+    ::fst::Map<&'static [u8]>,
+> = ::once_cell::sync::Lazy::new(|| {
+    ::fst::Map::from(
+        ::fst::raw::Fst::new(&include_bytes!("jamo_short_name.fst")[..])
+            .unwrap(),
+    )
+});

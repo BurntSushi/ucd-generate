@@ -1,7 +1,7 @@
 use std::path::Path;
 use std::str::FromStr;
 
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use regex::Regex;
 
 use crate::common::{CodepointIter, Codepoints, UcdFile, UcdFileByCodepoint};
@@ -38,18 +38,18 @@ impl FromStr for DerivedNumericValues {
     type Err = Error;
 
     fn from_str(line: &str) -> Result<DerivedNumericValues, Error> {
-        lazy_static! {
-            static ref PARTS: Regex = Regex::new(
+        static PARTS: Lazy<Regex> = Lazy::new(|| {
+            Regex::new(
                 r"(?x)
                 ^
                 \s*(?P<codepoints>[^\s;]+)\s*;
                 \s*(?P<numeric_value_decimal>[^\s;]+)\s*;
                 \s*;
                 \s*(?P<numeric_value_fraction>[^\s;]+)\s*
-                "
+                ",
             )
-            .unwrap();
-        };
+            .unwrap()
+        });
 
         let caps = match PARTS.captures(line.trim()) {
             Some(caps) => caps,

@@ -33,10 +33,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7ab85b9b05e3978cc9a9cf8fea7f01b494e1a09ed3037e16ba39edc7a29eb61a"
 
 [[package]]
-name = "lazy_static"
-version = "1.4.0"
+name = "once_cell"
+version = "1.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
+checksum = "2f7254b99e31cad77da24b08ebf628882739a608578bb1bcdfc1f9c21260d7c0"
 
 [[package]]
 name = "regex"
@@ -84,7 +84,7 @@ dependencies = [
  "byteorder",
  "clap",
  "fst",
- "lazy_static",
+ "once_cell",
  "regex-automata",
  "ucd-parse",
  "ucd-trie",
@@ -95,7 +95,7 @@ dependencies = [
 name = "ucd-parse"
 version = "0.1.9"
 dependencies = [
- "lazy_static",
+ "once_cell",
  "regex",
 ]
 
@@ -103,7 +103,7 @@ dependencies = [
 name = "ucd-trie"
 version = "0.1.4"
 dependencies = [
- "lazy_static",
+ "once_cell",
 ]
 
 [[package]]

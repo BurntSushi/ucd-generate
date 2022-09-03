@@ -1,7 +1,7 @@
 use std::path::Path;
 use std::str::FromStr;
 
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use regex::Regex;
 
 use crate::common::UcdFile;
@@ -34,30 +34,33 @@ impl FromStr for PropertyValueAlias {
     type Err = Error;
 
     fn from_str(line: &str) -> Result<PropertyValueAlias, Error> {
-        lazy_static! {
-            static ref PARTS: Regex = Regex::new(
+        static PARTS: Lazy<Regex> = Lazy::new(|| {
+            Regex::new(
                 r"(?x)
                 ^
                 \s*(?P<prop>[^\s;]+)\s*;
                 \s*(?P<abbrev>[^\s;]+)\s*;
                 \s*(?P<long>[^\s;]+)\s*
                 (?:;(?P<aliases>.*))?
-                "
+                ",
             )
-            .unwrap();
-            static ref PARTS_CCC: Regex = Regex::new(
+            .unwrap()
+        });
+        static PARTS_CCC: Lazy<Regex> = Lazy::new(|| {
+            Regex::new(
                 r"(?x)
                 ^
                 ccc;
                 \s*(?P<num_class>[0-9]+)\s*;
                 \s*(?P<abbrev>[^\s;]+)\s*;
                 \s*(?P<long>[^\s;]+)
-                "
+                ",
             )
-            .unwrap();
-            static ref ALIASES: Regex =
-                Regex::new(r"\s*(?P<alias>[^\s;]+)\s*;?\s*").unwrap();
-        };
+            .unwrap()
+        });
+        static ALIASES: Lazy<Regex> = Lazy::new(|| {
+            Regex::new(r"\s*(?P<alias>[^\s;]+)\s*;?\s*").unwrap()
+        });
 
         if line.starts_with("ccc;") {
             let caps = match PARTS_CCC.captures(line.trim()) {

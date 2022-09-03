@@ -1,7 +1,7 @@
 use std::path::Path;
 use std::str::FromStr;
 
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use regex::Regex;
 
 use crate::common::{Codepoint, CodepointIter, UcdFile, UcdFileByCodepoint};
@@ -37,8 +37,8 @@ impl FromStr for NameAlias {
     type Err = Error;
 
     fn from_str(line: &str) -> Result<NameAlias, Error> {
-        lazy_static! {
-            static ref PARTS: Regex = Regex::new(
+        static PARTS: Lazy<Regex> = Lazy::new(|| {
+            Regex::new(
                 r"(?x)
                 ^
                 (?P<codepoint>[A-Z0-9]+);
@@ -46,10 +46,10 @@ impl FromStr for NameAlias {
                 (?P<alias>[^;]+);
                 \s*
                 (?P<label>\S+)
-                "
+                ",
             )
-            .unwrap();
-        };
+            .unwrap()
+        });
 
         let caps = match PARTS.captures(line.trim()) {
             Some(caps) => caps,
