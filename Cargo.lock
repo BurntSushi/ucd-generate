@@ -79,7 +79,7 @@ dependencies = [
 
 [[package]]
 name = "ucd-generate"
-version = "0.2.12"
+version = "0.2.13"
 dependencies = [
  "byteorder",
  "clap",
