@@ -102,7 +102,7 @@ fn symbolic_name_normalize_bytes(slice: &mut [u8]) -> &mut [u8] {
     // we assume that it's ASCII only and drop anything that isn't ASCII.
     let mut start = 0;
     let mut starts_with_is = false;
-    if slice.len() >= 2 {
+    if slice.len() > 2 {
         // Ignore any "is" prefix.
         starts_with_is = slice[0..2] == b"is"[..]
             || slice[0..2] == b"IS"[..]
@@ -184,6 +184,7 @@ mod tests {
         assert_eq!(sym_norm("isc"), "isc");
         assert_eq!(sym_norm("is c"), "isc");
         assert_eq!(sym_norm("is_c"), "isc");
+        assert_eq!(sym_norm("IS"), "is");
     }
 
     #[test]
