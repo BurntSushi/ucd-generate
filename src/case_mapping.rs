@@ -23,6 +23,13 @@ pub fn command(args: ArgMatches<'_>) -> Result<()> {
             title_map.insert(item.codepoint.value(), vec![title.value()]);
         }
     }
+
+    let includes = if let Some(what) = args.values_of("include") {
+        what.clone().collect::<Vec<_>>()
+    } else {
+        vec!["LOWER", "UPPER", "TITLE"]
+    };
+
     if args.is_present("simple") {
         let upper_map =
             upper_map.into_iter().map(|(k, v)| (k, v[0])).collect();
@@ -30,9 +37,15 @@ pub fn command(args: ArgMatches<'_>) -> Result<()> {
             lower_map.into_iter().map(|(k, v)| (k, v[0])).collect();
         let title_map =
             title_map.into_iter().map(|(k, v)| (k, v[0])).collect();
-        wtr.codepoint_to_codepoint("LOWER", &upper_map)?;
-        wtr.codepoint_to_codepoint("UPPER", &lower_map)?;
-        wtr.codepoint_to_codepoint("TITLE", &title_map)?;
+
+        for name in includes {
+            match name {
+                "LOWER" => wtr.codepoint_to_codepoint("LOWER", &lower_map)?,
+                "UPPER" => wtr.codepoint_to_codepoint("UPPER", &upper_map)?,
+                "TITlE" => wtr.codepoint_to_codepoint("TITlE", &title_map)?,
+                _ => (),
+            }
+        }
     } else {
         for special in SpecialCaseMapping::from_dir(&dir)? {
             let special = special?;
@@ -61,9 +74,20 @@ pub fn command(args: ArgMatches<'_>) -> Result<()> {
             }
         }
         let flat = args.is_present("flat-table");
-        wtr.codepoint_to_codepoints("LOWER", &lower_map, flat)?;
-        wtr.codepoint_to_codepoints("UPPER", &upper_map, flat)?;
-        wtr.codepoint_to_codepoints("TITLE", &title_map, flat)?;
+        for name in includes {
+            match name {
+                "LOWER" => {
+                    wtr.codepoint_to_codepoints("LOWER", &lower_map, flat)?
+                }
+                "UPPER" => {
+                    wtr.codepoint_to_codepoints("UPPER", &upper_map, flat)?
+                }
+                "TITLE" => {
+                    wtr.codepoint_to_codepoints("TITLE", &title_map, flat)?
+                }
+                _ => (),
+            }
+        }
     }
     Ok(())
 }

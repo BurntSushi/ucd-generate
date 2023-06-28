@@ -571,6 +571,21 @@ pub fn app() -> App<'static, 'static> {
              (emit maps of codepoint to codepoint, \
              ignoring rules from SpecialCasing.txt)",
         ))
+        .arg(
+            Arg::with_name("include")
+                .long("include")
+                .possible_value("UPPER")
+                .possible_value("LOWER")
+                .possible_value("TITLE")
+                .value_name("UPPER|LOWER|TITLE")
+                .takes_value(true)
+                .multiple(true)
+                .help(
+                    "Only include some case mapping. \
+                     Can be specified multiple times. \
+                     When absent, all case mapping are included.",
+                ),
+        )
         .arg(flag_flat_table.clone().conflicts_with("simple"));
 
     let cmd_grapheme_cluster_break =
