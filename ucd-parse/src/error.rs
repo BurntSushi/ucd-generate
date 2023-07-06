@@ -1,6 +1,3 @@
-use std::error;
-use std::fmt;
-use std::io;
 use std::path::{Path, PathBuf};
 
 /// Represents any kind of error that can occur while parsing the UCD.
@@ -15,7 +12,7 @@ pub struct Error {
 #[derive(Debug)]
 pub enum ErrorKind {
     /// An I/O error.
-    Io(io::Error),
+    Io(std::io::Error),
     /// A generic parse error.
     Parse(String),
 }
@@ -58,17 +55,10 @@ impl Error {
     }
 }
 
-impl error::Error for Error {
-    fn cause(&self) -> Option<&dyn error::Error> {
-        match self.kind {
-            ErrorKind::Io(ref err) => Some(err),
-            _ => None,
-        }
-    }
-}
+impl std::error::Error for Error {}
 
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if let Some(ref path) = self.path {
             if let Some(line) = self.line {
                 write!(f, "{}:{}: ", path.display(), line)?;

@@ -1,11 +1,12 @@
 use std::path::Path;
-use std::str::FromStr;
 
-use crate::common::{
-    parse_codepoint_association, CodepointIter, Codepoints, UcdFile,
-    UcdFileByCodepoint,
+use crate::{
+    common::{
+        parse_codepoint_association, CodepointIter, Codepoints, UcdFile,
+        UcdFileByCodepoint,
+    },
+    error::Error,
 };
-use crate::error::Error;
 
 /// A single row in the `EastAsianWidth.txt` file, describing the value of the
 /// `East_Asian_Width` property.
@@ -32,7 +33,7 @@ impl UcdFileByCodepoint for EastAsianWidth {
     }
 }
 
-impl FromStr for EastAsianWidth {
+impl std::str::FromStr for EastAsianWidth {
     type Err = Error;
 
     fn from_str(line: &str) -> Result<EastAsianWidth, Error> {

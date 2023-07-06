@@ -1,11 +1,9 @@
 use std::path::Path;
-use std::str::FromStr;
 
-use once_cell::sync::Lazy;
-use regex::Regex;
-
-use crate::common::{Codepoint, CodepointIter, UcdFile, UcdFileByCodepoint};
-use crate::error::Error;
+use crate::{
+    common::{Codepoint, CodepointIter, UcdFile, UcdFileByCodepoint},
+    error::Error,
+};
 
 /// A single row in the `Jamo.txt` file.
 ///
@@ -31,23 +29,20 @@ impl UcdFileByCodepoint for JamoShortName {
     }
 }
 
-impl FromStr for JamoShortName {
+impl std::str::FromStr for JamoShortName {
     type Err = Error;
 
     fn from_str(line: &str) -> Result<JamoShortName, Error> {
-        static PARTS: Lazy<Regex> = Lazy::new(|| {
-            Regex::new(
-                r"(?x)
+        let re_parts = regex!(
+            r"(?x)
                 ^
                 (?P<codepoint>[A-Z0-9]+);
                 \s*
                 (?P<name>[A-Z]*)
                 ",
-            )
-            .unwrap()
-        });
+        );
 
-        let caps = match PARTS.captures(line.trim()) {
+        let caps = match re_parts.captures(line.trim()) {
             Some(caps) => caps,
             None => return err!("invalid Jamo_Short_name line"),
         };

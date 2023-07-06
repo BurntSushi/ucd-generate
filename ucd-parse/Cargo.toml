@@ -14,9 +14,4 @@ license = "MIT OR Apache-2.0"
 edition = "2018"
 
 [dependencies]
-once_cell = "1"
-
-[dependencies.regex]
-version = "1"
-default-features = false
-features = ["std", "unicode"]
+regex-lite = "0.1.0"

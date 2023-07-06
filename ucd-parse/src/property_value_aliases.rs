@@ -1,11 +1,6 @@
 use std::path::Path;
-use std::str::FromStr;
 
-use once_cell::sync::Lazy;
-use regex::Regex;
-
-use crate::common::UcdFile;
-use crate::error::Error;
+use crate::{common::UcdFile, error::Error};
 
 /// A single row in the `PropertyValueAliases.txt` file.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -30,40 +25,32 @@ impl UcdFile for PropertyValueAlias {
     }
 }
 
-impl FromStr for PropertyValueAlias {
+impl std::str::FromStr for PropertyValueAlias {
     type Err = Error;
 
     fn from_str(line: &str) -> Result<PropertyValueAlias, Error> {
-        static PARTS: Lazy<Regex> = Lazy::new(|| {
-            Regex::new(
-                r"(?x)
+        let re_parts = regex!(
+            r"(?x)
                 ^
                 \s*(?P<prop>[^\s;]+)\s*;
                 \s*(?P<abbrev>[^\s;]+)\s*;
                 \s*(?P<long>[^\s;]+)\s*
                 (?:;(?P<aliases>.*))?
                 ",
-            )
-            .unwrap()
-        });
-        static PARTS_CCC: Lazy<Regex> = Lazy::new(|| {
-            Regex::new(
-                r"(?x)
+        );
+        let re_parts_ccc = regex!(
+            r"(?x)
                 ^
                 ccc;
                 \s*(?P<num_class>[0-9]+)\s*;
                 \s*(?P<abbrev>[^\s;]+)\s*;
                 \s*(?P<long>[^\s;]+)
                 ",
-            )
-            .unwrap()
-        });
-        static ALIASES: Lazy<Regex> = Lazy::new(|| {
-            Regex::new(r"\s*(?P<alias>[^\s;]+)\s*;?\s*").unwrap()
-        });
+        );
+        let re_aliases = regex!(r"\s*(?P<alias>[^\s;]+)\s*;?\s*");
 
         if line.starts_with("ccc;") {
-            let caps = match PARTS_CCC.captures(line.trim()) {
+            let caps = match re_parts_ccc.captures(line.trim()) {
                 Some(caps) => caps,
                 None => {
                     return err!("invalid PropertyValueAliases (ccc) line")
@@ -90,13 +77,13 @@ impl FromStr for PropertyValueAlias {
             });
         }
 
-        let caps = match PARTS.captures(line.trim()) {
+        let caps = match re_parts.captures(line.trim()) {
             Some(caps) => caps,
             None => return err!("invalid PropertyValueAliases line"),
         };
         let mut aliases = vec![];
         if let Some(m) = caps.name("aliases") {
-            for acaps in ALIASES.captures_iter(m.as_str()) {
+            for acaps in re_aliases.captures_iter(m.as_str()) {
                 let alias = acaps.name("alias").unwrap().as_str();
                 if alias == "#" {
                     // This starts a comment, so stop reading.

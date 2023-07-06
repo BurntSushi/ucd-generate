@@ -1,11 +1,12 @@
 use std::path::Path;
-use std::str::FromStr;
 
-use crate::common::{
-    parse_break_test, parse_codepoint_association, CodepointIter, Codepoints,
-    UcdFile, UcdFileByCodepoint,
+use crate::{
+    common::{
+        parse_break_test, parse_codepoint_association, CodepointIter,
+        Codepoints, UcdFile, UcdFileByCodepoint,
+    },
+    error::Error,
 };
-use crate::error::Error;
 
 /// A single row in the `auxiliary/GraphemeBreakProperty.txt` file.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -28,7 +29,7 @@ impl UcdFileByCodepoint for GraphemeClusterBreak {
     }
 }
 
-impl FromStr for GraphemeClusterBreak {
+impl std::str::FromStr for GraphemeClusterBreak {
     type Err = Error;
 
     fn from_str(line: &str) -> Result<GraphemeClusterBreak, Error> {
@@ -55,7 +56,7 @@ impl UcdFile for GraphemeClusterBreakTest {
     }
 }
 
-impl FromStr for GraphemeClusterBreakTest {
+impl std::str::FromStr for GraphemeClusterBreakTest {
     type Err = Error;
 
     fn from_str(line: &str) -> Result<GraphemeClusterBreakTest, Error> {

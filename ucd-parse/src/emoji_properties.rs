@@ -1,11 +1,12 @@
 use std::path::{Path, PathBuf};
-use std::str::FromStr;
 
-use crate::common::{
-    parse_codepoint_association, CodepointIter, Codepoints, UcdFile,
-    UcdFileByCodepoint,
+use crate::{
+    common::{
+        parse_codepoint_association, CodepointIter, Codepoints, UcdFile,
+        UcdFileByCodepoint,
+    },
+    error::Error,
 };
-use crate::error::Error;
 
 /// A single row in the `emoji-data.txt` file.
 ///
@@ -55,7 +56,7 @@ impl UcdFileByCodepoint for EmojiProperty {
     }
 }
 
-impl FromStr for EmojiProperty {
+impl std::str::FromStr for EmojiProperty {
     type Err = Error;
 
     fn from_str(line: &str) -> Result<EmojiProperty, Error> {
