@@ -35,9 +35,6 @@ impl<'a> ArgMatches<'a> {
             .columns(79)
             .char_literals(self.is_present("chars"))
             .trie_set(self.is_present("trie-set"));
-        if let Some(p) = self.value_of_os("dfa-dir") {
-            return builder.from_dfa_dir(p);
-        }
         // Some of the functionality of this crate works with a partial ucd
         // directory.
         match ucd_parse::ucd_directory_version(self.ucd_dir()?) {
@@ -49,19 +46,6 @@ impl<'a> ArgMatches<'a> {
         match self.value_of_os("fst-dir") {
             None => Ok(builder.from_stdout()),
             Some(x) => builder.from_fst_dir(x),
-        }
-    }
-
-    pub fn dfa_writer(&self, name: &str) -> Result<Writer> {
-        let mut builder = WriterBuilder::new(name);
-        builder
-            .columns(79)
-            .char_literals(self.is_present("chars"))
-            .trie_set(self.is_present("trie-set"));
-        if let Some(p) = self.value_of_os("dfa-dir") {
-            builder.from_dfa_dir(p)
-        } else {
-            err!("missing DFA directory")
         }
     }
 

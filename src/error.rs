@@ -75,9 +75,3 @@ impl From<ucd_trie::Error> for Error {
         Error::Other(err.to_string())
     }
 }
-
-impl From<regex_automata::Error> for Error {
-    fn from(err: regex_automata::Error) -> Error {
-        Error::Other(err.to_string())
-    }
-}

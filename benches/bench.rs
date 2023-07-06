@@ -4,15 +4,12 @@ extern crate test;
 
 use std::cmp::Ordering;
 
-use byteorder::{BigEndian as BE, ByteOrder};
 use test::Bencher;
 
 mod tables;
 
 fn u32_key(cp: u32) -> [u8; 4] {
-    let mut key = [0; 4];
-    BE::write_u32(&mut key, cp);
-    key
+    cp.to_be_bytes()
 }
 
 #[bench]

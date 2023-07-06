@@ -4,14 +4,11 @@ use std::env;
 use std::fmt;
 use std::fs::File;
 use std::io::{self, Write};
-use std::mem::size_of;
 use std::path::{Path, PathBuf};
 use std::str;
 
-use byteorder::{BigEndian as BE, ByteOrder};
 use fst::raw::Fst;
 use fst::{MapBuilder, SetBuilder};
-use regex_automata::{DenseDFA, Regex, SparseDFA, StateID};
 use ucd_trie::TrieSetOwned;
 
 use crate::error::Result;
@@ -27,7 +24,6 @@ struct WriterOptions {
     char_literals: bool,
     fst_dir: Option<PathBuf>,
     trie_set: bool,
-    dfa_dir: Option<PathBuf>,
     ucd_version: Option<(u64, u64, u64)>,
 }
 
@@ -43,7 +39,6 @@ impl WriterBuilder {
             char_literals: false,
             fst_dir: None,
             trie_set: false,
-            dfa_dir: None,
             ucd_version: None,
         })
     }
@@ -67,19 +62,6 @@ impl WriterBuilder {
         let mut opts = self.0.clone();
         opts.fst_dir = Some(fst_dir.as_ref().to_path_buf());
         let mut fpath = fst_dir.as_ref().join(rust_module_name(&opts.name));
-        fpath.set_extension("rs");
-        Ok(Writer {
-            wtr: LineWriter::new(Box::new(File::create(fpath)?)),
-            wrote_header: false,
-            opts,
-        })
-    }
-
-    /// Create a new writer that writes DFAs to a directory.
-    pub fn from_dfa_dir<P: AsRef<Path>>(&self, dfa_dir: P) -> Result<Writer> {
-        let mut opts = self.0.clone();
-        opts.dfa_dir = Some(dfa_dir.as_ref().to_path_buf());
-        let mut fpath = dfa_dir.as_ref().join(rust_module_name(&opts.name));
         fpath.set_extension("rs");
         Ok(Writer {
             wtr: LineWriter::new(Box::new(File::create(fpath)?)),
@@ -932,264 +914,6 @@ impl Writer {
         Ok(())
     }
 
-    pub fn dense_regex<T: AsRef<[S]>, S: StateID>(
-        &mut self,
-        const_name: &str,
-        re: &Regex<DenseDFA<T, S>>,
-    ) -> Result<()> {
-        self.header()?;
-        self.separator()?;
-
-        let rust_name = rust_module_name(const_name);
-        let idty = rust_uint_type::<S>();
-        let fname_fwd_be = format!("{}.fwd.bigendian.dfa", rust_name);
-        let fname_rev_be = format!("{}.rev.bigendian.dfa", rust_name);
-        let fname_fwd_le = format!("{}.fwd.littleendian.dfa", rust_name);
-        let fname_rev_le = format!("{}.rev.littleendian.dfa", rust_name);
-        let ty = format!(
-            "Regex<::regex_automata::DenseDFA<&'static [{}], {}>>",
-            idty, idty
-        );
-        {
-            let dfa_dir = self.opts.dfa_dir.as_ref().unwrap();
-
-            File::create(dfa_dir.join(&fname_fwd_be))?
-                .write_all(&re.forward().to_bytes_big_endian()?)?;
-            File::create(dfa_dir.join(&fname_rev_be))?
-                .write_all(&re.reverse().to_bytes_big_endian()?)?;
-            File::create(dfa_dir.join(&fname_fwd_le))?
-                .write_all(&re.forward().to_bytes_little_endian()?)?;
-            File::create(dfa_dir.join(&fname_rev_le))?
-                .write_all(&re.reverse().to_bytes_little_endian()?)?;
-        }
-        writeln!(self.wtr, "#[cfg(target_endian = \"big\")]")?;
-        self.write_regex_static(
-            const_name,
-            &ty,
-            "DenseDFA",
-            idty,
-            &fname_fwd_be,
-            &fname_rev_be,
-        )?;
-
-        self.separator()?;
-
-        writeln!(self.wtr, "#[cfg(target_endian = \"little\")]")?;
-        self.write_regex_static(
-            const_name,
-            &ty,
-            "DenseDFA",
-            idty,
-            &fname_fwd_le,
-            &fname_rev_le,
-        )?;
-        Ok(())
-    }
-
-    pub fn sparse_regex<T: AsRef<[u8]>, S: StateID>(
-        &mut self,
-        const_name: &str,
-        re: &Regex<SparseDFA<T, S>>,
-    ) -> Result<()> {
-        self.header()?;
-        self.separator()?;
-
-        let rust_name = rust_module_name(const_name);
-        let idty = rust_uint_type::<S>();
-        let fname_fwd_be = format!("{}.fwd.bigendian.dfa", rust_name);
-        let fname_rev_be = format!("{}.rev.bigendian.dfa", rust_name);
-        let fname_fwd_le = format!("{}.fwd.littleendian.dfa", rust_name);
-        let fname_rev_le = format!("{}.rev.littleendian.dfa", rust_name);
-        let ty = format!(
-            "Regex<::regex_automata::SparseDFA<&'static [u8], {}>>",
-            idty
-        );
-        {
-            let dfa_dir = self.opts.dfa_dir.as_ref().unwrap();
-
-            File::create(dfa_dir.join(&fname_fwd_be))?
-                .write_all(&re.forward().to_bytes_big_endian()?)?;
-            File::create(dfa_dir.join(&fname_rev_be))?
-                .write_all(&re.reverse().to_bytes_big_endian()?)?;
-            File::create(dfa_dir.join(&fname_fwd_le))?
-                .write_all(&re.forward().to_bytes_little_endian()?)?;
-            File::create(dfa_dir.join(&fname_rev_le))?
-                .write_all(&re.reverse().to_bytes_little_endian()?)?;
-        }
-        writeln!(self.wtr, "#[cfg(target_endian = \"big\")]")?;
-        self.write_regex_static(
-            const_name,
-            &ty,
-            "SparseDFA",
-            "u8",
-            &fname_fwd_be,
-            &fname_rev_be,
-        )?;
-
-        self.separator()?;
-
-        writeln!(self.wtr, "#[cfg(target_endian = \"little\")]")?;
-        self.write_regex_static(
-            const_name,
-            &ty,
-            "SparseDFA",
-            "u8",
-            &fname_fwd_le,
-            &fname_rev_le,
-        )?;
-        Ok(())
-    }
-
-    pub fn dense_dfa<T: AsRef<[S]>, S: StateID>(
-        &mut self,
-        const_name: &str,
-        dfa: &DenseDFA<T, S>,
-    ) -> Result<()> {
-        self.header()?;
-        self.separator()?;
-
-        let rust_name = rust_module_name(const_name);
-        let fname_be = format!("{}.bigendian.dfa", rust_name);
-        let fname_le = format!("{}.littleendian.dfa", rust_name);
-        let idty = rust_uint_type::<S>();
-        let ty = format!("DenseDFA<&'static [{}], {}>", idty, idty);
-        {
-            let dfa_dir = self.opts.dfa_dir.as_ref().unwrap();
-            File::create(dfa_dir.join(&fname_be))?
-                .write_all(&dfa.to_bytes_big_endian()?)?;
-            File::create(dfa_dir.join(&fname_le))?
-                .write_all(&dfa.to_bytes_little_endian()?)?;
-        }
-        writeln!(self.wtr, "#[cfg(target_endian = \"big\")]")?;
-        self.write_dfa_static(const_name, &ty, "DenseDFA", idty, &fname_be)?;
-
-        self.separator()?;
-
-        writeln!(self.wtr, "#[cfg(target_endian = \"little\")]")?;
-        self.write_dfa_static(const_name, &ty, "DenseDFA", idty, &fname_le)?;
-        Ok(())
-    }
-
-    pub fn sparse_dfa<T: AsRef<[u8]>, S: StateID>(
-        &mut self,
-        const_name: &str,
-        dfa: &SparseDFA<T, S>,
-    ) -> Result<()> {
-        self.header()?;
-        self.separator()?;
-
-        let rust_name = rust_module_name(const_name);
-        let fname_be = format!("{}.bigendian.dfa", rust_name);
-        let fname_le = format!("{}.littleendian.dfa", rust_name);
-        let idty = rust_uint_type::<S>();
-        let ty = format!("SparseDFA<&'static [u8], {}>", idty);
-        {
-            let dfa_dir = self.opts.dfa_dir.as_ref().unwrap();
-            File::create(dfa_dir.join(&fname_be))?
-                .write_all(&dfa.to_bytes_big_endian()?)?;
-            File::create(dfa_dir.join(&fname_le))?
-                .write_all(&dfa.to_bytes_little_endian()?)?;
-        }
-        writeln!(self.wtr, "#[cfg(target_endian = \"big\")]")?;
-        self.write_dfa_static(const_name, &ty, "SparseDFA", "u8", &fname_be)?;
-
-        self.separator()?;
-
-        writeln!(self.wtr, "#[cfg(target_endian = \"little\")]")?;
-        self.write_dfa_static(const_name, &ty, "SparseDFA", "u8", &fname_le)?;
-        Ok(())
-    }
-
-    fn write_regex_static(
-        &mut self,
-        const_name: &str,
-        full_regex_ty: &str,
-        short_dfa_ty: &str,
-        align_to: &str,
-        file_name_fwd: &str,
-        file_name_rev: &str,
-    ) -> Result<()> {
-        writeln!(
-            self.wtr,
-            "pub static {}: ::once_cell::sync::Lazy<::regex_automata::{}> =",
-            const_name, full_regex_ty
-        )?;
-        writeln!(self.wtr, "  ::once_cell::sync::Lazy::new(|| {{")?;
-
-        writeln!(self.wtr, "    let fwd =")?;
-        self.write_dfa_deserialize(short_dfa_ty, align_to, file_name_fwd)?;
-        writeln!(self.wtr, "    ;")?;
-
-        writeln!(self.wtr, "    let rev =")?;
-        self.write_dfa_deserialize(short_dfa_ty, align_to, file_name_rev)?;
-        writeln!(self.wtr, "    ;")?;
-
-        writeln!(
-            self.wtr,
-            "    ::regex_automata::Regex::from_dfas(fwd, rev)"
-        )?;
-        writeln!(self.wtr, "  }});")?;
-
-        Ok(())
-    }
-
-    fn write_dfa_static(
-        &mut self,
-        const_name: &str,
-        full_dfa_ty: &str,
-        short_dfa_ty: &str,
-        align_to: &str,
-        file_name: &str,
-    ) -> Result<()> {
-        writeln!(
-            self.wtr,
-            "pub static {}: ::once_cell::sync::Lazy<::regex_automata::{}> =",
-            const_name, full_dfa_ty
-        )?;
-        writeln!(self.wtr, "  ::once_cell::sync::Lazy::new(|| {{")?;
-        self.write_dfa_deserialize(short_dfa_ty, align_to, file_name)?;
-        writeln!(self.wtr, "  }});")?;
-
-        Ok(())
-    }
-
-    fn write_dfa_deserialize(
-        &mut self,
-        short_dfa_ty: &str,
-        align_to: &str,
-        file_name: &str,
-    ) -> Result<()> {
-        writeln!(self.wtr, "    #[repr(C)]")?;
-        writeln!(self.wtr, "    struct Aligned<B: ?Sized> {{")?;
-        writeln!(self.wtr, "        _align: [{}; 0],", align_to)?;
-        writeln!(self.wtr, "        bytes: B,")?;
-        writeln!(self.wtr, "    }}")?;
-        writeln!(self.wtr, "    ")?;
-
-        writeln!(
-            self.wtr,
-            "    static ALIGNED: &'static Aligned<[u8]> = &Aligned {{"
-        )?;
-        writeln!(self.wtr, "        _align: [],")?;
-        writeln!(
-            self.wtr,
-            "        bytes: *include_bytes!({:?}),",
-            file_name
-        )?;
-        writeln!(self.wtr, "    }};")?;
-        writeln!(self.wtr, "    ")?;
-
-        writeln!(self.wtr, "    unsafe {{")?;
-        writeln!(
-            self.wtr,
-            "      ::regex_automata::{}::from_bytes(&ALIGNED.bytes)",
-            short_dfa_ty
-        )?;
-        writeln!(self.wtr, "    }}")?;
-
-        Ok(())
-    }
-
     fn write_slice_u8(&mut self, xs: &[u8]) -> Result<()> {
         for &x in xs {
             self.wtr.write_str(&format!("{}, ", x))?;
@@ -1405,23 +1129,9 @@ fn rust_fn_name(s: &str) -> String {
         .collect()
 }
 
-/// Return the unsigned integer type for the size of the given type, which must
-/// have size 1, 2, 4 or 8.
-fn rust_uint_type<S>() -> &'static str {
-    match size_of::<S>() {
-        1 => "u8",
-        2 => "u16",
-        4 => "u32",
-        8 => "u64",
-        s => panic!("unsupported DFA state id size: {}", s),
-    }
-}
-
 /// Return the given u32 encoded in big-endian.
 pub fn u32_key(cp: u32) -> [u8; 4] {
-    let mut key = [0; 4];
-    BE::write_u32(&mut key, cp);
-    key
+    cp.to_be_bytes()
 }
 
 /// Convert the given string into a u64, where the least significant byte of
