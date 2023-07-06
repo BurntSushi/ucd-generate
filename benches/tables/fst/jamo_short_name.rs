@@ -4,7 +4,7 @@
 //
 // Unicode version: 15.0.0.
 //
-// ucd-generate 0.2.13 is available on crates.io.
+// ucd-generate 0.2.15 is available on crates.io.
 
 pub static JAMO_SHORT_NAME: ::once_cell::sync::Lazy<
     ::fst::Map<&'static [u8]>,

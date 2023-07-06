@@ -4,7 +4,7 @@
 //
 // Unicode version: 15.0.0.
 //
-// ucd-generate 0.2.13 is available on crates.io.
+// ucd-generate 0.2.15 is available on crates.io.
 
 pub static NAMES: ::once_cell::sync::Lazy<::fst::Map<&'static [u8]>> =
     ::once_cell::sync::Lazy::new(|| {

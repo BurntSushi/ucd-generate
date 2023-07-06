@@ -4,7 +4,7 @@
 //
 // Unicode version: 15.0.0.
 //
-// ucd-generate 0.2.13 is available on crates.io.
+// ucd-generate 0.2.15 is available on crates.io.
 
 pub const GENERAL_CATEGORY_ENUM: &'static [&'static str] = &[
     "Close_Punctuation",
