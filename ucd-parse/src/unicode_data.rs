@@ -1,14 +1,9 @@
-use std::fmt;
-use std::iter;
-use std::ops::Range;
 use std::path::Path;
-use std::str::FromStr;
 
-use once_cell::sync::Lazy;
-use regex::Regex;
-
-use crate::common::{Codepoint, CodepointIter, UcdFile, UcdFileByCodepoint};
-use crate::error::Error;
+use crate::{
+    common::{Codepoint, CodepointIter, UcdFile, UcdFileByCodepoint},
+    error::Error,
+};
 
 /// Represents a single row in the `UnicodeData.txt` file.
 ///
@@ -95,13 +90,12 @@ impl UnicodeData {
     }
 }
 
-impl FromStr for UnicodeData {
+impl std::str::FromStr for UnicodeData {
     type Err = Error;
 
     fn from_str(line: &str) -> Result<UnicodeData, Error> {
-        static PARTS: Lazy<Regex> = Lazy::new(|| {
-            Regex::new(
-                r"(?x)
+        let re_parts = regex!(
+            r"(?x)
                 ^
                 ([A-Z0-9]+);  #  1; codepoint
                 ([^;]+);      #  2; name
@@ -120,10 +114,9 @@ impl FromStr for UnicodeData {
                 ([^;]*)       # 15; simple titlecase mapping
                 $
                 ",
-            )
-            .unwrap()
-        });
-        let caps = match PARTS.captures(line.trim()) {
+        );
+
+        let caps = match re_parts.captures(line.trim()) {
             Some(caps) => caps,
             None => return err!("invalid UnicodeData line"),
         };
@@ -192,8 +185,8 @@ impl FromStr for UnicodeData {
     }
 }
 
-impl fmt::Display for UnicodeData {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl std::fmt::Display for UnicodeData {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{};", self.codepoint)?;
         write!(f, "{};", self.name)?;
         write!(f, "{};", self.general_category)?;
@@ -297,23 +290,20 @@ impl UnicodeDataDecomposition {
     }
 }
 
-impl FromStr for UnicodeDataDecomposition {
+impl std::str::FromStr for UnicodeDataDecomposition {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<UnicodeDataDecomposition, Error> {
-        static WITH_TAG: Lazy<Regex> = Lazy::new(|| {
-            Regex::new(r"^(?:<(?P<tag>[^>]+)>)?\s*(?P<chars>[\s0-9A-F]+)$")
-                .unwrap()
-        });
-        static CHARS: Lazy<Regex> =
-            Lazy::new(|| Regex::new(r"[0-9A-F]+").unwrap());
+        let re_with_tag =
+            regex!(r"^(?:<(?P<tag>[^>]+)>)?\s*(?P<chars>[\s0-9A-F]+)$");
+        let re_chars = regex!(r"[0-9A-F]+");
         if s.is_empty() {
             return err!(
                 "expected non-empty string for \
                  UnicodeDataDecomposition value"
             );
         }
-        let caps = match WITH_TAG.captures(s) {
+        let caps = match re_with_tag.captures(s) {
             Some(caps) => caps,
             None => return err!("invalid decomposition value"),
         };
@@ -323,7 +313,7 @@ impl FromStr for UnicodeDataDecomposition {
             decomp.tag = Some(m.as_str().parse()?);
             codepoints = &caps["chars"];
         }
-        for m in CHARS.find_iter(codepoints) {
+        for m in re_chars.find_iter(codepoints) {
             let cp = m.as_str().parse()?;
             decomp.push(cp)?;
         }
@@ -331,8 +321,8 @@ impl FromStr for UnicodeDataDecomposition {
     }
 }
 
-impl fmt::Display for UnicodeDataDecomposition {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl std::fmt::Display for UnicodeDataDecomposition {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if let Some(ref tag) = self.tag {
             write!(f, "<{}> ", tag)?;
         }
@@ -388,7 +378,7 @@ pub enum UnicodeDataDecompositionTag {
     Compat,
 }
 
-impl FromStr for UnicodeDataDecompositionTag {
+impl std::str::FromStr for UnicodeDataDecompositionTag {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<UnicodeDataDecompositionTag, Error> {
@@ -415,8 +405,8 @@ impl FromStr for UnicodeDataDecompositionTag {
     }
 }
 
-impl fmt::Display for UnicodeDataDecompositionTag {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl std::fmt::Display for UnicodeDataDecompositionTag {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         use self::UnicodeDataDecompositionTag::*;
         let s = match *self {
             Font => "font",
@@ -452,7 +442,7 @@ pub enum UnicodeDataNumeric {
     Rational(i64, i64),
 }
 
-impl FromStr for UnicodeDataNumeric {
+impl std::str::FromStr for UnicodeDataNumeric {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<UnicodeDataNumeric, Error> {
@@ -499,8 +489,8 @@ impl FromStr for UnicodeDataNumeric {
     }
 }
 
-impl fmt::Display for UnicodeDataNumeric {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl std::fmt::Display for UnicodeDataNumeric {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match *self {
             UnicodeDataNumeric::Integer(n) => write!(f, "{}", n),
             UnicodeDataNumeric::Rational(n, d) => write!(f, "{}/{}", n, d),
@@ -526,7 +516,7 @@ impl fmt::Display for UnicodeDataNumeric {
 /// have an empty name.
 pub struct UnicodeDataExpander<I: Iterator> {
     /// The underlying iterator.
-    it: iter::Peekable<I>,
+    it: std::iter::Peekable<I>,
     /// A range of codepoints to emit when we've found a pair. Otherwise,
     /// `None`.
     range: CodepointRange,
@@ -534,7 +524,7 @@ pub struct UnicodeDataExpander<I: Iterator> {
 
 struct CodepointRange {
     /// The codepoint range.
-    range: Range<u32>,
+    range: std::ops::Range<u32>,
     /// The start record. All subsequent records in this range are generated
     /// by cloning this and updating the codepoint/name.
     start_record: UnicodeData,

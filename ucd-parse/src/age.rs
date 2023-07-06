@@ -1,11 +1,12 @@
 use std::path::Path;
-use std::str::FromStr;
 
-use crate::common::{
-    parse_codepoint_association, CodepointIter, Codepoints, UcdFile,
-    UcdFileByCodepoint,
+use crate::{
+    common::{
+        parse_codepoint_association, CodepointIter, Codepoints, UcdFile,
+        UcdFileByCodepoint,
+    },
+    error::Error,
 };
-use crate::error::Error;
 
 /// A single row in the `DerivedAge.txt` file.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -28,7 +29,7 @@ impl UcdFileByCodepoint for Age {
     }
 }
 
-impl FromStr for Age {
+impl std::str::FromStr for Age {
     type Err = Error;
 
     fn from_str(line: &str) -> Result<Age, Error> {

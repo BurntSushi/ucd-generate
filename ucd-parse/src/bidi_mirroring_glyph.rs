@@ -1,12 +1,9 @@
-use std::fmt;
 use std::path::Path;
-use std::str::FromStr;
 
-use once_cell::sync::Lazy;
-use regex::Regex;
-
-use crate::common::{Codepoint, CodepointIter, UcdFile, UcdFileByCodepoint};
-use crate::error::Error;
+use crate::{
+    common::{Codepoint, CodepointIter, UcdFile, UcdFileByCodepoint},
+    error::Error,
+};
 
 /// Represents a single row in the `BidiMirroring.txt` file.
 ///
@@ -32,13 +29,12 @@ impl UcdFileByCodepoint for BidiMirroring {
     }
 }
 
-impl FromStr for BidiMirroring {
+impl std::str::FromStr for BidiMirroring {
     type Err = Error;
 
     fn from_str(line: &str) -> Result<BidiMirroring, Error> {
-        static PARTS: Lazy<Regex> = Lazy::new(|| {
-            Regex::new(
-                r"(?x)
+        let re_parts = regex!(
+            r"(?x)
                 ^
                 \s*(?P<codepoint>[A-F0-9]+)\s*;
                 \s*(?P<substitute_codepoint>[A-F0-9]+)
@@ -46,10 +42,8 @@ impl FromStr for BidiMirroring {
                 \#(?:.+)
                 $
                 ",
-            )
-            .unwrap()
-        });
-        let caps = match PARTS.captures(line.trim()) {
+        );
+        let caps = match re_parts.captures(line.trim()) {
             Some(caps) => caps,
             None => return err!("invalid BidiMirroring line"),
         };
@@ -61,8 +55,8 @@ impl FromStr for BidiMirroring {
     }
 }
 
-impl fmt::Display for BidiMirroring {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl std::fmt::Display for BidiMirroring {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{};", self.codepoint)?;
         write!(f, "{};", self.bidi_mirroring_glyph)?;
         Ok(())

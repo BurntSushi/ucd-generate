@@ -1,11 +1,12 @@
 use std::path::Path;
-use std::str::FromStr;
 
-use crate::common::{
-    parse_codepoint_association, CodepointIter, Codepoints, UcdFile,
-    UcdFileByCodepoint,
+use crate::{
+    common::{
+        parse_codepoint_association, CodepointIter, Codepoints, UcdFile,
+        UcdFileByCodepoint,
+    },
+    error::Error,
 };
-use crate::error::Error;
 
 /// A single row in the `PropList.txt` file.
 ///
@@ -31,7 +32,7 @@ impl UcdFileByCodepoint for Property {
     }
 }
 
-impl FromStr for Property {
+impl std::str::FromStr for Property {
     type Err = Error;
 
     fn from_str(line: &str) -> Result<Property, Error> {

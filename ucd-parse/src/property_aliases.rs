@@ -1,11 +1,6 @@
 use std::path::Path;
-use std::str::FromStr;
 
-use once_cell::sync::Lazy;
-use regex::Regex;
-
-use crate::common::UcdFile;
-use crate::error::Error;
+use crate::{common::UcdFile, error::Error};
 
 /// A single row in the `PropertyAliases.txt` file.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -24,32 +19,27 @@ impl UcdFile for PropertyAlias {
     }
 }
 
-impl FromStr for PropertyAlias {
+impl std::str::FromStr for PropertyAlias {
     type Err = Error;
 
     fn from_str(line: &str) -> Result<PropertyAlias, Error> {
-        static PARTS: Lazy<Regex> = Lazy::new(|| {
-            Regex::new(
-                r"(?x)
+        let re_parts = regex!(
+            r"(?x)
                 ^
                 \s*(?P<abbrev>[^\s;]+)\s*;
                 \s*(?P<long>[^\s;]+)\s*
                 (?:;(?P<aliases>.*))?
                 ",
-            )
-            .unwrap()
-        });
-        static ALIASES: Lazy<Regex> = Lazy::new(|| {
-            Regex::new(r"\s*(?P<alias>[^\s;]+)\s*;?\s*").unwrap()
-        });
+        );
+        let re_aliases = regex!(r"\s*(?P<alias>[^\s;]+)\s*;?\s*");
 
-        let caps = match PARTS.captures(line.trim()) {
+        let caps = match re_parts.captures(line.trim()) {
             Some(caps) => caps,
             None => return err!("invalid PropertyAliases line: '{}'", line),
         };
         let mut aliases = vec![];
         if let Some(m) = caps.name("aliases") {
-            for acaps in ALIASES.captures_iter(m.as_str()) {
+            for acaps in re_aliases.captures_iter(m.as_str()) {
                 let alias = acaps.name("alias").unwrap().as_str();
                 aliases.push(alias.to_string());
             }

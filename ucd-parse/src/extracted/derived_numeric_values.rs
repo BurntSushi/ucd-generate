@@ -1,11 +1,9 @@
 use std::path::Path;
-use std::str::FromStr;
 
-use once_cell::sync::Lazy;
-use regex::Regex;
-
-use crate::common::{CodepointIter, Codepoints, UcdFile, UcdFileByCodepoint};
-use crate::error::Error;
+use crate::{
+    common::{CodepointIter, Codepoints, UcdFile, UcdFileByCodepoint},
+    error::Error,
+};
 
 /// A single row in the `extracted/DerivedNumericValues.txt` file.
 ///
@@ -34,24 +32,21 @@ impl UcdFileByCodepoint for DerivedNumericValues {
     }
 }
 
-impl FromStr for DerivedNumericValues {
+impl std::str::FromStr for DerivedNumericValues {
     type Err = Error;
 
     fn from_str(line: &str) -> Result<DerivedNumericValues, Error> {
-        static PARTS: Lazy<Regex> = Lazy::new(|| {
-            Regex::new(
-                r"(?x)
+        let re_parts = regex!(
+            r"(?x)
                 ^
                 \s*(?P<codepoints>[^\s;]+)\s*;
                 \s*(?P<numeric_value_decimal>[^\s;]+)\s*;
                 \s*;
                 \s*(?P<numeric_value_fraction>[^\s;]+)\s*
                 ",
-            )
-            .unwrap()
-        });
+        );
 
-        let caps = match PARTS.captures(line.trim()) {
+        let caps = match re_parts.captures(line.trim()) {
             Some(caps) => caps,
             None => return err!("invalid PropList line: '{}'", line),
         };

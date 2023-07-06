@@ -1,11 +1,12 @@
 use std::path::Path;
-use std::str::FromStr;
 
-use crate::common::{
-    parse_codepoint_association, CodepointIter, Codepoints, UcdFile,
-    UcdFileByCodepoint,
+use crate::{
+    common::{
+        parse_codepoint_association, CodepointIter, Codepoints, UcdFile,
+        UcdFileByCodepoint,
+    },
+    error::Error,
 };
-use crate::error::Error;
 
 /// A single row in the `extracted/DerivedJoiningType.txt` file.
 ///
@@ -30,7 +31,7 @@ impl UcdFileByCodepoint for DerivedJoiningType {
     }
 }
 
-impl FromStr for DerivedJoiningType {
+impl std::str::FromStr for DerivedJoiningType {
     type Err = Error;
 
     fn from_str(line: &str) -> Result<DerivedJoiningType, Error> {

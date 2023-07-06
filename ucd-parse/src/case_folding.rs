@@ -1,11 +1,9 @@
 use std::path::Path;
-use std::str::FromStr;
 
-use once_cell::sync::Lazy;
-use regex::Regex;
-
-use crate::common::{Codepoint, CodepointIter, UcdFile, UcdFileByCodepoint};
-use crate::error::Error;
+use crate::{
+    common::{Codepoint, CodepointIter, UcdFile, UcdFileByCodepoint},
+    error::Error,
+};
 
 /// A single row in the `CaseFolding.txt` file.
 ///
@@ -38,23 +36,20 @@ impl UcdFileByCodepoint for CaseFold {
     }
 }
 
-impl FromStr for CaseFold {
+impl std::str::FromStr for CaseFold {
     type Err = Error;
 
     fn from_str(line: &str) -> Result<CaseFold, Error> {
-        static PARTS: Lazy<Regex> = Lazy::new(|| {
-            Regex::new(
-                r"(?x)
+        let re_parts = regex!(
+            r"(?x)
                 ^
                 \s*(?P<codepoint>[^\s;]+)\s*;
                 \s*(?P<status>[^\s;]+)\s*;
                 \s*(?P<mapping>[^;]+)\s*;
                 ",
-            )
-            .unwrap()
-        });
+        );
 
-        let caps = match PARTS.captures(line.trim()) {
+        let caps = match re_parts.captures(line.trim()) {
             Some(caps) => caps,
             None => return err!("invalid CaseFolding line: '{}'", line),
         };
@@ -100,7 +95,7 @@ impl CaseStatus {
     }
 }
 
-impl FromStr for CaseStatus {
+impl std::str::FromStr for CaseStatus {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<CaseStatus, Error> {

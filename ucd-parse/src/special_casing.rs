@@ -1,14 +1,12 @@
 use std::path::Path;
-use std::str::FromStr;
 
-use once_cell::sync::Lazy;
-use regex::Regex;
-
-use crate::common::{
-    parse_codepoint_sequence, Codepoint, CodepointIter, UcdFile,
-    UcdFileByCodepoint,
+use crate::{
+    common::{
+        parse_codepoint_sequence, Codepoint, CodepointIter, UcdFile,
+        UcdFileByCodepoint,
+    },
+    error::Error,
 };
-use crate::error::Error;
 
 /// A single row in the `SpecialCasing.txt` file.
 ///
@@ -42,13 +40,12 @@ impl UcdFileByCodepoint for SpecialCaseMapping {
     }
 }
 
-impl FromStr for SpecialCaseMapping {
+impl std::str::FromStr for SpecialCaseMapping {
     type Err = Error;
 
     fn from_str(line: &str) -> Result<SpecialCaseMapping, Error> {
-        static PARTS: Lazy<Regex> = Lazy::new(|| {
-            Regex::new(
-                r"(?x)
+        let re_parts = regex!(
+            r"(?x)
                 ^
                 \s*(?P<codepoint>[^\s;]+)\s*;
                 \s*(?P<lower>[^;]+)\s*;
@@ -56,11 +53,9 @@ impl FromStr for SpecialCaseMapping {
                 \s*(?P<upper>[^;]+)\s*;
                 \s*(?P<conditions>[^;\x23]+)?
                 ",
-            )
-            .unwrap()
-        });
+        );
 
-        let caps = match PARTS.captures(line.trim()) {
+        let caps = match re_parts.captures(line.trim()) {
             Some(caps) => caps,
             None => return err!("invalid SpecialCasing line: '{}'", line),
         };

@@ -1,8 +1,9 @@
 use std::path::Path;
-use std::str::FromStr;
 
-use crate::common::{parse_break_test, UcdFile};
-use crate::error::Error;
+use crate::{
+    common::{parse_break_test, UcdFile},
+    error::Error,
+};
 
 /// A single row in the `auxiliary/LineBreakTest.txt` file.
 ///
@@ -22,7 +23,7 @@ impl UcdFile for LineBreakTest {
     }
 }
 
-impl FromStr for LineBreakTest {
+impl std::str::FromStr for LineBreakTest {
     type Err = Error;
 
     fn from_str(line: &str) -> Result<LineBreakTest, Error> {
