@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, path::Path};
 
 use ucd_parse::{self, Codepoint, NameAlias, UnicodeData};
 use ucd_util;
@@ -8,6 +8,7 @@ use crate::error::Result;
 
 pub fn command(args: ArgMatches<'_>) -> Result<()> {
     let dir = args.ucd_dir()?;
+    let jamo_short_name_map = crate::jamo_short_name::table(Path::new(dir))?;
     let data = ucd_parse::parse_by_codepoint(&dir)?;
     let aliases = if args.is_present("no-aliases") {
         None
@@ -17,6 +18,7 @@ pub fn command(args: ArgMatches<'_>) -> Result<()> {
     let mut names = names_to_codepoint(
         &data,
         &aliases,
+        &crate::jamo_short_name::table_ref(&jamo_short_name_map),
         !args.is_present("no-ideograph"),
         !args.is_present("no-hangul"),
     );
@@ -83,6 +85,7 @@ impl NameTag {
 fn names_to_codepoint(
     data: &BTreeMap<Codepoint, UnicodeData>,
     aliases: &Option<BTreeMap<Codepoint, Vec<NameAlias>>>,
+    jamo_short_name_table: &[(u32, &str)],
     ideograph: bool,
     hangul: bool,
 ) -> BTreeMap<String, (NameTag, u32)> {
@@ -125,7 +128,10 @@ fn names_to_codepoint(
         for &(start, end) in ucd_util::RANGE_HANGUL_SYLLABLE {
             for cp in start..end + 1 {
                 let v = (NameTag::Hangul, cp);
-                map.insert(ucd_util::hangul_name(cp).unwrap(), v);
+                map.insert(
+                    ucd_util::hangul_name(jamo_short_name_table, cp).unwrap(),
+                    v,
+                );
             }
         }
     }

@@ -1,3 +1,4 @@
+#[cfg(test)]
 pub mod jamo_short_name;
 #[cfg(test)]
 pub mod property_names;

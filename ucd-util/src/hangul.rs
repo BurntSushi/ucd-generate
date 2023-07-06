@@ -1,5 +1,3 @@
-use crate::unicode_tables::jamo_short_name::JAMO_SHORT_NAME;
-
 // This implementation should correspond to the algorithms described in
 // Unicode 3.12.
 
@@ -22,16 +20,23 @@ const N_COUNT: u32 = 588;
 /// codepoint in the inclusive range `AC00..D7A3`, then this returns `None`.
 ///
 /// This implements the algorithms described in Unicode 3.12 and Unicode 4.8.
-pub fn hangul_name(cp: u32) -> Option<String> {
+///
+/// The `table` given should be a map from codepoint to the corresponding
+/// Jamo short name for that codepoint. If you're using `ucd-generate`, then
+/// the table can be generated via the `jamo-short-name` sub-command.
+pub fn hangul_name<'a>(
+    table: &'a [(u32, &'a str)],
+    cp: u32,
+) -> Option<String> {
     let mut name = "HANGUL SYLLABLE ".to_string();
     let (lpart, vpart, tpart) = match hangul_full_canonical_decomposition(cp) {
         None => return None,
         Some(triple) => triple,
     };
 
-    name.push_str(jamo_short_name(lpart));
-    name.push_str(jamo_short_name(vpart));
-    name.push_str(tpart.map_or("", jamo_short_name));
+    name.push_str(jamo_short_name(table, lpart));
+    name.push_str(jamo_short_name(table, vpart));
+    name.push_str(tpart.map_or("", |cp| jamo_short_name(table, cp)));
     Some(name)
 }
 
@@ -63,13 +68,17 @@ pub fn hangul_full_canonical_decomposition(
     Some((l_part, v_part, t_part))
 }
 
-fn jamo_short_name(cp: u32) -> &'static str {
-    let i = JAMO_SHORT_NAME.binary_search_by_key(&cp, |p| p.0).unwrap();
-    JAMO_SHORT_NAME[i].1
+type JamoShortName<'a> = &'a [(u32, &'a str)];
+
+fn jamo_short_name<'a>(table: JamoShortName<'a>, cp: u32) -> &'a str {
+    let i = table.binary_search_by_key(&cp, |p| p.0).unwrap();
+    table[i].1
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::unicode_tables::jamo_short_name::JAMO_SHORT_NAME as TABLE;
+
     use super::{hangul_full_canonical_decomposition, hangul_name};
 
     #[test]
@@ -82,18 +91,21 @@ mod tests {
 
     #[test]
     fn name() {
-        assert_eq!(hangul_name(0xD4DB).unwrap(), "HANGUL SYLLABLE PWILH");
+        assert_eq!(
+            hangul_name(TABLE, 0xD4DB).unwrap(),
+            "HANGUL SYLLABLE PWILH"
+        );
     }
 
     #[test]
     fn all() {
         for cp in 0xAC00..(0xD7A3 + 1) {
-            hangul_name(cp).unwrap();
+            hangul_name(TABLE, cp).unwrap();
         }
     }
 
     #[test]
     fn invalid() {
-        assert!(hangul_name(0).is_none());
+        assert!(hangul_name(TABLE, 0).is_none());
     }
 }
