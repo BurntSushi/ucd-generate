@@ -4,7 +4,7 @@
 //
 // Unicode version: 15.0.0.
 //
-// ucd-generate 0.2.13 is available on crates.io.
+// ucd-generate 0.2.15 is available on crates.io.
 
 pub const PROPERTY_VALUES: &'static [(
     &'static str,
@@ -768,7 +768,6 @@ pub const PROPERTY_VALUES: &'static [(
     (
         "Canonical_Combining_Class",
         &[
-            ("", "Iota_Subscript"),
             ("0", "Not_Reordered"),
             ("1", "Overlay"),
             ("10", "CCC10"),
@@ -891,6 +890,7 @@ pub const PROPERTY_VALUES: &'static [(
             ("hanr", "Han_Reading"),
             ("hanreading", "Han_Reading"),
             ("iotasubscript", "Iota_Subscript"),
+            ("is", "Iota_Subscript"),
             ("kanavoicing", "Kana_Voicing"),
             ("kv", "Kana_Voicing"),
             ("l", "Left"),
@@ -1813,7 +1813,6 @@ pub const PROPERTY_VALUES: &'static [(
     (
         "Line_Break",
         &[
-            ("", "Infix_Numeric"),
             ("ai", "Ambiguous"),
             ("al", "Alphabetic"),
             ("alphabetic", "Alphabetic"),
@@ -1859,6 +1858,7 @@ pub const PROPERTY_VALUES: &'static [(
             ("infixnumeric", "Infix_Numeric"),
             ("inseparable", "Inseparable"),
             ("inseperable", "Inseparable"),
+            ("is", "Infix_Numeric"),
             ("jl", "JL"),
             ("jt", "JT"),
             ("jv", "JV"),
