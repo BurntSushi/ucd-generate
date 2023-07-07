@@ -5,9 +5,6 @@ can typically be generated in one of three formats: a sorted sequence of
 character ranges, a
 [finite state transducer](https://github.com/BurntSushi/fst)
 or a compressed trie. Full support for name canonicalization is also provided.
-This tool also supports serializing regular expressions as DFAs using the
-[regex-automata](https://github.com/BurntSushi/regex-automata)
-crate.
 
 [![Build status](https://github.com/BurntSushi/ucd-generate/workflows/ci/badge.svg)](https://github.com/BurntSushi/ucd-generate/actions)
 [![crates.io](https://img.shields.io/crates/v/ucd-generate.svg)](https://crates.io/crates/ucd-generate)
@@ -87,6 +84,12 @@ pub const QUOTATION_MARK: &'static [(char, char)] = &[
 ];
 ```
 
+### DFA serialization
+
+Prior to `ucd-generate 0.3.0`, the sub-commands `dfa` and `regex` could be used
+to build fully compiled DFAs, serialize them to disk and generate Rust code for
+deserializing them. This functionality was removed in `0.3.0` and
+[moved to `regex-cli`](https://github.com/rust-lang/regex/tree/master/regex-cli#example-serialize-a-dfa).
 
 ### Contributing
 
