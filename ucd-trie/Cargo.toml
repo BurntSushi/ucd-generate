@@ -11,7 +11,7 @@ repository = "https://github.com/BurntSushi/ucd-generate"
 readme = "README.md"
 keywords = ["unicode", "database", "character", "codepoint", "trie"]
 license = "MIT OR Apache-2.0"
-edition = "2018"
+edition = "2021"
 
 [dev-dependencies]
 once_cell = "1"

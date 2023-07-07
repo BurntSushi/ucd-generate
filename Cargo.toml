@@ -13,7 +13,8 @@ readme = "README.md"
 keywords = ["unicode", "generate", "character", "table", "fst"]
 license = "MIT OR Apache-2.0"
 categories = ["text-processing", "internationalization"]
-edition = "2018"
+edition = "2021"
+rust-version = "1.70"
 
 [workspace]
 members = ["ucd-parse", "ucd-trie", "ucd-util"]
