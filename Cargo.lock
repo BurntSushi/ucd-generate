@@ -67,7 +67,7 @@ dependencies = [
 
 [[package]]
 name = "ucd-parse"
-version = "0.1.10"
+version = "0.1.11"
 dependencies = [
  "regex-lite",
 ]
