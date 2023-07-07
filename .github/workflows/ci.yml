@@ -19,7 +19,7 @@ jobs:
         include:
         - build: pinned
           os: ubuntu-latest
-          rust: 1.62.0
+          rust: 1.70.0
         - build: stable
           os: ubuntu-latest
           rust: stable
@@ -33,7 +33,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
     - name: Install Rust
-      uses: dtolnay/rust-toolchain@v1
+      uses: dtolnay/rust-toolchain@master
       with:
         toolchain: ${{ matrix.rust }}
     - run: cargo build --all --verbose
@@ -49,7 +49,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
     - name: Install Rust
-      uses: dtolnay/rust-toolchain@v1
+      uses: dtolnay/rust-toolchain@master
       with:
         toolchain: stable
         components: rustfmt
