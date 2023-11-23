@@ -1,3 +1,4 @@
+use std::ffi::OsString;
 use std::io;
 use std::io::Write;
 
@@ -12,7 +13,13 @@ use crate::{
     script,
 };
 
-pub fn run(matches: clap::ArgMatches) -> error::Result<()> {
+/// Run ucd-generate, with the provided "command line" arguments.
+pub fn run<I, T>(matches: I) -> error::Result<()>
+where
+    I: IntoIterator<Item = T>,
+    T: Into<OsString> + Clone,
+{
+    let matches = app::app().get_matches_from(matches);
     match matches.subcommand() {
         ("bidi-class", Some(m)) => bidi_class::command(ArgMatches::new(m)),
         ("bidi-mirroring-glyph", Some(m)) => {

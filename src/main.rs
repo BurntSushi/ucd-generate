@@ -1,4 +1,4 @@
-use std::process;
+use std::{env, process};
 
 mod common;
 mod run;
@@ -6,8 +6,7 @@ mod run;
 pub(crate) use common::*;
 
 fn main() {
-    let matches = app::app().get_matches();
-    if let Err(err) = run::run(matches) {
+    if let Err(err) = run::run(&mut env::args_os()) {
         if err.is_broken_pipe() {
             process::exit(0);
         }
