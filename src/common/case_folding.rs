@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use ucd_parse::{self, CaseFold, CaseStatus, Codepoint};
 
 use crate::args::ArgMatches;
-use crate::common::err;
+use crate::err;
 use crate::error::Result;
 
 pub fn command(args: ArgMatches<'_>) -> Result<()> {

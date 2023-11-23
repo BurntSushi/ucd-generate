@@ -12,7 +12,7 @@ use fst::{MapBuilder, SetBuilder};
 
 use ucd_trie::TrieSetOwned;
 
-use crate::common::err;
+use crate::err;
 use crate::error::Result;
 use crate::util;
 
