@@ -9,8 +9,10 @@ use std::str;
 
 use fst::raw::Fst;
 use fst::{MapBuilder, SetBuilder};
+
 use ucd_trie::TrieSetOwned;
 
+use crate::common::err;
 use crate::error::Result;
 use crate::util;
 
@@ -1170,10 +1172,12 @@ fn smallest_unsigned_type(n: u64) -> &'static str {
 
 #[cfg(test)]
 mod tests {
+    use std::io::Cursor;
+
+    use crate::error::Error;
+
     use super::WriterBuilder;
     use super::{pack_str, rust_type_name};
-    use crate::error::Error;
-    use std::io::Cursor;
 
     fn unpack_str(mut encoded: u64) -> String {
         let mut value = String::new();

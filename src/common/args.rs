@@ -3,6 +3,7 @@ use std::ops;
 
 use clap;
 
+use crate::err;
 use crate::error::Result;
 use crate::util::Filter;
 use crate::writer::{Writer, WriterBuilder};

@@ -24,6 +24,9 @@ bench = false
 path = "src/main.rs"
 name = "ucd-generate"
 
+[lib]
+path = "src/lib.rs"
+
 [dependencies]
 fst = "0.4.0"
 ucd-parse = { version = "0.1.10", path = "ucd-parse" }

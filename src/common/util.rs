@@ -5,6 +5,7 @@ use std::str;
 use ucd_parse::{PropertyAlias, PropertyValueAlias};
 use ucd_util;
 
+use crate::err;
 use crate::error::Result;
 
 /// Filter is an include/exclude filter of strings specified on the command
