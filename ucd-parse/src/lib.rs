@@ -19,6 +19,7 @@ pub use crate::{
     bidi_mirroring_glyph::BidiMirroring,
     case_folding::{CaseFold, CaseStatus},
     core_properties::CoreProperty,
+    derived_normalization_properties::DerivedNormalizationProperty,
     east_asian_width::EastAsianWidth,
     emoji_properties::EmojiProperty,
     grapheme_cluster_break::{GraphemeClusterBreak, GraphemeClusterBreakTest},
@@ -65,6 +66,7 @@ mod arabic_shaping;
 mod bidi_mirroring_glyph;
 mod case_folding;
 mod core_properties;
+mod derived_normalization_properties;
 mod east_asian_width;
 mod emoji_properties;
 mod grapheme_cluster_break;
