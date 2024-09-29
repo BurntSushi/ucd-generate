@@ -27,7 +27,7 @@ name = "ucd-generate"
 [dependencies]
 fst = "0.4.0"
 ucd-parse = { version = "0.1.10", path = "ucd-parse" }
-ucd-trie = { version = "0.1.5", path = "ucd-trie" }
+ucd-trie = { version = "0.1.7", path = "ucd-trie" }
 ucd-util = { version = "0.2.0", path = "ucd-util"  }
 
 [dependencies.clap]
