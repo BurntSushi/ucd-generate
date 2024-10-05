@@ -62,6 +62,11 @@ script-extension produces one table of Unicode codepoint ranges for each
 possible Script_Extension value.
 ";
 
+const ABOUT_JOINING_GROUP: &'static str = "\
+joining-group produces one table of Unicode codepoint ranges for each
+possible Joining_Group value.
+";
+
 const ABOUT_JOINING_TYPE: &'static str = "\
 joining-type produces one table of Unicode codepoint ranges for each
 possible Joining_Type value.
@@ -383,6 +388,24 @@ pub fn app() -> App<'static, 'static> {
             "List the properties that can be generated with this \
              command.",
         ));
+    let cmd_joining_group = SubCommand::with_name("joining-group")
+        .author(clap::crate_authors!())
+        .version(clap::crate_version!())
+        .template(TEMPLATE_SUB)
+        .about("Create the Joining_Group property tables.")
+        .before_help(ABOUT_JOINING_GROUP)
+        .arg(ucd_dir.clone())
+        .arg(flag_fst_dir.clone())
+        .arg(flag_name("JOINING_GROUP"))
+        .arg(flag_chars.clone())
+        .arg(flag_trie_set.clone())
+        .arg(Arg::with_name("enum").long("enum").help(
+            "Emit a single table that maps codepoints to joining group.",
+        ))
+        .arg(Arg::with_name("rust-enum").long("rust-enum").help(
+            "Emit a Rust enum and a table that maps codepoints to \
+                 joining group.",
+        ));
     let cmd_joining_type =
         SubCommand::with_name("joining-type")
             .author(clap::crate_authors!())
@@ -647,6 +670,7 @@ pub fn app() -> App<'static, 'static> {
         .subcommand(cmd_general_category)
         .subcommand(cmd_script)
         .subcommand(cmd_script_extension)
+        .subcommand(cmd_joining_group)
         .subcommand(cmd_joining_type)
         .subcommand(cmd_age)
         .subcommand(cmd_bidi_mirroring_glyph)
