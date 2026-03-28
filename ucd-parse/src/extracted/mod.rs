@@ -3,7 +3,7 @@ Types for parsing files in the `extracted` subdirectory of the Unicode
 Character Database download.
 
 These are placed here, rather than at the top level, to help keep the number of
-types in any given module managable.
+types in any given module manageable.
 */
 
 pub use self::{
