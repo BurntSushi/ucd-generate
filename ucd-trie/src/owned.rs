@@ -232,7 +232,7 @@ fn compress_postfix_leaves(chunks: &[u64]) -> Result<(Vec<u8>, Vec<u64>)> {
     for &chunk in chunks {
         if !bychild.contains_key(&chunk) {
             let start = bychild.len();
-            if start > ::std::u8::MAX as usize {
+            if start > u8::MAX as usize {
                 return Err(Error::GaveUp);
             }
             bychild.insert(chunk, start as u8);
@@ -254,7 +254,7 @@ fn compress_postfix_mid(
         let chunk = &chunks[i * chunk_size..(i + 1) * chunk_size];
         if !bychild.contains_key(chunk) {
             let start = bychild.len();
-            if start > ::std::u8::MAX as usize {
+            if start > u8::MAX as usize {
                 return Err(Error::GaveUp);
             }
             bychild.insert(chunk, start as u8);

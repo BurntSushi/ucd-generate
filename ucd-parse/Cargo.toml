@@ -6,7 +6,6 @@ description = """
 A library for parsing data files in the Unicode character database.
 """
 documentation = "https://docs.rs/ucd-parse"
-homepage = "https://github.com/BurntSushi/ucd-generate"
 repository = "https://github.com/BurntSushi/ucd-generate"
 readme = "README.md"
 keywords = ["unicode", "database", "character", "property"]
