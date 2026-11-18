@@ -6,7 +6,6 @@ description = """
 A small utility library for working with the Unicode character database.
 """
 documentation = "https://docs.rs/ucd-util"
-homepage = "https://github.com/BurntSushi/ucd-generate"
 repository = "https://github.com/BurntSushi/ucd-generate"
 readme = "README.md"
 keywords = ["unicode", "database", "character", "property"]
