@@ -55,7 +55,7 @@ dependencies = [
 
 [[package]]
 name = "ucd-generate"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "clap",
  "fst",
@@ -67,21 +67,21 @@ dependencies = [
 
 [[package]]
 name = "ucd-parse"
-version = "0.1.13"
+version = "0.1.14"
 dependencies = [
  "regex-lite",
 ]
 
 [[package]]
 name = "ucd-trie"
-version = "0.1.7"
+version = "0.1.8"
 dependencies = [
  "once_cell",
 ]
 
 [[package]]
 name = "ucd-util"
-version = "0.2.2"
+version = "0.2.3"
 
 [[package]]
 name = "unicode-width"
